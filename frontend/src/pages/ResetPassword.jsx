@@ -1,97 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const ResetPassword = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
+export default function ResetPassword() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const query = new URLSearchParams(location.search);
-  const token = query.get('token');
-
-  useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing security token.');
-    }
-  }, [token]);
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      return setError('Passwords do not match.');
-    }
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters.');
-    }
-
-    setError('');
-    setMessage('');
+    if (password !== confirm) return setError(t('pw.mismatch'));
     setLoading(true);
-
+    setError('');
     try {
-      const data = await apiFetch('/auth/reset-password', {
+      const token = new URLSearchParams(window.location.search).get('token');
+      await apiFetch('/auth/reset-password', {
         method: 'POST',
-        body: JSON.stringify({ token, newPassword: password })
+        body: JSON.stringify({ token, password }),
       });
-      setMessage(data.message);
-      setTimeout(() => navigate('/login'), 3000);
+      navigate('/login', { state: { message: t('permissions.success.msg') } });
     } catch (err) {
-      setError(err.message || 'Failed to reset password.');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const mismatch = confirm && password !== confirm;
+
   return (
-    <div className="app-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 className="text-center mb-2">Create New Password</h2>
-        <p className="text-center mb-4 text-muted" style={{ fontSize: '0.875rem' }}>
-          Please enter your new secure password below to regain access.
-        </p>
-
-        {error && <div className="error-text mb-4 p-3" style={{ background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{error}</div>}
-        {message && <div className="mb-4 p-3" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', borderRadius: '8px', fontSize: '0.875rem' }}>{message}</div>}
-
-        {!message && token && (
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>New Password</label>
-              <input 
-                type="password" 
-                className="form-input" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
-              />
-            </div>
-            <div className="form-group">
-              <label>Confirm Password</label>
-              <input 
-                type="password" 
-                className="form-input" 
-                value={confirmPassword} 
-                onChange={(e) => setConfirmPassword(e.target.value)} 
-                required 
-              />
-            </div>
-            <button type="submit" className="btn-primary mt-2" disabled={loading}>
-              {loading ? 'Committing...' : 'Secure Account'}
-            </button>
-          </form>
-        )}
-
-        <div className="text-center mt-4">
-          <Link to="/login" style={{ fontSize: '0.875rem', color: '#a78bfa' }}>Return to Login</Link>
+    <div className="min-h-screen flex flex-col bg-surface text-on-surface">
+      {/* Top brand strip */}
+      <header className="flex items-center justify-between px-sm md:px-lg h-16 border-b border-outline-variant/20 bg-surface">
+        <div className="flex items-center gap-xs">
+          <span className="material-symbols-outlined text-primary" style={{ fontSize: '28px' }}>school</span>
+          <span className="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</span>
         </div>
-      </div>
+        <div className="flex items-center gap-md">
+          <span className="text-label-md text-on-surface-variant hidden md:block">
+            {t('copyright')}
+          </span>
+          
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant transition-colors"
+            title={theme === 'light' ? t('dark.mode') : t('light.mode')}
+            aria-label="Toggle theme"
+          >
+            <span className="material-symbols-outlined">
+              {theme === 'light' ? 'dark_mode' : 'light_mode'}
+            </span>
+          </button>
+
+          {/* Language Toggle */}
+          <button
+            type="button"
+            onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+            className="flex items-center gap-xs px-sm py-[6px] rounded-lg hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors uppercase tracking-wider border border-outline-variant/30 font-bold"
+            title={language === 'en' ? 'Cambiar a Español' : 'Switch to English'}
+          >
+            <span className="material-symbols-outlined text-[18px]">language</span>
+            <span>{language}</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-grow flex items-center justify-center px-sm py-xl">
+        <div className="w-full max-w-md">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm">
+            <div className="h-1.5 bg-gradient-to-r from-primary via-primary-container to-secondary" />
+            <div className="p-lg flex flex-col items-center text-center gap-md">
+              <div className="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '32px' }}>key</span>
+              </div>
+              <div>
+                <h1 className="font-headline-lg text-headline-lg text-primary">{t('create.new.pw')}</h1>
+                <p className="font-body-sm text-on-surface-variant mt-xs">{t('strong.pw.desc')}</p>
+              </div>
+              {error && (
+                <div className="w-full flex items-center gap-sm px-sm py-xs bg-error-container rounded-lg">
+                  <span className="material-symbols-outlined text-error text-lg">error</span>
+                  <p className="font-body-sm text-on-error-container">{error}</p>
+                </div>
+              )}
+              <form onSubmit={handleSubmit} className="w-full flex flex-col gap-md text-left">
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('new.password')}</label>
+                  <input
+                    type="password" required minLength={8}
+                    value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('confirm.password')}</label>
+                  <input
+                    type="password" required
+                    value={confirm} onChange={e => setConfirm(e.target.value)}
+                    placeholder="Repeat new password"
+                    className={`border rounded-lg px-sm py-sm bg-surface font-body-md w-full ${mismatch ? 'border-error' : 'border-outline-variant/50'}`}
+                  />
+                  {mismatch && <p className="font-label-md text-error">{t('pw.mismatch')}</p>}
+                </div>
+                <button
+                  type="submit" disabled={loading}
+                  className="w-full bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 flex items-center justify-center gap-sm"
+                >
+                  {loading ? <><span className="material-symbols-outlined animate-spin">sync</span> {t('resetting')}</>
+                    : <><span className="material-symbols-outlined">check_circle</span> {t('reset.password')}</>}
+                </button>
+                <p className="text-center font-body-sm text-on-surface-variant">
+                  <Link to="/login" className="text-primary hover:underline font-semibold">{t('back.signin')}</Link>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default ResetPassword;
+}

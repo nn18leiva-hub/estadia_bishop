@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SuperAdmin Dashboard | Bishop Martin Admin Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "outline": "#8e706c",
+        "surface-container-highest": "#e3e2e0",
+        "primary-container": "#800000",
+        "surface-container-high": "#e9e8e6",
+        "error-container": "#ffdad6",
+        "on-background": "#1a1c1b",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f4f3f1",
+        "on-surface": "#1a1c1b",
+        "on-secondary": "#ffffff",
+        "error": "#ba1a1a",
+        "primary": "#570000",
+        "on-surface-variant": "#5a413d",
+        "on-error": "#ffffff",
+        "surface-dim": "#dadad8",
+        "surface-bright": "#faf9f7",
+        "secondary": "#735c00",
+        "surface": "#faf9f7",
+        "surface-container": "#efeeec",
+        "background": "#faf9f7",
+        "surface-variant": "#e3e2e0",
+        "outline-variant": "#e2bfb9",
+        "secondary-container": "#fed65b",
+        "on-secondary-container": "#745c00",
+        "on-primary-container": "#ff8371",
+        "on-primary": "#ffffff",
+        "on-error-container": "#93000a",
+        "tertiary": "#162839",
+        "tertiary-container": "#2c3e50",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#96a9be"
+      },
+      borderRadius: {
+        "none": "0",
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      spacing: {
+        "none": "0",
+        "base": "4px",
+        "xs": "8px",
+        "sm": "16px",
+        "md": "24px",
+        "lg": "40px",
+        "xl": "64px",
+        "gutter": "24px"
+      },
+      fontFamily: {
+        "headline-lg": ["Libre Caslon Text", "serif"],
+        "headline-md": ["Libre Caslon Text", "serif"],
+        "headline-sm": ["Libre Caslon Text", "serif"],
+        "display-lg": ["Libre Caslon Text", "serif"],
+        "body-lg": ["Work Sans", "sans-serif"],
+        "body-md": ["Work Sans", "sans-serif"],
+        "body-sm": ["Work Sans", "sans-serif"],
+        "label-lg": ["Work Sans", "sans-serif"],
+        "label-md": ["Work Sans", "sans-serif"]
+      },
+      fontSize: {
+        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+      }
+    }
+  }
+}
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+
+<div class="flex min-h-screen">
+
+  <!-- Navigation Drawer (Desktop) -->
+  <aside class="hidden md:flex h-screen w-80 bg-surface border-r border-outline-variant/20 flex-col p-md fixed left-0 top-0 bottom-0 z-40">
+    <div class="flex items-center gap-sm mb-lg">
+      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded flex-shrink-0">
+        <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+      </div>
+      <div>
+        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight">Bishop Martin</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant">Staff Portal</p>
+      </div>
+    </div>
+
+    <nav class="flex flex-col gap-xs flex-grow">
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container font-label-lg text-label-lg rounded">
+        <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1;">grid_view</span>
+        Dashboard
+      </a>
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded">
+        <span class="material-symbols-outlined text-[22px]">group</span>
+        Users
+      </a>
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded">
+        <span class="material-symbols-outlined text-[22px]">person</span>
+        Profile
+      </a>
+    </nav>
+
+    <div class="pt-md border-t border-outline-variant/20 mt-auto">
+      <div class="flex items-center gap-sm px-sm py-sm">
+        <span class="material-symbols-outlined text-on-surface-variant text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        <div class="flex-grow min-w-0">
+          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface truncate">Administrator</p>
+          <p id="sidebar-user-email" class="font-label-md text-label-md text-on-surface-variant truncate">admin@bishopmartin.edu</p>
+        </div>
+        <button onclick="logout()" class="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+        </button>
+      </div>
+      <p class="font-label-md text-label-md text-on-surface-variant px-sm opacity-50 pb-xs">v1.0.4</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-grow md:ml-80 flex flex-col min-h-screen">
+
+    <!-- Top App Bar -->
+    <header class="flex items-center justify-between px-sm w-full h-16 z-30 bg-surface border-b border-outline-variant/20 sticky top-0 md:h-[72px]">
+      <div class="flex items-center gap-sm">
+        <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer">
+          <span class="material-symbols-outlined text-primary">menu</span>
+        </button>
+        <span class="font-headline-sm text-headline-sm font-semibold text-primary">Bishop Martin Admin Portal</span>
+      </div>
+      <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity">
+        <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+      </button>
+    </header>
+
+    <!-- Page Content -->
+    <div class="p-md md:p-lg flex-grow">
+
+      <!-- Page Header -->
+      <section class="mb-lg">
+        <h2 class="font-headline-lg text-headline-lg text-primary mb-xs">SuperAdmin Console</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          High-level system governance, server registry, and operational control.
+        </p>
+      </section>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+        <!-- Registered Base -->
+        <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded shadow-sm border-l-4 border-l-primary flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-sm">
+              <h3 class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wider">Registered Base</h3>
+              <span class="material-symbols-outlined text-primary text-[20px]">server</span>
+            </div>
+            <div class="space-y-xs">
+              <div class="flex justify-between items-center font-body-sm">
+                <span class="text-on-surface-variant">Parents &amp; Students</span>
+                <span id="stat-parents" class="text-on-surface font-bold">—</span>
+              </div>
+              <div class="flex justify-between items-center font-body-sm">
+                <span class="text-on-surface-variant">Staff Members</span>
+                <span id="stat-staff" class="text-on-surface font-bold">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-outline-variant/10 mt-md pt-sm flex justify-between items-center font-body-md font-bold">
+            <span class="text-on-surface">Total Registered</span>
+            <span id="stat-total" class="text-primary font-bold text-lg">—</span>
+          </div>
+        </div>
+
+        <!-- Online Nodes -->
+        <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded shadow-sm border-l-4 border-l-green-600 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-sm">
+              <h3 class="font-label-lg text-label-lg text-green-700 uppercase font-bold tracking-wider">Online Nodes (15m)</h3>
+              <span class="material-symbols-outlined text-green-600 text-[20px]">memory</span>
+            </div>
+            <div class="space-y-xs">
+              <div class="flex justify-between items-center font-body-sm">
+                <span class="text-on-surface-variant">Active Parents</span>
+                <span id="stat-online-parents" class="text-green-700 font-bold">—</span>
+              </div>
+              <div class="flex justify-between items-center font-body-sm">
+                <span class="text-on-surface-variant">Active Staff</span>
+                <span id="stat-online-staff" class="text-green-700 font-bold">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-outline-variant/10 mt-md pt-sm flex justify-between items-center font-body-md font-bold">
+            <span class="text-on-surface">Global Sync</span>
+            <span id="stat-online-total" class="text-green-700 font-bold text-lg">— Live</span>
+          </div>
+        </div>
+
+        <!-- System Integrity -->
+        <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase font-bold tracking-wider mb-xs">System Integrity</h3>
+            <p class="text-xs text-on-surface-variant leading-relaxed mb-sm">
+              Continuous monitoring of local database health, encryption indices, and server telemetry.
+            </p>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-label-md text-label-md text-on-surface-variant">Status Indicator</span>
+            <div class="flex items-center gap-xs font-bold text-green-600 font-body-md">
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+              NOMINAL
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-outline-variant/20 gap-md mb-lg">
+        <button onclick="setTab('registry')" id="tab-registry" class="pb-sm font-label-lg text-label-lg transition-all border-b-2 border-primary text-primary font-bold uppercase tracking-wider">
+          Staff Registry
+        </button>
+        <button onclick="setTab('provision')" id="tab-provision" class="pb-sm font-label-lg text-label-lg transition-all border-b-2 border-transparent text-on-surface-variant hover:text-primary uppercase tracking-wider">
+          Provision Staff
+        </button>
+        <button onclick="setTab('users')" id="tab-users" class="pb-sm font-label-lg text-label-lg transition-all border-b-2 border-transparent text-on-surface-variant hover:text-primary uppercase tracking-wider">
+          Public Users
+        </button>
+      </div>
+
+      <!-- Search (for registry / users tabs) -->
+      <div id="search-bar" class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded shadow-sm mb-lg">
+        <div class="relative flex items-center max-w-md">
+          <span class="material-symbols-outlined absolute left-sm text-on-surface-variant">search</span>
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Filter staff members..."
+            class="w-full pl-xl pr-sm py-sm bg-surface-bright border border-outline-variant/40 focus:border-primary outline-none rounded font-body-md transition-colors"
+            oninput="filterAndRender()"
+          >
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="tab-content"></div>
+
+    </div>
+
+    <!-- Bottom Nav (Mobile) -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20">
+      <a href="/superadmin.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-95 transition-all">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">grid_view</span>
+        <span class="font-label-md text-label-md">Dashboard</span>
+      </a>
+      <a href="/users.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">group</span>
+        <span class="font-label-md text-label-md">Users</span>
+      </a>
+      <a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-label-md text-label-md">Profile</span>
+      </a>
+    </nav>
+    <div class="h-20 md:hidden"></div>
+  </main>
+</div>
+
+<!-- Mobile Drawer -->
+<div id="mobile-drawer" class="hidden fixed inset-0 bg-black/50 z-50 md:hidden" onclick="this.classList.add('hidden')">
+  <aside class="w-80 h-full bg-surface p-md flex flex-col" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-lg">
+      <div class="flex items-center gap-sm">
+        <div class="w-10 h-10 bg-primary flex items-center justify-center rounded">
+          <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+        </div>
+        <h1 class="font-headline-sm text-headline-sm text-primary">Bishop Martin</h1>
+      </div>
+      <button onclick="document.getElementById('mobile-drawer').classList.add('hidden')" class="p-base hover:bg-surface-container-high rounded-full">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <nav class="flex flex-col gap-xs">
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container rounded font-label-lg text-label-lg">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">grid_view</span> Dashboard
+      </a>
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+        <span class="material-symbols-outlined">group</span> Users
+      </a>
+    </nav>
+    <div class="mt-auto pt-md border-t border-outline-variant/20">
+      <button onclick="logout()" class="flex items-center gap-sm px-sm py-sm w-full text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+        <span class="material-symbols-outlined">logout</span> Sign Out
+      </button>
+    </div>
+  </aside>
+</div>
+
+<!-- Password Override Modal -->
+<div id="override-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-md">
+  <div class="max-w-[500px] w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden">
+    <div class="h-1.5 w-full bg-primary-container"></div>
+    <div class="p-lg space-y-md">
+      <div class="flex flex-col items-center text-center space-y-sm">
+        <div class="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary text-[40px]">key_off</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md text-on-surface">Password Override</h3>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          Forcefully overwrite password credentials for:<br>
+          <strong id="override-target-email"></strong>
+        </p>
+      </div>
+      <div class="flex gap-sm p-sm bg-error-container/20 border border-error/10 rounded text-left">
+        <span class="material-symbols-outlined text-error flex-shrink-0">warning</span>
+        <p class="font-body-sm text-body-sm text-on-error-container leading-relaxed">
+          This permanently overwrites the database security hash. The user must log in with this temporary password and update it immediately.
+        </p>
+      </div>
+      <div class="space-y-base text-left">
+        <label class="font-label-lg text-on-surface-variant block">Temporary Password (min. 6 chars)</label>
+        <input id="override-password" type="text" placeholder="e.g. Temp1234!" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all">
+      </div>
+      <div class="flex flex-col sm:flex-row-reverse gap-sm pt-md border-t border-outline-variant/10">
+        <button onclick="executeOverride()" id="override-execute-btn" class="bg-primary text-on-primary px-xl py-md font-label-lg text-label-lg rounded hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-sm">
+          Execute Override
+        </button>
+        <button onclick="closeOverrideModal()" class="bg-transparent border border-outline text-primary px-xl py-md font-label-lg text-label-lg rounded hover:bg-surface-container-high transition-all active:scale-95">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!requireAuth('super_admin')) { /* redirected */ }
+  populateSidebar();
+
+  let currentTab = 'registry';
+  let staffList = [];
+  let userList = [];
+  let overrideTarget = null;
+
+  function setTab(tab) {
+    currentTab = tab;
+    ['registry', 'provision', 'users'].forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (t === tab) {
+        btn.className = 'pb-sm font-label-lg text-label-lg transition-all border-b-2 border-primary text-primary font-bold uppercase tracking-wider';
+      } else {
+        btn.className = 'pb-sm font-label-lg text-label-lg transition-all border-b-2 border-transparent text-on-surface-variant hover:text-primary uppercase tracking-wider';
+      }
+    });
+
+    const searchBar = document.getElementById('search-bar');
+    const searchInput = document.getElementById('search-input');
+    if (tab === 'provision') {
+      searchBar.classList.add('hidden');
+    } else {
+      searchBar.classList.remove('hidden');
+      searchInput.placeholder = tab === 'registry' ? 'Filter staff members...' : 'Filter public parent users...';
+    }
+
+    if (tab === 'provision') renderProvision();
+    else filterAndRender();
+  }
+
+  function filterAndRender() {
+    const search = (document.getElementById('search-input').value || '').toLowerCase();
+    const list = currentTab === 'registry' ? staffList : userList;
+    const filtered = list.filter(u =>
+      !search ||
+      (u.full_name || '').toLowerCase().includes(search) ||
+      (u.email || '').toLowerCase().includes(search) ||
+      String(u.staff_id || u.id || '').includes(search)
+    );
+
+    if (currentTab === 'registry') renderRegistry(filtered);
+    else if (currentTab === 'users') renderUsers(filtered);
+  }
+
+  function badgeClass(role) {
+    return role === 'super_admin'
+      ? 'bg-error-container text-on-error-container'
+      : 'bg-secondary-container text-on-secondary-container';
+  }
+
+  function renderRegistry(list) {
+    const el = document.getElementById('tab-content');
+    if (!list.length) {
+      el.innerHTML = `<div class="p-xl text-center font-body-md text-on-surface-variant">No staff nodes discovered in this sector.</div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
+            <tr>
+              <th class="p-md">Network ID</th>
+              <th class="p-md">Identity</th>
+              <th class="p-md text-center">Security Auth</th>
+              <th class="p-md text-center">Node Termination</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/10 text-body-md text-on-surface">
+            ${list.map(s => `
+              <tr class="hover:bg-surface-container-low/30 transition-colors">
+                <td class="p-md font-bold text-primary">SVR-${String(s.staff_id).padStart(4,'0')}</td>
+                <td class="p-md">
+                  <strong class="block text-on-surface font-bold mb-xs">${s.full_name}</strong>
+                  <div class="flex gap-sm items-center">
+                    <span class="font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${badgeClass(s.role)}">${s.role.replace(/_/g,' ')}</span>
+                    <span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+                      <span class="material-symbols-outlined text-[14px]">mail</span> ${s.email}
+                    </span>
+                  </div>
+                </td>
+                <td class="p-md text-center">
+                  <button onclick="openOverrideModal('${s.email}', '${s.full_name}')" class="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded hover:opacity-90 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined text-sm">key</span> Override Password
+                  </button>
+                </td>
+                <td class="p-md text-center">
+                  ${s.role !== 'super_admin' ? `
+                  <button onclick="deleteStaff(${s.staff_id})" class="inline-flex items-center gap-xs px-md py-sm bg-error-container text-on-error-container font-label-md text-label-md rounded hover:opacity-90 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined text-sm">delete</span> Delete Node
+                  </button>` : ''}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderUsers(list) {
+    const el = document.getElementById('tab-content');
+    if (!list.length) {
+      el.innerHTML = `<div class="p-xl text-center font-body-md text-on-surface-variant">No matching user accounts discovered.</div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
+            <tr>
+              <th class="p-md">User ID</th>
+              <th class="p-md">Identity</th>
+              <th class="p-md">Verification</th>
+              <th class="p-md">Meta Details</th>
+              <th class="p-md text-center">Override Password</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/10 text-body-md text-on-surface">
+            ${list.map(u => `
+              <tr class="hover:bg-surface-container-low/30 transition-colors">
+                <td class="p-md font-bold text-primary">USR-${String(u.id).padStart(4,'0')}</td>
+                <td class="p-md">
+                  <strong class="block font-bold mb-xs">${u.full_name}</strong>
+                  <span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-[14px]">mail</span> ${u.email}
+                  </span>
+                </td>
+                <td class="p-md">
+                  <span class="font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${u.verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'}">
+                    ${u.verified ? 'Verified' : 'Unverified'}
+                  </span>
+                </td>
+                <td class="p-md font-body-sm text-body-sm text-on-surface-variant">
+                  <div>DOB: ${u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</div>
+                  <div>Phone: ${u.phone || 'N/A'}</div>
+                </td>
+                <td class="p-md text-center">
+                  <button onclick="openOverrideModal('${u.email}', '${u.full_name}')" class="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded hover:opacity-90 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined text-sm">key</span> Override
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderProvision() {
+    document.getElementById('tab-content').innerHTML = `
+      <div class="max-w-2xl mx-auto w-full">
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden">
+          <div class="relative h-24 bg-primary overflow-hidden">
+            <div class="absolute inset-0 opacity-10 grid grid-cols-6 h-full w-full">
+              ${[...Array(6)].map(() => '<div class="border-r border-white"></div>').join('')}
+            </div>
+            <div class="relative h-full flex flex-col justify-center px-lg">
+              <h3 class="font-headline-lg text-white">Provision New Staff Node</h3>
+              <p class="text-on-primary-container font-label-lg">Onboard a new administrative staff member</p>
+            </div>
+          </div>
+          <form id="provision-form" class="p-lg space-y-md" autocomplete="off">
+            <div id="provision-error" class="hidden p-sm text-center text-error bg-error-container rounded border border-outline-variant/10 text-xs font-bold"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <div class="space-y-base">
+                <label class="font-label-lg text-on-surface-variant block">Full Name</label>
+                <input id="prov-name" type="text" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
+              </div>
+              <div class="space-y-base">
+                <label class="font-label-lg text-on-surface-variant block">Institutional Email</label>
+                <input id="prov-email" type="email" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
+              </div>
+              <div class="space-y-base">
+                <label class="font-label-lg text-on-surface-variant block">Access Level</label>
+                <select id="prov-role" class="w-full py-sm px-sm bg-surface border border-outline-variant focus:border-primary outline-none rounded font-body-md appearance-none">
+                  <option value="admin">Level 3: Admin</option>
+                  <option value="viewer">Level 2: Viewer (Read-only)</option>
+                  <option value="super_admin">Level 4: Super Admin (Root)</option>
+                </select>
+              </div>
+              <div class="space-y-base">
+                <label class="font-label-lg text-on-surface-variant block">Temporary Password</label>
+                <input id="prov-password" type="password" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
+              </div>
+            </div>
+            <div class="pt-md border-t border-outline-variant/20 flex justify-end">
+              <button type="submit" class="w-full sm:w-auto px-xl py-sm bg-primary text-on-primary font-label-lg text-label-lg rounded shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                Deploy Active Account
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>`;
+
+    document.getElementById('provision-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('provision-error');
+      errEl.classList.add('hidden');
+      const btn = e.target.querySelector('button[type=submit]');
+      btn.textContent = 'Creating Account...';
+      btn.disabled = true;
+      try {
+        await apiFetch('/superadmin/staff', {
+          method: 'POST',
+          body: JSON.stringify({
+            full_name: document.getElementById('prov-name').value,
+            email: document.getElementById('prov-email').value,
+            role: document.getElementById('prov-role').value,
+            password: document.getElementById('prov-password').value
+          })
+        });
+        setTab('registry');
+        loadData();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+        btn.textContent = 'Deploy Active Account';
+        btn.disabled = false;
+      }
+    });
+  }
+
+  function openOverrideModal(email, name) {
+    overrideTarget = { email, name };
+    document.getElementById('override-target-email').textContent = email;
+    document.getElementById('override-password').value = '';
+    document.getElementById('override-modal').classList.remove('hidden');
+  }
+
+  function closeOverrideModal() {
+    document.getElementById('override-modal').classList.add('hidden');
+    overrideTarget = null;
+  }
+
+  async function executeOverride() {
+    const pw = document.getElementById('override-password').value;
+    if (pw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+    const btn = document.getElementById('override-execute-btn');
+    btn.textContent = 'Executing Reset...';
+    btn.disabled = true;
+    try {
+      await apiFetch('/superadmin/override-password', {
+        method: 'POST',
+        body: JSON.stringify({ targetEmail: overrideTarget.email, newPassword: pw })
+      });
+      alert(`Successfully overrode password for ${overrideTarget.email}`);
+      closeOverrideModal();
+    } catch (err) {
+      alert('Override failed: ' + err.message);
+    } finally {
+      btn.textContent = 'Execute Override';
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteStaff(id) {
+    if (!confirm('Are you sure you want to permanently delete this staff member?')) return;
+    try {
+      await apiFetch(`/superadmin/staff/${id}`, { method: 'DELETE' });
+      loadData();
+    } catch (err) {
+      alert('Failed to delete: ' + err.message);
+    }
+  }
+
+  async function loadData() {
+    try {
+      const [staff, users, stats] = await Promise.all([
+        apiFetch('/superadmin/staff'),
+        apiFetch('/superadmin/users'),
+        apiFetch('/superadmin/stats').catch(() => ({ registered: { staff: [], parents: [] }, online: { staff: [], parents: [] } }))
+      ]);
+
+      staffList = Array.isArray(staff) ? staff : [];
+      userList = Array.isArray(users) ? users : [];
+
+      const totalParents = stats?.registered?.parents?.reduce((a, c) => a + parseInt(c.count), 0) ?? userList.length;
+      const totalStaff = stats?.registered?.staff?.reduce((a, c) => a + parseInt(c.count), 0) ?? staffList.length;
+      const onlineParents = stats?.online?.parents?.reduce((a, c) => a + parseInt(c.count), 0) ?? 0;
+      const onlineStaff = stats?.online?.staff?.reduce((a, c) => a + parseInt(c.count), 0) ?? 0;
+
+      document.getElementById('stat-parents').textContent = totalParents;
+      document.getElementById('stat-staff').textContent = totalStaff;
+      document.getElementById('stat-total').textContent = totalParents + totalStaff;
+      document.getElementById('stat-online-parents').textContent = onlineParents;
+      document.getElementById('stat-online-staff').textContent = onlineStaff;
+      document.getElementById('stat-online-total').textContent = (onlineParents + onlineStaff) + ' Live';
+
+      filterAndRender();
+    } catch (err) {
+      console.error('Failed to load data', err);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>

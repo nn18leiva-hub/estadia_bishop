@@ -8,11 +8,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Load user profile if we have a token
-  const fetchProfile = async (type, role) => {
+  const fetchProfile = async (type, role, email) => {
     try {
       if (type === 'staff') {
-         // Dummy set user for staff to keep the context hydrated
-         setUser({ type, role, full_name: 'Admin User' });
+         // In the future, fetch from /staff/profile
+         setUser({ type, role, email, full_name: 'Administrator' });
       } else {
          const data = await apiFetch('/parent/profile');
          setUser(data);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        fetchProfile(payload.type, payload.role);
+        fetchProfile(payload.type, payload.role, payload.email);
       } catch (e) {
         fetchProfile(); // fallback
       }

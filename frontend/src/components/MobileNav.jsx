@@ -1,45 +1,33 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Wallet, Power, User, LifeBuoy } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 
 const MobileNav = () => {
-  const { user, logout } = useAuth();
-
-  const getHomeLink = () => {
-    if (user?.role === 'super_admin') return '/superadmin';
-    if (user?.type === 'staff') return '/staff';
-    return '/dashboard/parents';
-  };
+  const navItems = [
+    { to: "/dashboard/parents", label: "Dashboard", icon: "dashboard", end: true },
+    { to: "/dashboard/parents/new", label: "Requests", icon: "description" },
+    { to: "/dashboard/parents/bank-details", label: "Payments", icon: "wallet" },
+    { to: "/profile", label: "Profile", icon: "person" },
+  ];
 
   return (
-    <nav className="bottom-nav mobile-view">
-      <NavLink to={getHomeLink()} end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <LayoutDashboard size={22} />
-        <span>{user?.type === 'staff' || user?.role === 'super_admin' ? 'Portal' : 'Home'}</span>
-      </NavLink>
-
-      {(user?.type === 'parent' || user?.type === 'past_student') && (
-        <NavLink to="/dashboard/parents/bank-details" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Wallet size={22} />
-          <span>Pay</span>
+    <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      {navItems.map((item) => (
+        <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => 
+              `flex flex-col items-center justify-center gap-1 transition-all duration-150 ${
+                isActive 
+                ? "bg-primary-container/10 text-primary px-5 py-2 rounded-full" 
+                : "text-on-surface-variant hover:text-primary active:scale-90"
+              }`
+            }
+        >
+          <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
+          <span className="font-label-md text-[10px] uppercase font-bold tracking-tight">{item.label}</span>
         </NavLink>
-      )}
-
-      <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <User size={22} />
-        <span>Me</span>
-      </NavLink>
-
-      <NavLink to="/help" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <LifeBuoy size={22} />
-        <span>Help</span>
-      </NavLink>
-
-      <button onClick={logout} className="nav-item" style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <Power size={22} color="var(--danger-color)" />
-        <span style={{ color: 'var(--danger-color)' }}>Exit</span>
-      </button>
+      ))}
     </nav>
   );
 };

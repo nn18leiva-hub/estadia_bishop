@@ -1,148 +1,174 @@
-import React, { useEffect, useState } from 'react';
-import { apiFetch } from '../services/api';
-import { UploadCloud, Building, CheckCircle, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import TopAppBar from '../components/TopAppBar';
+import BottomNav from '../components/BottomNav';
+import { useLanguage } from '../contexts/LanguageContext';
 
+export default function BankDetails() {
+  const navigate = useNavigate();
+  const [toast, setToast] = useState('');
+  const { t } = useLanguage();
 
-const BankDetails = () => {
-  const [instructions, setInstructions] = useState(null);
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  
-  const [uploadingReceipt, setUploadingReceipt] = useState(null);
+  const ACCOUNT_DETAILS = [
+    { label: t('bank.name'), value: 'Belize Bank Limited', copy: false },
+    { label: t('account.holder'), value: 'Bishop Martin Academy – Registrar', copy: false },
+    { label: t('account.number'), value: '1234-5678-9012', copy: true, copyValue: '123456789012' },
+    { label: t('branch.swift'), value: 'BZLIBRLI', copy: true, copyValue: 'BZLIBRLI' },
+  ];
 
-  const loadData = async () => {
-    try {
-      const [instData, reqData] = await Promise.all([
-        apiFetch('/payment/instructions').catch(() => null),
-        apiFetch('/requests/my-requests')
-      ]);
-      setInstructions(instData);
-      
-      // Filter requests to ONLY show those that require payment and are pending
-      const unpaidRequests = Array.isArray(reqData) 
-        ? reqData.filter(req => req.requires_payment && req.status === 'pending')
-        : [];
-      setRequests(unpaidRequests);
-    } catch (err) {
-      setError('Failed to load bank details or pending requests: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setToast(`${label} ${t('copied')}`);
+      setTimeout(() => setToast(''), 2200);
+    });
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleReceiptUpload = async (request_id, e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('request_id', request_id);
-    formData.append('receipt_image', file);
-
-    setUploadingReceipt(request_id);
-    try {
-      await apiFetch('/payment/upload-receipt', {
-        method: 'POST',
-        body: formData,
-      });
-      alert("Receipt uploaded! The administration will verify it shortly.");
-      loadData(); // Refresh the list
-    } catch (err) {
-      alert('Upload failed: ' + err.message);
-    } finally {
-      setUploadingReceipt(null);
-    }
-  };
-
-  if (loading) return <div className="app-container p-4">Loading payment details...</div>;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2>Bank Details & Payments</h2>
-          <p style={{ color: 'var(--text-muted)' }}>View school account details and upload payment receipts.</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background text-on-surface">
+      <TopAppBar showBack backTo="/dashboard/parents/sign" />
 
-      {error && <div className="error-text mb-4 p-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{error}</div>}
-
-      <div className="form-grid form-grid-2">
-        
-        {/* Left Column: Bank Details Card */}
-        <div className="glass-panel" style={{ borderTop: '4px solid #10b981' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
-              <Building size={24} color="#10b981" />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Official Bank Account</h3>
-          </div>
-          
-          {instructions ? (
-            <div className="mb-4">
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                <p style={{ marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Bank Name</p>
-                <p style={{ fontSize: '1.125rem', fontWeight: 500, marginBottom: '1rem' }}>{instructions.bank_name}</p>
-                
-                <p style={{ marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Account Name</p>
-                <p style={{ fontSize: '1.125rem', fontWeight: 500, marginBottom: '1rem' }}>{instructions.account_name}</p>
-                
-                <p style={{ marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Account Number</p>
-                <p style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '2px', color: '#10b981' }}>{instructions.account_number}</p>
-              </div>
-              
-              <div className="mt-4 flex items-start gap-2" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                <Info size={20} color="#3b82f6" style={{ marginTop: '2px', flexShrink: 0 }} />
-                <p style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
-                  {instructions.instructions}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted">No bank details are currently configured in the system.</p>
-          )}
-        </div>
-
-        {/* Right Column: Upload Receipts List */}
-        <div className="glass-panel text-white">
-          <h3 className="mb-4" style={{ fontSize: '1.125rem', fontWeight: '600' }}>Awaiting Payment / Receipt</h3>
-          <p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
-            The following requests are currently paused awaiting payment verification. Select the correct document and upload a picture of your bank transfer receipt.
+      <main className="max-w-container-max mx-auto px-sm md:px-lg py-lg min-h-[calc(100vh-128px)] pt-24">
+        {/* Header */}
+        <div className="mb-lg">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-xs text-primary font-label-lg mb-sm hover:opacity-80 transition-all font-semibold"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_back</span>
+            {t('back.request.summary')}
+          </button>
+          <h1 className="font-headline-lg text-headline-lg text-primary">{t('complete.payment')}</h1>
+          <p className="font-body-md text-on-surface-variant max-w-2xl mt-xs">
+            {t('payment.instructions')}
           </p>
-
-          {requests.length === 0 ? (
-            <div className="text-center p-4" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--glass-border)' }}>
-              <CheckCircle size={32} color="#10b981" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-              <p style={{ color: 'var(--text-muted)' }}>You have no pending requests that require a payment receipt.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {requests.map(req => (
-                <div key={req.request_id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ fontWeight: 500 }}>{req.document_type_name || `Document #${req.document_type_id}`}</h4>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>For: {req.student_full_name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Requested: {new Date(req.request_date).toLocaleDateString()}</p>
-                  </div>
-                  
-                  <label className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', margin: 0, width: 'auto' }}>
-                    {uploadingReceipt === req.request_id ? 'Uploading...' : 'Upload Receipt'}
-                    <UploadCloud size={16} />
-                    <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleReceiptUpload(req.request_id, e)} disabled={uploadingReceipt === req.request_id} />
-                  </label>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
-        
-      </div>
+
+        {/* Bento Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+          {/* Left: Bank Details & Steps */}
+          <div className="lg:col-span-8 space-y-gutter">
+            {/* Bank Details Card */}
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-md">
+              <div className="flex items-center gap-sm mb-md">
+                <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary">account_balance</span>
+                </div>
+                <h2 className="font-headline-sm text-headline-sm text-primary">{t('bank.transfer.details')}</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-md gap-x-lg">
+                {ACCOUNT_DETAILS.map((detail, idx) => (
+                  <div
+                    key={detail.label}
+                    className={`${idx < ACCOUNT_DETAILS.length - 2 ? 'md:border-b border-outline-variant/20 pb-md' : ''} ${idx % 2 === 0 ? 'md:border-r md:pr-lg border-outline-variant/20' : ''}`}
+                  >
+                    <p className="font-label-md text-label-md text-on-surface-variant mb-xs uppercase">{detail.label}</p>
+                    <div className="flex items-center justify-between gap-sm">
+                      <p className="font-headline-sm text-headline-sm text-on-surface font-mono tracking-wider">{detail.value}</p>
+                      {detail.copy && (
+                        <button
+                          onClick={() => copyToClipboard(detail.copyValue, detail.label)}
+                          className="material-symbols-outlined text-primary p-2 hover:bg-primary-fixed/30 rounded transition-colors flex-shrink-0"
+                          title={`Copy ${detail.label}`}
+                        >
+                          content_copy
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Reference memo */}
+              <div className="mt-lg p-sm bg-surface-container rounded border-l-4 border-primary">
+                <div className="flex gap-sm">
+                  <span className="material-symbols-outlined text-primary">info</span>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-primary">{t('req.ref.memo')}</p>
+                    <p className="font-body-md text-on-surface-variant">
+                      {t('ref.memo.desc')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Next Steps */}
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-md">
+              <h3 className="font-headline-sm text-headline-sm text-primary mb-lg">{t('next.steps')}</h3>
+              <div className="space-y-md">
+                {[
+                  { num: 1, active: true, title: t('step.initiate'), body: t('step.initiate.desc') },
+                  { num: 2, active: false, title: t('step.upload'), body: t('step.upload.desc') },
+                  { num: 3, active: false, title: t('step.verify'), body: t('step.verify.desc') },
+                ].map(step => (
+                  <div key={step.num} className={`flex gap-md ${!step.active ? 'opacity-50' : ''}`}>
+                    <div className={`flex-none w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold
+                      ${step.active ? 'border-primary text-primary' : 'border-outline-variant text-outline'}`}>
+                      {step.num}
+                    </div>
+                    <div>
+                      <p className="font-label-lg text-label-lg text-on-surface">{step.title}</p>
+                      <p className="font-body-sm text-body-sm text-on-surface-variant">{step.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Summary & Action */}
+          <div className="lg:col-span-4 space-y-gutter">
+            {/* Order Summary */}
+            <div className="bg-surface-container-low border border-outline-variant/30 rounded-xl overflow-hidden">
+              <div className="p-md border-b border-outline-variant/20 bg-surface-container-high">
+                <h2 className="font-headline-sm text-headline-sm text-primary">{t('request.summary')}</h2>
+              </div>
+              <div className="p-md space-y-sm">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface">{t('doc.fee')}</p>
+                    <p className="font-body-sm text-on-surface-variant">{t('doc.fee.desc')}</p>
+                  </div>
+                  <p className="font-body-md text-on-surface font-semibold">BZD $—</p>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface">{t('processing.fee')}</p>
+                    <p className="font-body-sm text-on-surface-variant">{t('processing.fee.desc')}</p>
+                  </div>
+                  <p className="font-body-md text-on-surface font-semibold">BZD $—</p>
+                </div>
+                <div className="pt-md border-t border-outline-variant/20 mt-md flex justify-between items-center">
+                  <p className="font-headline-sm text-headline-sm text-on-surface">{t('total.due')}</p>
+                  <p className="font-headline-md text-headline-md text-primary font-bold">BZD $—</p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              to="/dashboard/parents/upload-receipt"
+              className="w-full bg-primary text-white py-4 rounded-xl font-label-lg text-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-sm"
+            >
+              {t('confirm.initiated')}
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </Link>
+            <p className="text-center font-body-sm text-on-surface-variant px-md">
+              {t('confirm.initiated.desc')}
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-tertiary-container text-white px-lg py-sm rounded-full font-label-lg shadow-xl border border-white/10 z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
+
+      <BottomNav variant="parent" />
     </div>
   );
-};
-
-export default BankDetails;
+}

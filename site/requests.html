@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>My Requests | Bishop Martin Parent Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: { extend: {
+    colors: { "outline":"#8e706c","surface-container-highest":"#e3e2e0","primary-container":"#800000","surface-container-high":"#e9e8e6","error-container":"#ffdad6","on-background":"#1a1c1b","surface-container-lowest":"#ffffff","surface-container-low":"#f4f3f1","on-surface":"#1a1c1b","on-secondary":"#ffffff","error":"#ba1a1a","primary":"#570000","on-surface-variant":"#5a413d","on-error":"#ffffff","surface-dim":"#dadad8","surface-bright":"#faf9f7","secondary":"#735c00","surface":"#faf9f7","surface-container":"#efeeec","background":"#faf9f7","surface-variant":"#e3e2e0","outline-variant":"#e2bfb9","secondary-container":"#fed65b","on-secondary-container":"#745c00","on-primary-container":"#ff8371","on-primary":"#ffffff","on-error-container":"#93000a" },
+    borderRadius: { "none":"0","DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem" },
+    spacing: { "none":"0","base":"4px","xs":"8px","sm":"16px","md":"24px","lg":"40px","xl":"64px","gutter":"24px" },
+    fontFamily: { "headline-lg":["Libre Caslon Text","serif"],"headline-md":["Libre Caslon Text","serif"],"headline-sm":["Libre Caslon Text","serif"],"body-md":["Work Sans","sans-serif"],"body-sm":["Work Sans","sans-serif"],"label-lg":["Work Sans","sans-serif"],"label-md":["Work Sans","sans-serif"] },
+    fontSize: { "headline-lg":["32px",{"lineHeight":"40px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.05em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}] }
+  }}
+}
+</script>
+<style>.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}</style>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="hidden md:flex h-screen w-80 bg-surface border-r border-outline-variant/20 flex-col p-md fixed left-0 top-0 bottom-0 z-40">
+    <div class="flex items-center gap-sm mb-lg">
+      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded flex-shrink-0">
+        <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+      </div>
+      <div>
+        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight">Bishop Martin</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant">Parent Portal</p>
+      </div>
+    </div>
+    <nav class="flex flex-col gap-xs flex-grow">
+      <a href="/parent.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors rounded font-label-lg text-label-lg">
+        <span class="material-symbols-outlined text-[22px]">grid_view</span> Dashboard
+      </a>
+      <a href="/requests.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container font-label-lg text-label-lg rounded">
+        <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1;">description</span> My Requests
+      </a>
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors rounded font-label-lg text-label-lg">
+        <span class="material-symbols-outlined text-[22px]">person</span> My Profile
+      </a>
+    </nav>
+    <div class="pt-md border-t border-outline-variant/20 mt-auto">
+      <div class="flex items-center gap-sm px-sm py-sm">
+        <span class="material-symbols-outlined text-on-surface-variant text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        <div class="flex-grow min-w-0">
+          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface truncate">Parent</p>
+          <p id="sidebar-user-email" class="font-label-md text-label-md text-on-surface-variant truncate"></p>
+        </div>
+        <button onclick="logout()" class="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+        </button>
+      </div>
+      <p class="font-label-md text-label-md text-on-surface-variant px-sm opacity-50 pb-xs">v1.0.4</p>
+    </div>
+  </aside>
+
+  <main class="flex-grow md:ml-80 flex flex-col min-h-screen">
+    <header class="flex items-center justify-between px-sm w-full h-16 z-30 bg-surface border-b border-outline-variant/20 sticky top-0 md:h-[72px]">
+      <div class="flex items-center gap-sm">
+        <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer">
+          <span class="material-symbols-outlined text-primary">menu</span>
+        </button>
+        <span class="font-headline-sm text-headline-sm font-semibold text-primary">Bishop Martin Parent Portal</span>
+      </div>
+      <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
+        <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+      </button>
+    </header>
+
+    <div class="p-md md:p-lg flex-grow w-full max-w-[1200px] mx-auto">
+      <section class="mb-lg flex flex-col md:flex-row md:items-end md:justify-between gap-md">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-primary mb-xs">My Requests</h2>
+          <p class="font-body-md text-body-md text-on-surface-variant">Track all your submitted document requests and their processing status.</p>
+        </div>
+        <a href="/new-request.html" class="inline-flex items-center gap-xs bg-primary text-on-primary px-md py-sm rounded font-label-lg text-label-lg hover:opacity-90 transition-all active:scale-95 self-start md:self-auto">
+          <span class="material-symbols-outlined text-[18px]">add</span> New Request
+        </a>
+      </section>
+
+      <!-- Status filter tabs -->
+      <div class="flex gap-xs flex-wrap mb-md">
+        <button onclick="setFilter('all')" id="f-all" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all bg-primary text-on-primary border-primary">All</button>
+        <button onclick="setFilter('pending')" id="f-pending" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary">Pending</button>
+        <button onclick="setFilter('pending_verification')" id="f-pending_verification" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary">Awaiting Verification</button>
+        <button onclick="setFilter('ready_for_pickup')" id="f-ready_for_pickup" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary">Ready for Pickup</button>
+        <button onclick="setFilter('completed')" id="f-completed" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary">Completed</button>
+        <button onclick="setFilter('denied')" id="f-denied" class="px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary">Denied</button>
+      </div>
+
+      <div id="requests-container" class="space-y-md">
+        <div class="p-xl text-center font-body-md text-on-surface-variant">Loading your requests...</div>
+      </div>
+    </div>
+
+    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20">
+      <a href="/parent.html" class="flex flex-col items-center text-on-surface-variant"><span class="material-symbols-outlined">grid_view</span><span class="font-label-md text-label-md">Home</span></a>
+      <a href="/requests.html" class="flex flex-col items-center bg-primary-container text-on-primary-container rounded-full px-4 py-1"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">description</span><span class="font-label-md text-label-md">Requests</span></a>
+      <a href="/profile.html" class="flex flex-col items-center text-on-surface-variant"><span class="material-symbols-outlined">person</span><span class="font-label-md text-label-md">Profile</span></a>
+    </nav>
+    <div class="h-20 md:hidden"></div>
+  </main>
+</div>
+
+<!-- Mobile Drawer -->
+<div id="mobile-drawer" class="hidden fixed inset-0 bg-black/50 z-50 md:hidden" onclick="this.classList.add('hidden')">
+  <aside class="w-80 h-full bg-surface p-md flex flex-col" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-lg">
+      <div class="flex items-center gap-sm">
+        <div class="w-10 h-10 bg-primary flex items-center justify-center rounded"><span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span></div>
+        <h1 class="font-headline-sm text-headline-sm text-primary">Bishop Martin</h1>
+      </div>
+      <button onclick="document.getElementById('mobile-drawer').classList.add('hidden')" class="p-base hover:bg-surface-container-high rounded-full"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <nav class="flex flex-col gap-xs">
+      <a href="/parent.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg"><span class="material-symbols-outlined">grid_view</span> Dashboard</a>
+      <a href="/requests.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container rounded font-label-lg text-label-lg"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">description</span> My Requests</a>
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg"><span class="material-symbols-outlined">person</span> My Profile</a>
+    </nav>
+    <div class="mt-auto pt-md border-t border-outline-variant/20">
+      <button onclick="logout()" class="flex items-center gap-sm px-sm py-sm w-full text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg"><span class="material-symbols-outlined">logout</span> Sign Out</button>
+    </div>
+  </aside>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!getToken() || !getUser()) window.location.href = '/login.html';
+  const u = getUser();
+  if (u?.role === 'super_admin') window.location.href = '/superadmin.html';
+  populateSidebar();
+
+  let allRequests = [];
+  let currentFilter = 'all';
+
+  const STATUS = {
+    pending: { label: 'Pending Review', color: 'bg-surface-container-high text-on-surface-variant', icon: 'hourglass_top' },
+    pending_verification: { label: 'Awaiting ID Verification', color: 'bg-error-container text-on-error-container', icon: 'person_search' },
+    ready_for_pickup: { label: 'Ready for Pickup', color: 'bg-secondary-container text-on-secondary-container', icon: 'inventory_2' },
+    completed: { label: 'Completed', color: 'bg-secondary-container text-on-secondary-container', icon: 'check_circle' },
+    denied: { label: 'Denied', color: 'bg-error-container text-on-error-container', icon: 'cancel' }
+  };
+
+  function setFilter(f) {
+    currentFilter = f;
+    ['all','pending','pending_verification','ready_for_pickup','completed','denied'].forEach(k => {
+      const btn = document.getElementById(`f-${k}`);
+      if (!btn) return;
+      btn.className = k === f
+        ? 'px-md py-xs font-label-lg text-label-lg rounded-full border transition-all bg-primary text-on-primary border-primary'
+        : 'px-md py-xs font-label-lg text-label-lg rounded-full border transition-all border-outline-variant text-on-surface-variant hover:border-primary';
+    });
+    render();
+  }
+
+  function render() {
+    const container = document.getElementById('requests-container');
+    const list = currentFilter === 'all' ? allRequests : allRequests.filter(r => r.status === currentFilter);
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-xl text-center">
+          <span class="material-symbols-outlined text-[48px] text-on-surface-variant opacity-30 block mb-sm">inbox</span>
+          <p class="font-body-md text-on-surface-variant mb-md">No ${currentFilter === 'all' ? '' : currentFilter.replace(/_/g,' ')} requests found.</p>
+          <a href="/new-request.html" class="inline-flex items-center gap-xs bg-primary text-on-primary px-md py-sm rounded font-label-lg text-label-lg hover:opacity-90 transition-all">
+            <span class="material-symbols-outlined text-[18px]">add</span> Submit a Request
+          </a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(r => {
+      const s = STATUS[r.status] || STATUS['pending'];
+      const date = r.request_date ? new Date(r.request_date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—';
+      const needsPayment = r.requires_payment && !r.payment_id;
+      return `
+        <div class="bg-surface-container-lowest border border-outline-variant/20 rounded overflow-hidden shadow-sm hover:border-primary transition-all group">
+          <div class="h-1 w-full ${r.status === 'completed' ? 'bg-secondary-container' : r.status === 'denied' ? 'bg-error' : 'bg-primary-container'}"></div>
+          <div class="p-md">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-md">
+              <div class="flex-grow">
+                <div class="flex items-center gap-sm mb-xs flex-wrap">
+                  <span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">${r.document_type_name || 'Document Request'}</span>
+                  <span class="font-label-md text-label-md px-[6px] py-[2px] rounded text-xs ${s.color} flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-[14px]">${s.icon}</span>${s.label}
+                  </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-sm mt-md">
+                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">REQUEST ID</p><p class="font-body-sm">#${r.request_id}</p></div>
+                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Student</p><p class="font-body-sm">${r.student_full_name || '—'}</p></div>
+                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Submitted</p><p class="font-body-sm">${date}</p></div>
+                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Delivery</p><p class="font-body-sm capitalize">${r.delivery_method || '—'}</p></div>
+                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">BEMIS ID</p><p class="font-body-sm">${r.student_bemis_id || '—'}</p></div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-sm min-w-[180px]">
+                ${needsPayment ? `
+                <a href="/payment.html?request_id=${r.request_id}" class="flex items-center justify-center gap-xs w-full px-md py-sm bg-secondary-container text-on-secondary-container font-label-lg text-label-lg rounded hover:opacity-90 active:scale-95 transition-all">
+                  <span class="material-symbols-outlined text-[18px]">receipt_long</span> Upload Payment
+                </a>` : ''}
+                ${r.status === 'pending_verification' ? `
+                <a href="/profile.html" class="flex items-center justify-center gap-xs w-full px-md py-sm bg-error-container text-on-error-container font-label-lg text-label-lg rounded hover:opacity-90 active:scale-95 transition-all">
+                  <span class="material-symbols-outlined text-[18px]">id_card</span> Upload ID
+                </a>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadRequests() {
+    try {
+      allRequests = await apiFetch('/requests/my-requests');
+      if (!Array.isArray(allRequests)) allRequests = [];
+      render();
+    } catch (err) {
+      document.getElementById('requests-container').innerHTML = `<div class="p-xl text-center font-body-md text-error">${err.message}</div>`;
+    }
+  }
+  loadRequests();
+</script>
+</body>
+</html>

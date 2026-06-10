@@ -27,6 +27,38 @@ const getAllRequests = async (req, res) => {
     }
 };
 
+const getRequestById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query(`
+            SELECT 
+                dr.*, 
+                p.full_name as parent_name, 
+                p.email as parent_email, 
+                p.phone as parent_phone,
+                p.verified as parent_verified, 
+                p.ssn_card_image_path,
+                dt.name as document_type_name,
+                dt.requires_payment,
+                pmt.payment_id,
+                pmt.receipt_image_path,
+                pmt.transfer_reference,
+                pmt.payment_date,
+                pmt.verified as payment_verified
+            FROM document_requests dr
+            JOIN parents p ON dr.parent_id = p.parent_id
+            JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+            LEFT JOIN payments pmt ON dr.request_id = pmt.request_id
+            WHERE dr.request_id = $1
+        `, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ message: 'Request not found.' });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error.' });
+    }
+};
+
 const verifyParent = async (req, res) => {
     try {
         const { parent_id } = req.body;
@@ -85,4 +117,4 @@ const updateRequestStatus = async (req, res) => {
     }
 };
 
-module.exports = { getAllRequests, verifyParent, verifyPayment, updateRequestStatus };
+module.exports = { getAllRequests, getRequestById, verifyParent, verifyPayment, updateRequestStatus };

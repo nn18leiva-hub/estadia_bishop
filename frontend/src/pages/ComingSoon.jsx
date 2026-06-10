@@ -1,22 +1,27 @@
-import React from 'react';
-import { Construction } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const ComingSoon = () => {
+export default function ComingSoon() {
   const navigate = useNavigate();
-
+  const { t } = useLanguage();
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center" style={{ padding: '4rem 2rem' }}>
-       <Construction size={64} color="var(--primary-color)" style={{ marginBottom: '1.5rem', opacity: 0.8 }} />
-       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#fff' }}>Under Construction</h1>
-       <p style={{ color: 'var(--text-muted)', maxWidth: '500px', margin: '0 auto 2rem', fontSize: '1.1rem' }}>
-          This section is currently being architected mapped. Please check back later when it's fully implemented!
-       </p>
-       <button onClick={() => navigate(-1)} className="btn-primary" style={{ width: 'auto' }}>
-          Return to Dashboard
-       </button>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-on-surface px-sm">
+      <div className="flex flex-col items-center text-center gap-lg max-w-sm">
+        <div className="w-24 h-24 rounded-full bg-primary-fixed flex items-center justify-center">
+          <span className="material-symbols-outlined text-primary" style={{ fontSize: '48px' }}>construction</span>
+        </div>
+        <h1 className="font-headline-lg text-headline-lg text-primary">{t('coming.soon')}</h1>
+        <p className="font-body-md text-body-md text-on-surface-variant">
+          {t('under.development')}
+        </p>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg hover:bg-primary-container transition-all"
+        >
+          <span className="material-symbols-outlined">arrow_back</span>
+          {t('go.back')}
+        </button>
+      </div>
     </div>
   );
-};
-
-export default ComingSoon;
+}

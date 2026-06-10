@@ -1,187 +1,272 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import TopAppBar from '../components/TopAppBar';
+import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
-import { Link } from 'react-router-dom';
-import { FilePlus, Eye, Clock, CheckCircle, UploadCloud } from 'lucide-react';
 
-const DOCUMENT_TYPES = [
-  { id: 1, name: 'lateness_form', label: 'Lateness Form', is_auto_generated: true, requires_payment: false },
-  { id: 2, name: 'absence_form', label: 'Absence Form', is_auto_generated: true, requires_payment: false },
-  { id: 3, name: 'permission_slip', label: 'Permission Slip', is_auto_generated: true, requires_payment: false },
-  { id: 4, name: 'enrolment_letter', label: 'Enrolment Letter', is_auto_generated: false, requires_payment: true },
-  { id: 5, name: 'transcript', label: 'Transcript', is_auto_generated: false, requires_payment: true },
-];
+const STATUS_STYLES = {
+  pending:    'bg-surface-container-high text-on-surface-variant',
+  processing: 'bg-secondary-container text-on-secondary-container',
+  ready:      'bg-tertiary-fixed text-on-tertiary-fixed',
+  issued:     'bg-secondary-container/60 text-on-secondary-container',
+  cancelled:  'bg-error-container text-on-error-container',
+};
 
-const Dashboard = () => {
+const STATUS_LABELS = {
+  pending: 'Pending',
+  processing: 'Processing',
+  ready: 'Ready for Pickup',
+  issued: 'Issued',
+  cancelled: 'Cancelled',
+};
+
+const DOC_ICON = {
+  'Official Transcript': 'description',
+  'Enrollment Letter': 'history_edu',
+  'Graduation Certificate': 'workspace_premium',
+  'Dean\'s Letter': 'article',
+  'Replacement Diploma': 'menu_book',
+  'Good Moral Certificate': 'verified',
+};
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useLanguage();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadRequests();
-    const interval = setInterval(() => {
-       apiFetch('/requests/my-requests').then(data => {
-         setRequests(Array.isArray(data) ? data : []);
-       }).catch(err => console.error(err));
-    }, 15000); // 15s polling
-    return () => clearInterval(interval);
+    fetchRequests();
   }, []);
 
-  const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores request_id
-
-  const loadRequests = async () => {
+  const fetchRequests = async () => {
     try {
-      const data = await apiFetch('/requests/my-requests');
-      setRequests(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError('Failed to load your requests. ' + err.message);
+      const data = await apiFetch('/requests');
+      setRequests(Array.isArray(data) ? data : data.requests || []);
+    } catch {
+      // silently handle
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReceiptUpload = async (request_id, e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('request_id', request_id);
-    formData.append('receipt_image', file);
-
-    setUploadingReceipt(request_id);
-    try {
-      await apiFetch('/payment/upload-receipt', {
-        method: 'POST',
-        body: formData,
-      });
-      alert("Receipt uploaded! We'll verify it shortly.");
-      loadRequests();
-    } catch (err) {
-      alert('Upload failed: ' + err.message);
-    } finally {
-      setUploadingReceipt(null);
-    }
-  };
-
-  const getDocInfo = (type_id) => DOCUMENT_TYPES.find(d => d.id === parseInt(type_id)) || {};
-
-  const getStatusBadge = (status) => {
-    switch(status) {
-      case 'pending_verification':
-        return <span className="status-badge pending_verification"><Clock size={12} className="mr-1" style={{ marginRight: '4px' }}/> Pending ID</span>;
-      case 'pending':
-        return <span className="status-badge pending"><Clock size={12} className="mr-1" style={{ marginRight: '4px' }}/> Pending</span>;
-      case 'ready_for_pickup':
-        return <span className="status-badge ready_for_pickup"><CheckCircle size={12} className="mr-1" style={{ marginRight: '4px' }}/> Ready</span>;
-      default:
-        return <span className="status-badge" style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid var(--glass-border)' }}>{status}</span>;
-    }
-  };
+  const firstName = user?.name?.split(' ')[0] || 'Parent';
 
   return (
-    <div>
-      <div className="flex flex-responsive justify-between items-start mb-10 gap-8">
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>My Requests</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1.5' }}>Manage and track your submitted document applications.</p>
-        </div>
-        <Link 
-          to="/dashboard/parents/new" 
-          className="btn-primary w-full-mobile shadow-lg" 
-          style={{ width: 'auto', padding: '0.85rem 1.75rem', fontSize: '0.9rem', flexShrink: 0, marginTop: '8px' }}
-        >
-          <FilePlus size={18} />
-          New Request
-        </Link>
-      </div>
+    <div className="min-h-screen bg-background text-on-surface">
+      <TopAppBar />
 
-      <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', width: '100%' }}>
-        {loading ? (
-          <div className="p-4 text-center">Loading requests...</div>
-        ) : error ? (
-          <div className="p-4 text-center error-text">{error}</div>
-        ) : requests.length === 0 ? (
-          <div className="text-center p-4" style={{ padding: '3rem 2rem' }}>
-             <FilePlus size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
-             <h3>No requests yet</h3>
-             <p style={{ color: 'var(--text-muted)' }}>You haven't requested any documents.</p>
-             <Link to="/dashboard/parents/new" className="btn-primary mt-2" style={{ width: 'auto', display: 'inline-flex' }}>Request Now</Link>
+      <main className="pt-16 pb-24 md:pb-10 px-sm md:px-gutter max-w-container-max mx-auto">
+        {/* Hero Header */}
+        <section className="py-lg border-b border-outline-variant/30 mb-lg">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-sm">
+            <div>
+              <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-xs">
+                {t('parent.portal')}
+              </p>
+              <h2 className="font-headline-lg text-headline-lg text-primary">
+                {t('good.' + getTimeOfDay())}, {firstName}
+              </h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
+                {t('parent.dashboard.subtitle')}
+              </p>
+            </div>
+            <Link
+              to="/dashboard/parents/new"
+              className="flex items-center gap-sm bg-primary text-on-primary px-md py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all self-start md:self-auto"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
+              {t('new.request')}
+            </Link>
           </div>
-        ) : (
-          <div className="animate-up">
-            {/* Mobile View: Cards */}
-            <div className="mobile-view" style={{ flexDirection: 'column', gap: '1.5rem' }}>
-              {requests.map(req => (
-                <div className="request-card" key={req.request_id}>
-                  <div className="request-card-header">
-                    <div>
-                      <span className="request-card-title">{req.document_type_name}</span>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        #{req.request_id} • {new Date(req.request_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {getStatusBadge(req.status)}
-                  </div>
-                  
-                  <div style={{ margin: '1rem 0', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{req.student_full_name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>Method: {req.delivery_method}</p>
-                  </div>
+        </section>
 
-                  <div className="flex gap-2">
-                    {getDocInfo(req.document_type_id).requires_payment && req.status === 'pending' && (
-                      <label className="btn-primary" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem', cursor: 'pointer', background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary-color)', border: '1px solid var(--primary-color)', boxShadow: 'none' }}>
-                        {uploadingReceipt === req.request_id ? 'Uploading...' : 'Upload Receipt'}
-                        <UploadCloud size={16} />
-                        <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleReceiptUpload(req.request_id, e)} disabled={uploadingReceipt === req.request_id} />
-                      </label>
-                    )}
-                  </div>
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+
+          {/* Left: Quick Actions */}
+          <aside className="lg:col-span-4 flex flex-col gap-gutter">
+            {/* Identity Status */}
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+              <div className="flex items-center gap-xs mb-sm">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>verified_user</span>
+                <h3 className="font-headline-sm text-headline-sm text-primary">{t('identity.status')}</h3>
+              </div>
+              <div className="flex items-center gap-sm p-sm bg-secondary-container/30 rounded-lg border border-outline-variant/10">
+                <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified</span>
                 </div>
-              ))}
+                <div>
+                  <p className="font-label-lg text-label-lg text-on-surface font-semibold">{t('identity.verified')}</p>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant">{t('verification.active')}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Desktop View: Table */}
-            <div className="desktop-block" style={{ overflowX: 'auto', width: '100%' }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Ref</th>
-                    <th>Document</th>
-                    <th>Student Name</th>
-                    <th>Status</th>
-                    <th>Delivery</th>
-                    <th>Requested On</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requests.map(req => (
-                    <tr key={req.request_id}>
-                      <td style={{ fontWeight: 600 }}>#{req.request_id}</td>
-                      <td style={{ fontWeight: 500 }}>{req.document_type_name}</td>
-                      <td>{req.student_full_name}</td>
-                      <td>{getStatusBadge(req.status)}</td>
-                      <td style={{ textTransform: 'capitalize' }}>{req.delivery_method}</td>
-                      <td>{new Date(req.request_date).toLocaleDateString()}</td>
-                      <td>
-                        {getDocInfo(req.document_type_id).requires_payment && req.status === 'pending' && (
-                          <label className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.75rem', cursor: 'pointer', width: 'auto' }}>
-                            {uploadingReceipt === req.request_id ? '...' : 'Upload Receipt'}
-                            <UploadCloud size={14} />
-                            <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleReceiptUpload(req.request_id, e)} disabled={uploadingReceipt === req.request_id} />
-                          </label>
-                        )}
-                      </td>
-                    </tr>
+            {/* Quick Actions Card */}
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+              <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('quick.actions')}</h3>
+              <div className="flex flex-col gap-xs">
+                <Link
+                  to="/dashboard/parents/new"
+                  className="flex items-center gap-md px-sm py-sm rounded-lg hover:bg-secondary-container/30 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-primary" style={{ fontSize: '20px' }}>add_circle</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">{t('request.doc')}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('request.doc.desc')}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant ml-auto group-hover:text-primary transition-colors">chevron_right</span>
+                </Link>
+
+                <Link
+                  to="/dashboard/parents/upload-ssn"
+                  className="flex items-center gap-md px-sm py-sm rounded-lg hover:bg-secondary-container/30 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: '20px' }}>badge</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">{t('identity.verification')}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('upload.id.desc')}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant ml-auto group-hover:text-primary transition-colors">chevron_right</span>
+                </Link>
+
+                <a
+                  href="mailto:registrar@bishopmartin.edu"
+                  className="flex items-center gap-md px-sm py-sm rounded-lg hover:bg-secondary-container/30 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-tertiary-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontSize: '20px' }}>support_agent</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">{t('registrar.support')}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('email.office')}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant ml-auto group-hover:text-primary transition-colors">chevron_right</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Administrative Resources */}
+            <div className="bg-primary text-on-primary rounded-xl p-md relative overflow-hidden">
+              <div className="absolute inset-0 bento-texture" style={{ opacity: 0.1 }} />
+              <div className="relative z-10">
+                <span className="material-symbols-outlined mb-sm" style={{ fontSize: '32px', opacity: 0.8 }}>info</span>
+                <h3 className="font-headline-sm text-headline-sm mb-xs">{t('need.help')}</h3>
+                <p className="font-body-sm text-body-sm opacity-80 mb-md">
+                  {t('office.hours.desc')}
+                </p>
+                <a
+                  href="tel:+5012345678"
+                  className="inline-flex items-center gap-xs bg-on-primary/10 hover:bg-on-primary/20 px-sm py-xs rounded-lg font-label-lg transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">phone</span>
+                  {t('call.registrar')}
+                </a>
+              </div>
+            </div>
+          </aside>
+
+          {/* Right: Requests Table */}
+          <div className="lg:col-span-8 flex flex-col">
+            <div className="flex items-center justify-between mb-sm">
+              <h3 className="font-headline-sm text-headline-sm text-primary flex items-center gap-xs">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>pending_actions</span>
+                {t('my.document.requests')}
+              </h3>
+              <Link
+                to="/dashboard/parents/history"
+                className="font-label-md text-label-md text-primary hover:underline flex items-center gap-xs"
+              >
+                {t('view.all')}
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
+            </div>
+
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm flex-1">
+              {/* Table header */}
+              <div className="hidden md:grid grid-cols-12 px-sm py-xs bg-surface-container border-b border-outline-variant/20 text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                <div className="col-span-1">{t('ref')}</div>
+                <div className="col-span-4">{t('document')}</div>
+                <div className="col-span-3">{t('date')}</div>
+                <div className="col-span-2">{t('amount')}</div>
+                <div className="col-span-2 text-right">{t('status')}</div>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-xl">
+                  <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '36px' }}>sync</span>
+                </div>
+              ) : requests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-xl gap-sm text-on-surface-variant">
+                  <span className="material-symbols-outlined" style={{ fontSize: '48px', opacity: 0.4 }}>inbox</span>
+                  <p className="font-body-md text-body-md">{t('no.requests.yet')}</p>
+                  <Link
+                    to="/dashboard/parents/new"
+                    className="font-label-lg text-label-lg text-primary hover:underline flex items-center gap-xs"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    {t('make.first.request')}
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-outline-variant/10">
+                  {requests.map((req, i) => (
+                    <div
+                      key={req.id || i}
+                      className="content-stripe grid grid-cols-1 md:grid-cols-12 px-sm py-sm items-center hover:bg-secondary-container/10 transition-colors cursor-pointer group"
+                      style={{}}
+                      onClick={() => navigate(`/dashboard/parents/request/${req.id}`)}
+                      onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
+                      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                    >
+                      <div className="col-span-1 font-body-sm text-on-surface-variant">
+                        #{String(req.id || i + 1).padStart(4, '0')}
+                      </div>
+                      <div className="col-span-4 flex items-center gap-sm">
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>
+                          {DOC_ICON[req.document_type] || 'description'}
+                        </span>
+                        <div>
+                          <p className="font-body-md text-body-md font-semibold text-on-surface">{req.document_type}</p>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant">{req.student_name || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="col-span-3 font-body-sm text-on-surface-variant">
+                        {req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                      </div>
+                      <div className="col-span-2 font-body-md text-on-surface font-semibold">
+                        {req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}
+                      </div>
+                      <div className="col-span-2 flex justify-start md:justify-end">
+                        <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold ${STATUS_STYLES[req.status] || STATUS_STYLES.pending}`}>
+                          {STATUS_LABELS[req.status] || req.status || 'Pending'}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </main>
+
+      <BottomNav variant="parent" />
     </div>
   );
-};
+}
 
-export default Dashboard;
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
+}

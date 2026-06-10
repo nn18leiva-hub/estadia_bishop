@@ -8,6 +8,8 @@ router.use(authenticate, requireRole('super_admin'));
 
 router.post('/staff', superAdminController.createStaffUser);
 router.get('/staff', superAdminController.getAllStaffUsers);
+router.get('/staff/:staff_id', superAdminController.getStaffUserById);
+router.post('/staff/:staff_id/permissions', superAdminController.updateStaffPermissions);
 router.delete('/staff/:staff_id', superAdminController.deleteStaffUser);
 router.get('/stats', superAdminController.getDetailedStats);
 

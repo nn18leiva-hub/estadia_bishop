@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { apiFetch } from '../services/api';
-import { LogOut, UserPlus, Trash2, ShieldAlert, Cpu, Server, Search, ArrowUpDown, LayoutList, KeyRound, XCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const SuperAdminDashboard = () => {
-  const { logout, user, loading: authLoading } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [activeTab, setActiveTab] = useState('registry'); // 'registry', 'provision', or 'users'
-  
   const [staffList, setStaffList] = useState([]);
   const [userList, setUserList] = useState([]);
   const [stats, setStats] = useState({ registered: { staff: [], parents: [] }, online: { staff: [], parents: [] } });
@@ -18,11 +18,11 @@ const SuperAdminDashboard = () => {
   const [formData, setFormData] = useState({ full_name: '', email: '', password: '', role: 'admin' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-  
   const [searchQuery, setSearchQuery] = useState('');
+  const [userSubTab, setUserSubTab] = useState('parents'); // 'parents' or 'staff'
 
   // Password Override State
-  const [overrideTarget, setOverrideTarget] = useState(null); // stores user obj
+  const [overrideTarget, setOverrideTarget] = useState(null);
   const [newPassword, setNewPassword] = useState('');
   const [overrideLoading, setOverrideLoading] = useState(false);
 
@@ -47,12 +47,11 @@ const SuperAdminDashboard = () => {
      if (user && user.role === 'super_admin') loadData(); 
   }, [user]);
 
-  if (!user || user.role !== 'super_admin') return null;
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab, userSubTab]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  if (!user || user.role !== 'super_admin') return null;
 
   const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
 
@@ -66,6 +65,7 @@ const SuperAdminDashboard = () => {
         body: JSON.stringify(formData)
       });
       setFormData({ full_name: '', email: '', password: '', role: 'admin' });
+      setActiveTab('registry');
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to create staff');
@@ -115,335 +115,595 @@ const SuperAdminDashboard = () => {
   }, [userList, searchQuery]);
 
   return (
-    <div className="animate-up">
-      <div className="flex flex-responsive justify-between items-start mb-6 gap-2">
-        <div>
-          <h2 style={{ fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.5px' }}>SuperAdmin Console</h2>
-          <p style={{ color: 'var(--text-muted)' }}>High-level system governance and node management.</p>
+    <div className="flex-grow flex flex-col w-full animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-x-hidden">
+      
+      {/* Page Header */}
+      <section className="mb-sm sm:mb-lg">
+        <h2 className="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary mb-xs">{t('superadmin.console')}</h2>
+        <p className="font-body-sm text-body-sm sm:font-body-md sm:text-body-md text-on-surface-variant max-w-2xl">
+          {t('sys.governance')}
+        </p>
+      </section>
+
+      {/* User Count Banner */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-[6px] sm:gap-md mb-sm sm:mb-lg">
+        {/* Total Users */}
+        <div className="bg-surface-container-lowest border border-outline-variant/20 p-[8px] sm:p-md rounded shadow-sm border-l-4 border-l-primary flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-[4px] sm:mb-sm">
+            <h3 className="font-label-xs text-label-xs sm:font-label-lg sm:text-label-lg text-primary uppercase font-bold tracking-wider">{t('total.users')}</h3>
+            <span className="material-symbols-outlined text-primary text-[16px] sm:text-[20px]">group</span>
+          </div>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">{staffList.length + userList.length}</p>
+          <p className="font-body-xs text-body-xs text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('all.accounts')}</p>
+        </div>
+
+        {/* Parents */}
+        <div className="bg-surface-container-lowest border border-outline-variant/20 p-[8px] sm:p-md rounded shadow-sm border-l-4 border-l-secondary flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-[4px] sm:mb-sm">
+            <h3 className="font-label-md text-label-md sm:font-label-lg sm:text-label-lg text-secondary uppercase font-bold tracking-wider">{t('parents')}</h3>
+            <span className="material-symbols-outlined text-secondary text-[16px] sm:text-[20px]">family_restroom</span>
+          </div>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">
+            {stats.registered.parents.reduce((acc, curr) => acc + parseInt(curr.count), 0)}
+          </p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('registered.parents')}</p>
+        </div>
+
+        {/* Staff */}
+        <div className="bg-surface-container-lowest border border-outline-variant/20 p-[8px] sm:p-md rounded shadow-sm border-l-4 border-l-green-600 flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-[4px] sm:mb-sm">
+            <h3 className="font-label-md text-label-md sm:font-label-lg sm:text-label-lg text-green-700 uppercase font-bold tracking-wider">{t('staff')}</h3>
+            <span className="material-symbols-outlined text-green-600 text-[16px] sm:text-[20px]">badge</span>
+          </div>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">
+            {staffList.filter(s => s.role !== 'super_admin').length}
+          </p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('admins.viewers')}</p>
+        </div>
+
+        {/* Super Admins */}
+        <div className="bg-surface-container-lowest border border-outline-variant/20 p-[8px] sm:p-md rounded shadow-sm border-l-4 border-l-red-500 flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-[4px] sm:mb-sm">
+            <h3 className="font-label-md text-label-md sm:font-label-lg sm:text-label-lg text-red-600 uppercase font-bold tracking-wider">{t('super.admins')}</h3>
+            <span className="material-symbols-outlined text-red-500 text-[16px] sm:text-[20px]">admin_panel_settings</span>
+          </div>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">
+            {staffList.filter(s => s.role === 'super_admin').length}
+          </p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('root.access')}</p>
         </div>
       </div>
 
       {/* Dynamic Tabs */}
-      <div className="flex mb-16" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.25rem', flexWrap: 'wrap', gap: '6rem' }}>
+      <div className="flex border-b border-outline-variant/20 gap-xs sm:gap-md mb-sm sm:mb-lg overflow-x-auto">
         <button 
-           onClick={() => { setActiveTab('registry'); setSearchQuery(''); }}
-           style={{ background: 'transparent', border: 'none', color: activeTab === 'registry' ? 'var(--primary-color)' : 'var(--text-muted)', fontSize: '1.125rem', fontWeight: 700, cursor: 'pointer', borderBottom: activeTab === 'registry' ? '4px solid var(--primary-color)' : 'none', paddingBottom: '1.25rem', transition: 'all 0.3s', letterSpacing: '0.07em' }}>
-          STAFF REGISTRY
+          onClick={() => { setActiveTab('registry'); setSearchQuery(''); }}
+          className={`pb-sm font-label-md text-label-md sm:font-label-lg sm:text-label-lg transition-all border-b-2 uppercase tracking-wider whitespace-nowrap ${activeTab === 'registry' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-primary'}`}
+        >
+          {t('staff.registry')}
         </button>
         <button 
-           onClick={() => { setActiveTab('provision'); setSearchQuery(''); }}
-           style={{ background: 'transparent', border: 'none', color: activeTab === 'provision' ? 'var(--primary-color)' : 'var(--text-muted)', fontSize: '1.125rem', fontWeight: 700, cursor: 'pointer', borderBottom: activeTab === 'provision' ? '4px solid var(--primary-color)' : 'none', paddingBottom: '1.25rem', transition: 'all 0.3s', letterSpacing: '0.07em' }}>
-          PROVISION NEW STAFF
+          onClick={() => { setActiveTab('provision'); setSearchQuery(''); }}
+          className={`pb-sm font-label-md text-label-md sm:font-label-lg sm:text-label-lg transition-all border-b-2 uppercase tracking-wider whitespace-nowrap ${activeTab === 'provision' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-primary'}`}
+        >
+          {t('provision.staff')}
         </button>
         <button 
-           onClick={() => { setActiveTab('users'); setSearchQuery(''); }}
-           style={{ background: 'transparent', border: 'none', color: activeTab === 'users' ? 'var(--primary-color)' : 'var(--text-muted)', fontSize: '1.125rem', fontWeight: 700, cursor: 'pointer', borderBottom: activeTab === 'users' ? '4px solid var(--primary-color)' : 'none', paddingBottom: '1.25rem', transition: 'all 0.3s', letterSpacing: '0.07em' }}>
-          PUBLIC USERS
+          onClick={() => { setActiveTab('users'); setSearchQuery(''); }}
+          className={`pb-sm font-label-md text-label-md sm:font-label-lg sm:text-label-lg transition-all border-b-2 uppercase tracking-wider whitespace-nowrap ${activeTab === 'users' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-primary'}`}
+        >
+          {t('public.users')}
         </button>
       </div>
 
-      {/* Comprehensive Statistics Panel */}
-      <div className="grid grid-3 gap-6 mb-12">
-         {/* Registered Breakdown */}
-         <div className="glass-panel" style={{ borderLeft: '4px solid var(--primary-color)', padding: '1.5rem' }}>
-            <div className="flex justify-between items-center mb-4">
-               <h3 style={{ fontSize: '1rem', color: 'var(--primary-color)' }}>Registered Base</h3>
-               <Server size={18} color="var(--primary-color)" />
-            </div>
-            <div className="flex flex-col gap-3">
-               <div className="flex justify-between items-center">
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Parents/Students</span>
-                  <span style={{ fontWeight: 700 }}>{stats.registered.parents.reduce((acc, curr) => acc + parseInt(curr.count), 0)}</span>
-               </div>
-               <div className="flex justify-between items-center">
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Staff (Admins/Viewers)</span>
-                  <span style={{ fontWeight: 700 }}>{stats.registered.staff.reduce((acc, curr) => acc + parseInt(curr.count), 0)}</span>
-               </div>
-               <div style={{ borderTop: '1px solid var(--glass-border)', marginTop: '8px', paddingTop: '8px' }} className="flex justify-between items-center">
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Total Systems</span>
-                  <span style={{ fontWeight: 800, color: 'var(--primary-color)' }}>{staffList.length + userList.length}</span>
-               </div>
-            </div>
-         </div>
-
-         {/* Active/Online Breakdown */}
-         <div className="glass-panel" style={{ borderLeft: '4px solid var(--success-color)', padding: '1.5rem' }}>
-            <div className="flex justify-between items-center mb-4">
-               <h3 style={{ fontSize: '1rem', color: 'var(--success-color)' }}>Online Nodes (15m)</h3>
-               <Cpu size={18} color="var(--success-color)" />
-            </div>
-            <div className="flex flex-col gap-3">
-               <div className="flex justify-between items-center">
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Active Parents</span>
-                  <span style={{ fontWeight: 700, color: 'var(--success-color)' }}>{stats.online.parents.reduce((acc, curr) => acc + parseInt(curr.count), 0)}</span>
-               </div>
-               <div className="flex justify-between items-center">
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Active Staff</span>
-                  <span style={{ fontWeight: 700, color: 'var(--success-color)' }}>{stats.online.staff.reduce((acc, curr) => acc + parseInt(curr.count), 0)}</span>
-               </div>
-               <div style={{ borderTop: '1px solid var(--glass-border)', marginTop: '8px', paddingTop: '8px' }} className="flex justify-between items-center">
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Global Sync</span>
-                  <span style={{ fontWeight: 800, color: 'var(--success-color)' }}>
-                     {stats.online.parents.reduce((acc, curr) => acc + parseInt(curr.count), 0) + stats.online.staff.reduce((acc, curr) => acc + parseInt(curr.count), 0)} Live
-                  </span>
-               </div>
-            </div>
-         </div>
-
-         {/* Search & Integrity */}
-         <div className="glass-panel flex flex-col justify-between" style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)' }}>
-            <div className="flex items-center gap-3 mb-4" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '0.5rem 1rem', border: '1px solid var(--glass-border)' }}>
-               <Search size={18} color="var(--text-muted)" />
-               <input type="text" placeholder={`Filter ${activeTab}...`} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.85rem' }} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            </div>
-            <div className="flex justify-between items-center">
-               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>System Integrity</span>
-               <div className="flex items-center gap-2" style={{ color: 'var(--success-color)', fontWeight: 700, fontSize: '0.85rem' }}>
-                  <div style={{ width: '8px', height: '8px', background: 'var(--success-color)', borderRadius: '50%', boxShadow: '0 0 8px var(--success-color)' }}></div>
-                  NOMINAL
-               </div>
-            </div>
-         </div>
-      </div>
-
-        {activeTab === 'provision' && (
-           <div className="animate-up" style={{ maxWidth: '800px', margin: '0 auto' }}>
-              <div className="glass-panel" style={{ borderTop: '4px solid #8b5cf6', background: 'rgba(139, 92, 246, 0.05)' }}>
-                <h3 className="mb-6 flex items-center gap-3" style={{ color: '#c4b5fd', fontSize: '1.5rem' }}><Server size={24} /> Provision New Administrative Node</h3>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Onboard a new staff member with specific matrix permissions. Temporary passwords must be changed upon first login.</p>
-                
-                {error && <div className="error-text mb-4 p-4" style={{ background: 'rgba(239, 68, 68, 0.2)', borderRadius: '12px', color: '#fca5a5' }}>{error}</div>}
-                
-                <form onSubmit={handleCreateStaff} autoComplete="off">
-                  <div className="form-grid form-grid-2 mb-6">
-                    <div className="form-group">
-                      <label style={{ color: '#a78bfa' }}>Internal Full Name</label>
-                      <input type="text" name="full_name" autoComplete="new-password" className="form-input" style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', borderColor: 'rgba(139, 92, 246, 0.3)' }} value={formData.full_name} onChange={handleChange} required />
-                    </div>
-                    <div className="form-group">
-                      <label style={{ color: '#a78bfa' }}>Institutional Email</label>
-                      <input type="email" name="email" autoComplete="new-password" className="form-input" style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', borderColor: 'rgba(139, 92, 246, 0.3)' }} value={formData.email} onChange={handleChange} required />
-                    </div>
-                  </div>
-
-                  <div className="form-grid form-grid-2 mb-8">
-                    <div className="form-group">
-                      <label style={{ color: '#a78bfa' }}>Permission Matrix Role</label>
-                      <select name="role" className="form-select" style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', borderColor: 'rgba(139, 92, 246, 0.3)' }} value={formData.role} onChange={handleChange}>
-                        <option value="admin">Level 3: Admin</option>
-                        <option value="viewer">Level 2: Viewer (Read-only)</option>
-                        <option value="super_admin">Level 4: Super Admin (Root)</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label style={{ color: '#a78bfa' }}>Secure Temporary Password</label>
-                      <input type="password" name="password" autoComplete="new-password" className="form-input" style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', borderColor: 'rgba(139, 92, 246, 0.3)' }} value={formData.password} onChange={handleChange} required />
-                    </div>
-                  </div>
-
-                  <button type="submit" className="btn-primary" style={{ background: '#8b5cf6', borderColor: '#7c3aed', width: '100%', padding: '1.25rem' }} disabled={creating}>
-                    <UserPlus size={20} className="inline mr-2" />
-                    {creating ? 'Synchronizing Cluster...' : 'Deploy Active Account'}
-                  </button>
-                </form>
-              </div>
-           </div>
-        )}
-
-        {activeTab === 'registry' && (
-            <div className="animate-up">
-              <div className="glass-panel" style={{ padding: '1.25rem 2rem', borderBottom: '1px solid rgba(139, 92, 246, 0.2)', background: 'rgba(139, 92, 246, 0.05)', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', borderRadius: '14px' }}>
-                 <ShieldAlert size={22} color="#a78bfa" />
-                 <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 600 }}>Administrative Node Registry</h3>
-              </div>
-
-              <div className="glass-panel" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                {dataLoading ? (
-                   <div className="p-4 text-center">Interrogating Server Databanks...</div>
-                ) : (
-                  <>
-                    {/* MOBILE VIEW CARDS FOR STAFF */}
-                    <div className="mobile-view flex-col gap-4" style={{ padding: '1rem' }}>
-                        {filteredStaff.map(staff => (
-                            <div key={`m-${staff.staff_id}`} className="request-card" style={{ borderLeft: `4px solid ${staff.role === 'super_admin' ? '#ef4444' : '#3b82f6'}`, padding: '1.25rem', marginBottom: 0 }}>
-                                <div className="flex justify-between items-start mb-2">
-                                    <span style={{ fontWeight: 800, fontSize: '1.10rem', color: '#c4b5fd' }}>SVR-{staff.staff_id.toString().padStart(4, '0')}</span>
-                                    <span className="status-badge" style={{ background: staff.role === 'super_admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: staff.role === 'super_admin' ? '#fca5a5' : '#93c5fd', fontSize: '0.65rem' }}>
-                                        {staff.role.replace('_', ' ')}
-                                    </span>
-                                </div>
-                                <strong style={{ display: 'block', color: '#fff', marginBottom: '4px', fontSize: '1.1rem' }}>{staff.full_name}</strong>
-                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1rem' }}>{staff.email}</span>
-                                
-                                <div className="flex gap-2">
-                                    <button onClick={() => setOverrideTarget(staff)} className="btn-secondary flex-1 flex justify-center items-center gap-1" style={{ padding: '8px', fontSize: '0.8rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '6px' }} title="Override Password">
-                                        <KeyRound size={14} /> Password
-                                    </button>
-                                    {staff.role !== 'super_admin' && (
-                                      <button onClick={() => handleDeleteStaff(staff.staff_id)} className="btn-secondary flex-1 flex justify-center items-center gap-1" style={{ padding: '8px', fontSize: '0.8rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px' }} title="Desync node">
-                                        <Trash2 size={14} /> Delete
-                                      </button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                        {filteredStaff.length === 0 && <div className="text-center p-4">No staff found matching search.</div>}
-                    </div>
-
-                    {/* DESKTOP VIEW TABLE FOR STAFF */}
-                    <div className="desktop-block">
-                      <table className="data-table" style={{ width: '100%' }}>
-                        <thead style={{ background: 'rgba(139, 92, 246, 0.1)' }}>
-                          <tr>
-                            <th style={{ color: '#a78bfa' }}>Network ID</th>
-                            <th style={{ color: '#a78bfa' }}>Identity</th>
-                            <th style={{ color: '#a78bfa', textAlign: 'center' }}>Security Auth</th>
-                            <th style={{ color: '#a78bfa', textAlign: 'center' }}>Node Termination</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredStaff.map(staff => (
-                            <tr key={staff.staff_id}>
-                              <td style={{ color: '#c4b5fd', fontWeight: 'bold', fontSize: '1rem' }}>SVR-{staff.staff_id.toString().padStart(4, '0')}</td>
-                              <td>
-                                <strong style={{ display: 'block', color: '#fff', marginBottom: '4px', fontSize: '1.05rem' }}>{staff.full_name}</strong>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <span className="status-badge" style={{ background: staff.role === 'super_admin' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)', color: staff.role === 'super_admin' ? '#fca5a5' : '#93c5fd', fontSize: '0.65rem' }}>
-                                    {staff.role.replace('_', ' ')}
-                                  </span>
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{staff.email}</span>
-                                </div>
-                              </td>
-                              <td style={{ textAlign: 'center' }}>
-                                 <button onClick={() => setOverrideTarget(staff)} className="btn-secondary" style={{ padding: '8px 14px', fontSize: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', width: 'auto', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '8px' }} title="Override Password">
-                                    <KeyRound size={16} /> Override Password
-                                 </button>
-                              </td>
-                              <td style={{ textAlign: 'center' }}>
-                                {staff.role !== 'super_admin' && (
-                                  <button onClick={() => handleDeleteStaff(staff.staff_id)} className="btn-secondary" style={{ padding: '8px 14px', fontSize: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', width: 'auto', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '8px' }} title="Desync node">
-                                    <Trash2 size={16} /> Delete Node
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                          {filteredStaff.length === 0 && <tr><td colSpan={4} className="text-center" style={{ padding: '3rem' }}>No staff nodes discovered in this sector.</td></tr>}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-        )}
-
-         {activeTab === 'users' && (
-            <div className="animate-up">
-               <div className="glass-panel" style={{ padding: '1.25rem 2rem', borderBottom: '1px solid rgba(16, 185, 129, 0.2)', background: 'rgba(16, 185, 129, 0.05)', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', borderRadius: '14px' }}>
-                  <LayoutList size={22} color="#10b981" />
-                  <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 600 }}>Public User Accounts Registry</h3>
-               </div>
-               
-               <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-                  {/* MOBILE VIEW CARDS FOR USERS */}
-                  <div className="mobile-view flex-col gap-4" style={{ padding: '1rem' }}>
-                    {filteredUsers.map(u => (
-                      <div className="request-card" key={`um-${u.id}`} style={{ borderLeft: `4px solid ${u.verified ? '#10b981' : '#f59e0b'}`, marginBottom: 0 }}>
-                        <div className="flex justify-between items-start mb-2">
-                           <span style={{ fontWeight: 800, fontSize: '1rem', color: u.verified ? '#10b981' : '#f59e0b' }}>USR-{u.id.toString().padStart(4, '0')}</span>
-                           <span className="status-badge" style={{ fontSize: '0.65rem' }}>{u.verified ? 'Verified' : 'Unverified'}</span>
-                        </div>
-                        <strong style={{ display: 'block', color: '#fff', fontSize: '1.1rem' }}>{u.full_name}</strong>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{u.email}</p>
-                        <button onClick={() => setOverrideTarget(u)} className="btn-secondary" style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-                           <KeyRound size={16} /> Override Password
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* DESKTOP VIEW TABLE FOR USERS */}
-                  <div className="desktop-block">
-                    <table className="data-table" style={{ width: '100%' }}>
-                      <thead style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
-                        <tr>
-                          <th style={{ color: '#10b981' }}>ID</th>
-                          <th style={{ color: '#10b981' }}>Identity</th>
-                          <th style={{ color: '#10b981' }}>Verification</th>
-                          <th style={{ color: '#10b981' }}>Meta Info</th>
-                          <th style={{ color: '#10b981', textAlign: 'center' }}>Management</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredUsers.map(u => (
-                          <tr key={u.id}>
-                            <td style={{ color: '#10b981', fontWeight: 700 }}>USR-{u.id.toString().padStart(4, '0')}</td>
-                            <td>
-                              <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{u.full_name}</strong>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{u.email}</span>
-                            </td>
-                            <td>
-                               {u.verified ? (
-                                 <span className="status-badge ready_for_pickup" style={{ fontSize: '0.65rem' }}>Verified Account</span>
-                               ) : (
-                                 <span className="status-badge pending_verification" style={{ fontSize: '0.65rem' }}>Unverified Node</span>
-                               )}
-                            </td>
-                            <td>
-                               <div style={{ fontSize: '0.85rem' }}>
-                                 <p><span style={{ color: 'var(--text-muted)' }}>DOB:</span> {new Date(u.dob).toLocaleDateString()}</p>
-                                 <p><span style={{ color: 'var(--text-muted)' }}>PH:</span> {u.phone || 'N/A'}</p>
-                               </div>
-                            </td>
-                            <td style={{ textAlign: 'center' }}>
-                              <button onClick={() => setOverrideTarget(u)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', width: 'auto', margin: '0 auto', borderRadius: '6px' }}>
-                                 <KeyRound size={14} className="inline mr-2" /> Override
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {filteredUsers.length === 0 && <tr><td colSpan={5} className="text-center p-8">No matching user accounts discovered.</td></tr>}
-                      </tbody>
-                    </table>
-                  </div>
-               </div>
-           </div>
-         )}
-
-      {/* OVERRIDE MODAL */}
-      {overrideTarget && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', padding: '1rem' }}>
-          <div className="glass-panel modal-panel" style={{ borderTop: '4px solid #f59e0b', marginBottom: 0, maxWidth: '500px' }}>
-             <button onClick={() => {setOverrideTarget(null); setNewPassword('')}} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                <XCircle size={24} />
-             </button>
-             
-             <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <KeyRound size={24} color="#f59e0b" /> Password Override
-             </h3>
-             <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-               Forcefully reset the locked password for <strong>{overrideTarget.email}</strong>. This operation permanently scrambles the new credential hash and cannot be undone.
-             </p>
-
-             <div className="form-group mb-4">
-                <label style={{ color: '#fbbf24' }}>New Temporary Password</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  style={{ background: 'rgba(0,0,0,0.5)', borderColor: 'rgba(245, 158, 11, 0.3)', color: '#fff', fontSize: '1.125rem' }} 
-                  value={newPassword} 
-                  onChange={e => setNewPassword(e.target.value)} 
-                  placeholder="e.g. Temp1234!" 
-                />
-             </div>
-
-             <button onClick={executePasswordOverride} className="btn-primary" style={{ background: '#f59e0b', color: '#000', borderColor: '#d97706', width: '100%', fontWeight: 700 }} disabled={overrideLoading || newPassword.length < 6}>
-                {overrideLoading ? 'Overwriting Hash...' : 'Execute Override'}
-             </button>
+      {/* Search Input Bar */}
+      {activeTab !== 'provision' && (
+        <div className="bg-surface-container-lowest border border-outline-variant/20 p-xs sm:p-md rounded shadow-sm mb-sm sm:mb-lg">
+          <div className="relative flex items-center max-w-md">
+            <span className="material-symbols-outlined absolute left-sm text-on-surface-variant">search</span>
+            <input 
+              className="w-full pl-xl pr-sm py-sm bg-surface-bright border border-outline-variant/40 focus:border-primary focus:ring-0 rounded-lg font-body-md transition-colors" 
+              placeholder={activeTab === 'registry' ? t('filter.staff') : t('filter.public')}
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
       )}
+
+      {/* TAB CONTENT: PROVISION */}
+      {activeTab === 'provision' && (
+        <div className="animate-in fade-in duration-300 max-w-2xl mx-auto w-full">
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
+            <div className="relative h-24 bg-primary overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <div className="grid grid-cols-6 h-full w-full">
+                  {[...Array(6)].map((_, i) => <div key={i} className="border-r border-white"></div>)}
+                </div>
+              </div>
+              <div className="relative h-full flex flex-col justify-center px-sm sm:px-lg">
+                <h3 className="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-white">{t('provision.staff.node')}</h3>
+                <p className="text-on-primary-container font-label-lg">{t('onboard.staff.member')}</p>
+              </div>
+            </div>
+            
+            <form className="p-sm sm:p-lg space-y-sm sm:space-y-md" onSubmit={handleCreateStaff} autoComplete="off">
+              {error && <div className="p-sm text-center text-error bg-error-container rounded border border-outline-variant/10 text-xs font-bold">{error}</div>}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div className="space-y-base">
+                  <label className="font-label-lg text-on-surface-variant block">{t('full.name')}</label>
+                  <input type="text" name="full_name" className="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md" value={formData.full_name} onChange={handleChange} required />
+                </div>
+                <div className="space-y-base">
+                  <label className="font-label-lg text-on-surface-variant block">{t('inst.email')}</label>
+                  <input type="email" name="email" className="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md" value={formData.email} onChange={handleChange} required />
+                </div>
+                <div className="space-y-base">
+                  <label className="font-label-lg text-on-surface-variant block">{t('access.level')}</label>
+                  <select name="role" className="w-full py-sm bg-surface border border-outline-variant focus:border-primary focus:ring-0 rounded font-body-md px-sm appearance-none" value={formData.role} onChange={handleChange}>
+                    <option value="admin">{t('level.admin')}</option>
+                    <option value="viewer">{t('level.viewer')}</option>
+                    <option value="super_admin">{t('level.superadmin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-base">
+                  <label className="font-label-lg text-on-surface-variant block">{t('temp.password')}</label>
+                  <input type="password" name="password" className="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md" value={formData.password} onChange={handleChange} required />
+                </div>
+              </div>
+
+              <div className="pt-md border-t border-outline-variant/20 flex justify-end">
+                <button type="submit" className="w-full sm:w-auto px-xl py-sm bg-primary text-white font-label-lg rounded shadow-sm hover:opacity-90 active:scale-95 transition-all" disabled={creating}>
+                  {creating ? t('creating.account') : t('deploy.active.account')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT: REGISTRY */}
+      {activeTab === 'registry' && (
+        <div className="animate-in fade-in duration-300">
+          {/* Mobile View: Cards */}
+          <div className="block md:hidden flex flex-col gap-xs">
+            {dataLoading ? (
+              <div className="p-xl text-center"><span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span></div>
+            ) : filteredStaff.length === 0 ? (
+              <div className="p-md bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-body-md text-on-surface-variant">{t('no.staff.nodes')}</div>
+            ) : (
+              filteredStaff.map(staff => (
+                <div 
+                  key={`m-${staff.staff_id}`} 
+                  className={`bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-xs shadow-sm flex flex-col relative overflow-hidden ${
+                    staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-sm">
+                    <span className="font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</span>
+                    <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                      staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                    }`}>
+                      {t(staff.role)}
+                    </span>
+                  </div>
+                  <h4 className="font-body-lg text-body-lg text-on-surface mb-base font-bold truncate">{staff.full_name}</h4>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mb-md flex items-center gap-xs min-w-0">
+                    <span className="material-symbols-outlined text-[14px] flex-shrink-0">mail</span>
+                    <span className="truncate">{staff.email}</span>
+                  </p>
+                  
+                  <div className="flex gap-sm border-t border-outline-variant/10 pt-sm">
+                    <button 
+                      onClick={() => setOverrideTarget(staff)} 
+                      className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">key</span> {t('password')}
+                    </button>
+                    {staff.role !== 'super_admin' && (
+                      <button 
+                        onClick={() => handleDeleteStaff(staff.staff_id)} 
+                        className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-error-container text-on-error-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span> {t('delete')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop View: Table */}
+          <div className="hidden md:block bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
+                <tr>
+                  <th className="p-md">{t('network.id')}</th>
+                  <th className="p-md">{t('identity')}</th>
+                  <th className="p-md text-center">{t('security.auth')}</th>
+                  <th className="p-md text-center">{t('node.termination')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/10 text-body-md text-on-surface">
+                {dataLoading ? (
+                  <tr>
+                    <td colSpan={4} className="p-xl text-center">
+                      <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+                    </td>
+                  </tr>
+                ) : filteredStaff.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-xl text-center text-on-surface-variant font-body-md">
+                      {t('no.staff.nodes')}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStaff.map(staff => (
+                    <tr key={staff.staff_id} className="hover:bg-surface-container-low/30 transition-colors">
+                      <td className="p-md font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</td>
+                      <td className="p-md">
+                        <strong className="block text-on-surface font-bold text-base mb-xs">{staff.full_name}</strong>
+                        <div className="flex gap-sm items-center">
+                          <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                            staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                          }`}>
+                            {t(staff.role)}
+                          </span>
+                          <span className="text-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+                            <span className="material-symbols-outlined text-[14px]">mail</span>
+                            {staff.email}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-md text-center">
+                        <button 
+                          onClick={() => setOverrideTarget(staff)} 
+                          className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">key</span> {t('override.password')}
+                        </button>
+                      </td>
+                      <td className="p-md text-center">
+                        {staff.role !== 'super_admin' && (
+                          <button 
+                            onClick={() => handleDeleteStaff(staff.staff_id)} 
+                            className="inline-flex items-center gap-xs px-md py-sm bg-error-container text-on-error-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-sm">delete</span> {t('delete.node')}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT: USERS */}
+      {activeTab === 'users' && (
+        <div className="animate-in fade-in duration-300">
+          
+          {/* Sub-tabs for Parents and Staff */}
+          <div className="flex gap-sm mb-md p-base bg-surface-container-low rounded-lg border border-outline-variant/20 w-fit">
+            <button
+              onClick={() => setUserSubTab('parents')}
+              className={`px-md py-xs rounded font-label-md text-label-md transition-all ${userSubTab === 'parents' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+            >
+              {t('parents')}
+            </button>
+            <button
+              onClick={() => setUserSubTab('staff')}
+              className={`px-md py-xs rounded font-label-md text-label-md transition-all ${userSubTab === 'staff' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+            >
+              {t('staff')}
+            </button>
+          </div>
+
+          {userSubTab === 'parents' ? (
+            <>
+              {/* Mobile View: Cards */}
+              <div className="block md:hidden flex flex-col gap-xs">
+                {dataLoading ? (
+                  <div className="p-xl text-center"><span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span></div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="p-md bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-body-md text-on-surface-variant">{t('no.parent.users')}</div>
+                ) : (
+                  filteredUsers.map(u => (
+                    <div 
+                      key={`um-${u.id}`} 
+                      className={`bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-xs shadow-sm flex flex-col relative overflow-hidden ${
+                        u.verified ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-gold'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-sm">
+                        <span className="font-bold text-primary text-base">USR-{u.id.toString().padStart(4, '0')}</span>
+                        <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                          u.verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'
+                        }`}>
+                          {u.verified ? t('verified') : t('unverified')}
+                        </span>
+                      </div>
+                      <h4 className="font-body-lg text-body-lg text-on-surface mb-base font-bold truncate">{u.full_name}</h4>
+                      <p className="font-body-sm text-body-sm text-on-surface-variant mb-md flex items-center gap-xs min-w-0">
+                        <span className="material-symbols-outlined text-[14px] flex-shrink-0">mail</span>
+                        <span className="truncate">{u.email}</span>
+                      </p>
+                      
+                      <div className="flex gap-sm border-t border-outline-variant/10 pt-sm mt-md">
+                        <button 
+                          onClick={() => navigate(`/superadmin/users/parent-${u.id}`)} 
+                          className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">visibility</span> {t('view.profile')}
+                        </button>
+                        <button 
+                          onClick={() => setOverrideTarget(u)} 
+                          className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">key</span> {t('override')}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden md:block bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
+                    <tr>
+                      <th className="p-md">{t('user.id')}</th>
+                      <th className="p-md">{t('identity')}</th>
+                      <th className="p-md">{t('verification')}</th>
+                      <th className="p-md">{t('meta.details')}</th>
+                      <th className="p-md text-center">{t('override.password')}</th>
+                      <th className="p-md text-center">{t('actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10 text-body-md text-on-surface">
+                    {dataLoading ? (
+                      <tr>
+                        <td colSpan={6} className="p-xl text-center">
+                          <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-xl text-center text-on-surface-variant font-body-md">
+                          {t('no.matching.users')}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map(u => (
+                        <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
+                          <td className="p-md font-bold text-primary text-base">USR-{u.id.toString().padStart(4, '0')}</td>
+                          <td className="p-md">
+                            <strong className="block text-on-surface font-bold text-base mb-xs">{u.full_name}</strong>
+                            <span className="text-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+                              <span className="material-symbols-outlined text-[14px]">mail</span>
+                              {u.email}
+                            </span>
+                          </td>
+                          <td className="p-md">
+                            <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                                u.verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container'
+                              }`}>
+                                {u.verified ? t('verified') : t('unverified')}
+                              </span>
+                          </td>
+                          <td className="p-md text-body-sm text-on-surface-variant">
+                            <div>{t('dob')}: {u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</div>
+                            <div>{t('phone')}: {u.phone || 'N/A'}</div>
+                          </td>
+                          <td className="p-md text-center">
+                            <button 
+                              onClick={() => setOverrideTarget(u)} 
+                              className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                            >
+                              <span className="material-symbols-outlined text-sm">key</span> {t('override')}
+                            </button>
+                          </td>
+                          <td className="p-md text-center">
+                            <button 
+                              onClick={() => navigate(`/superadmin/users/parent-${u.id}`)} 
+                              className="inline-flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span> {t('view.profile')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Mobile View: Cards for Staff */}
+              <div className="block md:hidden flex flex-col gap-xs">
+                {dataLoading ? (
+                  <div className="p-xl text-center"><span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span></div>
+                ) : filteredStaff.length === 0 ? (
+                  <div className="p-md bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-body-md text-on-surface-variant">{t('no.staff.nodes')}</div>
+                ) : (
+                  filteredStaff.map(staff => (
+                    <div 
+                      key={`um-staff-${staff.staff_id}`} 
+                      className={`bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-xs shadow-sm flex flex-col relative overflow-hidden ${
+                        staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-sm">
+                        <span className="font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</span>
+                        <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                          staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                        }`}>
+                          {t(staff.role)}
+                        </span>
+                      </div>
+                      <h4 className="font-body-lg text-body-lg text-on-surface mb-base font-bold truncate">{staff.full_name}</h4>
+                      <p className="font-body-sm text-body-sm text-on-surface-variant mb-md flex items-center gap-xs min-w-0">
+                        <span className="material-symbols-outlined text-[14px] flex-shrink-0">mail</span>
+                        <span className="truncate">{staff.email}</span>
+                      </p>
+                      
+                      <div className="flex gap-sm border-t border-outline-variant/10 pt-sm mt-md">
+                        <button 
+                          onClick={() => navigate(`/superadmin/users/staff-${staff.staff_id}`)} 
+                          className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">visibility</span> {t('view.profile')}
+                        </button>
+                        <button 
+                          onClick={() => setOverrideTarget(staff)} 
+                          className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">key</span> {t('override')}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop View: Table for Staff */}
+              <div className="hidden md:block bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
+                    <tr>
+                      <th className="p-md">{t('network.id')}</th>
+                      <th className="p-md">{t('identity')}</th>
+                      <th className="p-md text-center">{t('override.password')}</th>
+                      <th className="p-md text-center">{t('actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10 text-body-md text-on-surface">
+                    {dataLoading ? (
+                      <tr>
+                        <td colSpan={4} className="p-xl text-center">
+                          <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+                        </td>
+                      </tr>
+                    ) : filteredStaff.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-xl text-center text-on-surface-variant font-body-md">
+                          {t('no.staff.nodes')}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredStaff.map(staff => (
+                        <tr key={staff.staff_id} className="hover:bg-surface-container-low/30 transition-colors">
+                          <td className="p-md font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</td>
+                          <td className="p-md">
+                            <strong className="block text-on-surface font-bold text-base mb-xs">{staff.full_name}</strong>
+                            <div className="flex gap-sm items-center">
+                              <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
+                                staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                              }`}>
+                                {t(staff.role)}
+                              </span>
+                              <span className="text-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+                                <span className="material-symbols-outlined text-[14px]">mail</span>
+                                {staff.email}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-md text-center">
+                            <button 
+                              onClick={() => setOverrideTarget(staff)} 
+                              className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                            >
+                              <span className="material-symbols-outlined text-sm">key</span> {t('override')}
+                            </button>
+                          </td>
+                          <td className="p-md text-center">
+                            <button 
+                              onClick={() => navigate(`/superadmin/users/staff-${staff.staff_id}`)} 
+                              className="inline-flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span> {t('view.profile')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+        </div>
+      )}
+  
+        {/* PASSWORD OVERRIDE MODAL */}
+        {overrideTarget && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-md">
+            <div className="max-w-[500px] w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden relative animate-in fade-in zoom-in duration-300">
+              {/* Header Ornament */}
+              <div className="h-1.5 w-full bg-primary-container"></div>
+              
+              <div className="p-lg md:p-xl space-y-md">
+                {/* Branding/Icon Section */}
+                <div className="flex flex-col items-center text-center space-y-sm mb-md">
+                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[40px]">key_off</span>
+                  </div>
+                  <h3 className="font-headline-md text-headline-md text-on-surface">{t('password.override')}</h3>
+                  <p className="font-body-md text-body-md text-on-surface-variant text-center">
+                    {t('force.password.overwrite')} <br /><strong>{overrideTarget.email}</strong>
+                  </p>
+                </div>
+  
+                {/* Warning Alert Note */}
+                <div className="flex gap-sm p-sm bg-error-container/20 border border-error/10 rounded text-left">
+                  <span className="material-symbols-outlined text-error">warning</span>
+                  <p className="font-body-sm text-body-sm text-on-error-container font-medium leading-relaxed">
+                    {t('override.warning.msg')}
+                  </p>
+                </div>
+  
+                {/* Password Input Group */}
+                <div className="space-y-base text-left">
+                  <label className="font-label-lg text-on-surface-variant block">{t('temp.password.chars')}</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md" 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    placeholder="e.g. Temp1234!" 
+                  />
+                </div>
+  
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row-reverse gap-sm pt-md border-t border-outline-variant/10">
+                  <button 
+                    onClick={executePasswordOverride} 
+                    className="bg-primary text-white px-xl py-md font-label-lg text-label-lg rounded hover:bg-primary-container transition-all active:scale-95 shadow-sm flex items-center justify-center gap-sm disabled:opacity-50"
+                    disabled={overrideLoading || newPassword.length < 6}
+                  >
+                    {overrideLoading ? t('executing.reset') : t('execute.override')}
+                  </button>
+                  <button 
+                    onClick={() => { setOverrideTarget(null); setNewPassword(''); }} 
+                    className="bg-transparent border border-outline text-primary px-xl py-md font-label-lg text-label-lg rounded hover:bg-surface-container-high transition-all active:scale-95 flex items-center justify-center gap-sm"
+                    disabled={overrideLoading}
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
     </div>
   );

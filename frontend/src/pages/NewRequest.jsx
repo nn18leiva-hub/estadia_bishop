@@ -1,188 +1,488 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
-import SignatureCanvas from 'react-signature-canvas';
+import TopAppBar from '../components/TopAppBar';
+import BottomNav from '../components/BottomNav';
+import Stepper from '../components/Stepper';
+import { useLanguage } from '../contexts/LanguageContext';
 
-
+/* ── Document Types ─────────────────────────────── */
 const DOCUMENT_TYPES = [
-  { id: 1, name: 'lateness_form', label: 'Lateness Form', is_auto_generated: true, requires_payment: false },
-  { id: 2, name: 'absence_form', label: 'Absence Form', is_auto_generated: true, requires_payment: false },
-  { id: 3, name: 'permission_slip', label: 'Permission Slip', is_auto_generated: true, requires_payment: false },
-  { id: 4, name: 'enrolment_letter', label: 'Enrolment Letter', is_auto_generated: false, requires_payment: true },
-  { id: 5, name: 'transcript', label: 'Transcript', is_auto_generated: false, requires_payment: true },
+  { id: 'transcript', labelKey: 'official.transcript', price: 15, icon: 'description', descKey: 'official.transcript' },
+  { id: 'enrollment', labelKey: 'enrollment.letter', price: 5, icon: 'history_edu', descKey: 'enrollment.letter' },
+  { id: 'graduation', labelKey: 'graduation.cert', price: 45, icon: 'workspace_premium', descKey: 'graduation.cert' },
+  { id: 'deans', labelKey: 'deans.letter', price: 20, icon: 'article', descKey: 'deans.letter' },
+  { id: 'diploma', labelKey: 'replacement.diploma', price: 75, icon: 'menu_book', descKey: 'replacement.diploma' },
+  { id: 'good_moral', labelKey: 'Good Moral Certificate', price: 10, icon: 'verified', descKey: 'Good Moral Certificate' },
+  { id: 'other', labelKey: 'other.special', price: 0, icon: 'help_outline', descKey: 'other.special' },
 ];
 
-const NewRequest = () => {
-  const { user } = useAuth();
+const SAVED_STUDENTS = [
+  { id: 1, name: 'Emma Johnson', grade: 'Year 11', type: 'Current' },
+  { id: 2, name: 'Liam Johnson', grade: 'Class of 2022', type: 'Alumni' },
+];
+
+const DELIVERY_METHODS = [
+  { id: 'digital', labelKey: 'digital.delivery', sublabelKey: 'pdf.sec.email', price: 0, icon: 'mark_email_read' },
+  { id: 'physical', labelKey: 'physical.copy', sublabelKey: 'pickup.postal', price: 15, icon: 'markunread_mailbox' },
+];
+
+const PROCESSING_SPEEDS = [
+  { id: 'standard', labelKey: 'std.proc', sublabelKey: 'std.proc.desc', price: 0, icon: 'schedule' },
+  { id: 'expedited', labelKey: 'exp.proc', sublabelKey: 'exp.proc.desc', price: 25, icon: 'fast_forward' },
+  { id: 'urgent', labelKey: 'urg.proc', sublabelKey: 'urg.proc.desc', price: 50, icon: 'bolt' },
+];
+
+export default function NewRequest() {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    document_type_id: 1,
-    student_bemis_id: '',
-    student_full_name: '',
-    student_graduation_year_or_years_attended: '',
-    delivery_method: 'pickup',
-    reason: ''
-  });
-  const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
-  const sigCanvas = useRef(null);
 
-  const selectedType = DOCUMENT_TYPES.find(d => d.id === parseInt(formData.document_type_id)) || DOCUMENT_TYPES[0];
+  // Form state
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentForm, setStudentForm] = useState({ fullName: '', studentId: '', dob: '', grade: '', relationship: 'Parent' });
+  const [delivery, setDelivery] = useState('digital');
+  const [processing, setProcessing] = useState('standard');
+  const [notes, setNotes] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
 
-  const availableTypes = user?.user_type === 'past_student' 
-    ? DOCUMENT_TYPES.filter(d => d.name === 'transcript')
-    : DOCUMENT_TYPES;
+  const doc = DOCUMENT_TYPES.find(d => d.id === selectedDoc);
+  const deliveryItem = DELIVERY_METHODS.find(d => d.id === delivery);
+  const processingItem = PROCESSING_SPEEDS.find(p => p.id === processing);
+  const totalFee = (doc?.price || 0) + (deliveryItem?.price || 0) + (processingItem?.price || 0);
 
-  useEffect(() => {
-    if (user?.user_type === 'past_student') {
-      setFormData(prev => ({ ...prev, document_type_id: 5 }));
-    }
-  }, [user]);
+  const setStudentField = (k) => (e) => setStudentForm(f => ({ ...f, [k]: e.target.value }));
 
-  const clearSignature = () => {
-    sigCanvas.current.clear();
+  const canProceed = () => {
+    if (step === 1) return !!selectedDoc;
+    if (step === 2) return selectedStudent !== null || (studentForm.fullName && studentForm.studentId);
+    if (step === 3) return !!delivery && !!processing;
+    return true;
   };
 
-  const handleSignatureEnd = () => {
-    // Basic handler for end-of-stroke
+  const handleNext = () => {
+    if (step < 4) setStep(s => s + 1);
+  };
+  const handleBack = () => {
+    if (step > 1) setStep(s => s - 1);
+    else navigate('/dashboard/parents');
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError('');
-    
-    if (!formData.student_full_name || !formData.student_bemis_id) {
-       setError("Student Full Name and ID are strictly required.");
-       return;
-    }
-
-    if (selectedType.is_auto_generated && sigCanvas.current.isEmpty()) {
-       setError("Signature is required for this form.");
-       return;
-    }
-
-    const payload = new FormData();
-    payload.append('document_type_id', formData.document_type_id);
-    payload.append('student_bemis_id', formData.student_bemis_id);
-    payload.append('student_full_name', formData.student_full_name);
-    payload.append('student_graduation_year_or_years_attended', formData.student_graduation_year_or_years_attended);
-    payload.append('delivery_method', formData.delivery_method);
-
-    if (selectedType.is_auto_generated) {
-       payload.append('form_data', JSON.stringify({ reason: formData.reason }));
-       const blob = await new Promise(resolve => sigCanvas.current.getTrimmedCanvas().toBlob(resolve, 'image/png'));
-       if (blob) {
-         payload.append('signature_image', blob, 'signature.png');
-       }
-    }
-
-    setLoading(true);
+    setSubmitting(true);
     try {
-      await apiFetch('/requests/create', {
+      const body = {
+        document_type: doc?.label,
+        student_name: selectedStudent ? selectedStudent.name : studentForm.fullName,
+        student_id: selectedStudent ? selectedStudent.id : studentForm.studentId,
+        dob: studentForm.dob,
+        grade: selectedStudent ? selectedStudent.grade : studentForm.grade,
+        relationship: studentForm.relationship,
+        delivery_method: delivery,
+        processing_speed: processing,
+        notes,
+        recipient_email: recipientEmail,
+        fee: totalFee,
+      };
+      const data = await apiFetch('/requests', {
         method: 'POST',
-        body: payload 
+        body: JSON.stringify(body),
       });
-      
-      if (selectedType.requires_payment) navigate('/dashboard/parents/bank-details');
-      else navigate('/dashboard/parents');
+      navigate('/dashboard/parents/sign', { state: { requestId: data?.id, fee: totalFee, doc: doc?.label } });
     } catch (err) {
-      setError(err.message || 'Failed to submit request');
+      setError(err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <button onClick={() => navigate('/dashboard/parents')} className="btn-secondary flex items-center gap-3 mb-6">
-        <ArrowLeft size={18} /> Back to Dashboard
-      </button>
+    <div className="min-h-screen bg-background text-on-surface">
+      <TopAppBar showBack backTo="/dashboard/parents" />
 
-      <div className="glass-panel animate-up">
-        <div style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Document Request</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', marginTop: '0.5rem' }}>Please provide student details to generate your official form.</p>
+      <main className="pt-16 pb-24 md:pb-10 px-sm md:px-gutter max-w-container-max mx-auto">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant py-md">
+          <span>{t('dashboard')}</span>
+          <span className="material-symbols-outlined text-sm">chevron_right</span>
+          <span className="text-primary font-semibold">{t('new.doc.request')}</span>
+        </nav>
+
+        {/* Stepper */}
+        <div className="mb-lg px-xs">
+          <Stepper currentStep={step} />
         </div>
 
-        {error && <div className="error-text mb-6 p-4" style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', borderRadius: '16px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>{error}</div>}
-
-        <form onSubmit={handleSubmit} className="form-grid form-grid-2">
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Document Type *</label>
-            <select name="document_type_id" className="form-select" value={formData.document_type_id} onChange={handleChange}>
-              {availableTypes.map(doc => (
-                <option key={doc.id} value={doc.id}>{doc.label}</option>
-              ))}
-            </select>
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-sm mb-md px-sm py-xs bg-error-container rounded-lg border border-error/20 max-w-2xl mx-auto">
+            <span className="material-symbols-outlined text-error">error</span>
+            <p className="font-body-sm text-on-error-container">{error}</p>
           </div>
+        )}
 
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Student Name *</label>
-            <input type="text" name="student_full_name" className="form-input" placeholder="Full Legal Name" value={formData.student_full_name} onChange={handleChange} required />
-          </div>
-            
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Student ID (BEMIS) *</label>
-            <input type="text" name="student_bemis_id" className="form-input" placeholder="e.g. 2024-XXXX" value={formData.student_bemis_id} onChange={handleChange} required />
-          </div>
-
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Years Attended</label>
-            <input type="text" name="student_graduation_year_or_years_attended" className="form-input" placeholder="e.g. 2020-2024" value={formData.student_graduation_year_or_years_attended} onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Delivery Preference *</label>
-            <select name="delivery_method" className="form-select" value={formData.delivery_method} onChange={handleChange}>
-              <option value="pickup">Pick Up at School Office</option>
-              {selectedType.requires_payment && <option value="mailed">Mail to Address</option>}
-              {selectedType.requires_payment && <option value="emailed">Email Secure PDF</option>}
-            </select>
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', marginTop: '2rem' }}>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 600, fontSize: '1rem', color: 'var(--text-muted)' }}>Digital Signature *</label>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Please draw your signature below. Click 'Clear' if you need to redo it before submitting.</p>
-              
-              <div className="sig-canvas-container" style={{ position: 'relative', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)' }}>
-                <SignatureCanvas 
-                  ref={sigCanvas}
-                  penColor="#818cf8"
-                  canvasProps={{ className: 'signature-canvas', style: { width: '100%', height: '300px' } }}
-                />
-                <button type="button" onClick={clearSignature} style={{ position: 'absolute', bottom: '15px', right: '15px', background: 'var(--danger-color)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(244, 63, 94, 0.3)' }}>
-                  Clear / Redo
+        {/* ── Step 1: Document Selection ── */}
+        {step === 1 && (
+          <section>
+            <div className="mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">{t('select.doc.type')}</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+              {DOCUMENT_TYPES.map(d => (
+                <button
+                   key={d.id}
+                  onClick={() => setSelectedDoc(d.id)}
+                  className={`text-left p-md rounded-xl border-2 transition-all flex flex-col gap-sm relative
+                    ${selectedDoc === d.id
+                      ? 'border-primary bg-primary-fixed/30 shadow-md'
+                      : 'border-outline-variant/30 bg-surface-container-lowest hover:border-primary/40 hover:shadow-sm'
+                    }`}
+                >
+                  {selectedDoc === d.id && (
+                    <span className="absolute top-3 right-3 material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1", fontSize: '20px' }}>check_circle</span>
+                  )}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center
+                    ${selectedDoc === d.id ? 'bg-primary text-on-primary' : 'bg-surface-container text-primary'}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>{d.icon}</span>
+                  </div>
+                  <div>
+                    <p className="font-headline-sm text-headline-sm text-on-surface">{t(d.labelKey)}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">{d.id === 'good_moral' ? t('verification.active') : t(d.descKey)}</p>
+                  </div>
+                  <div className="mt-auto pt-sm border-t border-outline-variant/20">
+                    <p className={`font-label-lg text-label-lg ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
+                      {d.price === 0 ? t('other.special') : `BZD $${d.price}.00`}
+                    </p>
+                  </div>
                 </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Step 2: Student Info ── */}
+        {step === 2 && (
+          <section className="max-w-2xl">
+            <div className="mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">{t('student.info')}</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
+            </div>
+
+            {/* Saved Students */}
+            {SAVED_STUDENTS.length > 0 && (
+              <div className="mb-md">
+                <p className="font-label-lg text-label-lg text-on-surface mb-sm">{t('saved.students')}</p>
+                <div className="flex gap-sm overflow-x-auto no-scrollbar pb-xs">
+                  {SAVED_STUDENTS.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSelectedStudent(selectedStudent?.id === s.id ? null : s)}
+                      className={`flex-shrink-0 flex items-center gap-sm px-sm py-xs rounded-full border-2 transition-all
+                        ${selectedStudent?.id === s.id
+                          ? 'border-primary bg-primary-fixed/30 text-primary'
+                          : 'border-outline-variant/30 text-on-surface-variant hover:border-primary/40'
+                        }`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-label-md">
+                        {s.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="text-left">
+                        <p className="font-label-lg text-label-lg">{s.name}</p>
+                        <p className="font-label-md text-label-md opacity-70">{s.type} · {s.grade}</p>
+                      </div>
+                      {selectedStudent?.id === s.id && (
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-md">
+              <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest">
+                {selectedStudent ? t('or.manual.override') : t('student.details')}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.fullName')}</label>
+                  <input
+                    type="text" required
+                    value={selectedStudent ? selectedStudent.name : studentForm.fullName}
+                    onChange={setStudentField('fullName')}
+                    disabled={!!selectedStudent}
+                    placeholder="Student's full name"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md disabled:opacity-50"
+                  />
+                </div>
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.studentId')}</label>
+                  <input
+                    type="text"
+                    value={studentForm.studentId}
+                    onChange={setStudentField('studentId')}
+                    placeholder="e.g. BM-2024-0021"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                  />
+                </div>
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.dob')}</label>
+                  <input
+                    type="date"
+                    value={studentForm.dob}
+                    onChange={setStudentField('dob')}
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                  />
+                </div>
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade')}</label>
+                  <input
+                    type="text"
+                    value={selectedStudent ? selectedStudent.grade : studentForm.grade}
+                    onChange={setStudentField('grade')}
+                    disabled={!!selectedStudent}
+                    placeholder="e.g. Year 11 or Class of 2022"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-xs">
+                <label className="font-label-lg text-label-lg text-on-surface">{t('manual.relationship')}</label>
+                <select
+                  value={studentForm.relationship}
+                  onChange={setStudentField('relationship')}
+                  className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
+                >
+                  <option value="Parent">{t('rel.parent')}</option>
+                  <option value="Legal Guardian">{t('rel.guardian')}</option>
+                  <option value="Self (Alumni)">{t('rel.self')}</option>
+                  <option value="Authorized Representative">{t('rel.rep')}</option>
+                </select>
               </div>
             </div>
-          </div>
+          </section>
+        )}
 
-          {selectedType.requires_payment && (
-            <div style={{ gridColumn: '1 / -1', padding: '2rem', background: 'rgba(245, 158, 11, 0.04)', borderRadius: '24px', border: '1px solid rgba(245, 158, 11, 0.15)' }}>
-              <p style={{ color: '#fbbf24', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                <strong>Important:</strong> This document requires a processing fee. Please submit the request first, then upload your payment receipt from the <strong>Payments</strong> section.
-              </p>
+        {/* ── Step 3: Delivery & Speed ── */}
+        {step === 3 && (
+          <section className="max-w-3xl">
+            <div className="mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">{t('delivery.processing')}</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.del.desc')}</p>
             </div>
-          )}
 
-          <div style={{ gridColumn: '1 / -1', marginTop: '3rem' }}>
-            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1.25rem' }} disabled={loading}>
-              {loading ? 'Processing Application...' : 'Submit Official Request'}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+              <div className="lg:col-span-2 flex flex-col gap-md">
+                {/* Delivery Method */}
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+                    {DELIVERY_METHODS.map(d => (
+                      <button
+                        key={d.id}
+                        onClick={() => setDelivery(d.id)}
+                        className={`flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all
+                          ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                      >
+                        <span className={`material-symbols-outlined ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
+                        <div>
+                          <p className="font-label-lg text-label-lg text-on-surface">{t(d.labelKey)}</p>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant">{t(d.sublabelKey)}</p>
+                          <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
+                            {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Processing Speed */}
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
+                  <div className="flex flex-col gap-sm">
+                    {PROCESSING_SPEEDS.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => setProcessing(p.id)}
+                        className={`flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all
+                          ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                      >
+                        <span className={`material-symbols-outlined ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
+                        <div className="flex-1">
+                          <p className="font-label-lg text-label-lg text-on-surface">{t(p.labelKey)}</p>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant">{t(p.sublabelKey)}</p>
+                        </div>
+                        <p className={`font-label-lg font-bold ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
+                          {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                {delivery === 'digital' && (
+                  <div className="flex flex-col gap-xs">
+                    <label className="font-label-lg text-label-lg text-on-surface">{t('where.send')}</label>
+                    <input
+                      type="email"
+                      value={recipientEmail}
+                      onChange={e => setRecipientEmail(e.target.value)}
+                      placeholder="Where should we send the document?"
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('special.instructions')}</label>
+                  <textarea
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    rows={3}
+                    placeholder="Any special notes for the Registrar's Office..."
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Fee Breakdown Sidebar */}
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md h-fit sticky top-20">
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-md flex items-center gap-xs">
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>receipt_long</span>
+                  {t('fee.breakdown')}
+                </h3>
+                <div className="flex flex-col gap-sm">
+                  <div className="flex justify-between items-center">
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t(doc?.labelKey)}</p>
+                    <p className="font-label-lg text-label-lg text-on-surface">BZD ${doc?.price}.00</p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('delivery')}</p>
+                    <p className="font-label-lg text-label-lg text-on-surface">
+                      {deliveryItem?.price === 0 ? t('free') : `BZD $${deliveryItem?.price}`}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('processing')}</p>
+                    <p className="font-label-lg text-label-lg text-on-surface">
+                      {processingItem?.price === 0 ? t('free') : `BZD $${processingItem?.price}`}
+                    </p>
+                  </div>
+                  <div className="border-t border-outline-variant/30 pt-sm mt-sm flex justify-between items-center">
+                    <p className="font-headline-sm text-headline-sm text-on-surface">Total</p>
+                    <p className="font-headline-md text-headline-md text-primary font-bold">BZD ${totalFee}.00</p>
+                  </div>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-md opacity-70">
+                  {t('confirm.initiated.desc')}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Step 4: Review ── */}
+        {step === 4 && (
+          <section className="max-w-2xl">
+            <div className="mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">{t('review.submit')}</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('review.desc')}</p>
+            </div>
+
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm">
+              {/* Document */}
+              <div className="p-md border-b border-outline-variant/20">
+                <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm">{t('doc.requested')}</p>
+                <div className="flex items-center gap-md">
+                  <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center">
+                    <span className="material-symbols-outlined text-on-primary">{doc?.icon}</span>
+                  </div>
+                  <div>
+                    <p className="font-headline-sm text-headline-sm text-on-surface">{t(doc?.labelKey)}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t(doc?.descKey)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Student */}
+              <div className="p-md border-b border-outline-variant/20">
+                <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm">{t('student.details')}</p>
+                <div className="grid grid-cols-2 gap-sm">
+                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('student.name')}</p><p className="font-body-md text-body-md">{selectedStudent?.name || studentForm.fullName}</p></div>
+                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('grade.year')}</p><p className="font-body-md text-body-md">{selectedStudent?.grade || studentForm.grade}</p></div>
+                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('relationship')}</p><p className="font-body-md text-body-md">{t('rel.' + studentForm.relationship.toLowerCase().replace(' ', '')) || studentForm.relationship}</p></div>
+                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('delivery')}</p><p className="font-body-md text-body-md capitalize">{t(delivery + '.delivery') || delivery}</p></div>
+                </div>
+              </div>
+
+              {/* Total */}
+              <div className="p-md bg-surface-container">
+                <div className="flex justify-between items-center">
+                  <p className="font-headline-sm text-headline-sm text-on-surface">{t('total.due')}</p>
+                  <p className="font-headline-md text-headline-md text-primary font-bold">BZD ${totalFee}.00</p>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
+                  {t('processing.speed')}: <span className="font-semibold">{t(processingItem?.labelKey)}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-md p-sm bg-surface-container rounded-lg border-l-4 border-primary">
+              <div className="flex gap-sm">
+                <span className="material-symbols-outlined text-primary">info</span>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  {t('legal.agree')}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between mt-lg max-w-3xl">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-xs text-primary hover:opacity-80 font-label-lg text-label-lg px-md py-sm rounded-lg hover:bg-surface-container-high transition-all"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+            {step === 1 ? t('cancel') : t('back')}
+          </button>
+
+          {step < 4 ? (
+            <button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-40 transition-all font-semibold"
+            >
+              {t('continue')}
+              <span className="material-symbols-outlined">arrow_forward</span>
             </button>
-          </div>
-        </form>
-      </div>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 transition-all font-semibold"
+            >
+              {submitting ? (
+                <><span className="material-symbols-outlined animate-spin">sync</span>{t('submitting.request')}</>
+              ) : (
+                <>{t('submit.request')} <span className="material-symbols-outlined">draw</span></>
+              )}
+            </button>
+          )}
+        </div>
+      </main>
+
+      <BottomNav variant="parent" />
     </div>
   );
-};
-
-export default NewRequest;
+}
