@@ -8,6 +8,7 @@ import { apiFetch } from '../services/api';
 
 const STATUS_STYLES = {
   pending:    'bg-surface-container-high text-on-surface-variant',
+  pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready:      'bg-tertiary-fixed text-on-tertiary-fixed',
   issued:     'bg-secondary-container/60 text-on-secondary-container',
@@ -16,6 +17,7 @@ const STATUS_STYLES = {
 
 const STATUS_LABELS = {
   pending: 'Pending',
+  pending_verification: 'Pending Identity Verification',
   processing: 'Processing',
   ready: 'Ready for Pickup',
   issued: 'Issued',
@@ -84,6 +86,33 @@ export default function Dashboard() {
           </div>
         </section>
 
+        {/* SSN Warning Banner */}
+        {user && !user.verified && (
+          <div className="mb-md bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30 rounded-xl p-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
+            <div className="flex gap-sm items-start">
+              <span className="material-symbols-outlined text-amber-700 dark:text-amber-400 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+              <div>
+                <h4 className="font-label-lg text-amber-800 dark:text-amber-300 font-semibold font-bold">
+                  {user.ssn_card_image_path ? t('pending.admin.review') || 'Identity Verification Pending' : t('id.verification.required') || 'Identity Verification Required'}
+                </h4>
+                <p className="font-body-sm text-on-surface-variant">
+                  {user.ssn_card_image_path
+                    ? t('ver.submitted.desc') || 'Your identity document is being reviewed. Document requests will be processed after approval.'
+                    : t('id.ver.desc') || 'Please upload your SSN or identity document. All document requests will remain locked until your identity is verified.'}
+                </p>
+              </div>
+            </div>
+            {!user.ssn_card_image_path && (
+              <button
+                onClick={() => navigate('/dashboard/parents/upload-ssn')}
+                className="bg-primary text-on-primary hover:brightness-110 px-md py-xs rounded-lg font-label-lg whitespace-nowrap self-stretch sm:self-auto text-center font-bold"
+              >
+                {t('upload.id.doc') || 'Upload ID'}
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Bento Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 
@@ -95,15 +124,42 @@ export default function Dashboard() {
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>verified_user</span>
                 <h3 className="font-headline-sm text-headline-sm text-primary">{t('identity.status')}</h3>
               </div>
-              <div className="flex items-center gap-sm p-sm bg-secondary-container/30 rounded-lg border border-outline-variant/10">
-                <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified</span>
+              {user?.verified ? (
+                <div className="flex items-center gap-sm p-sm bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-500/20">
+                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-green-700 dark:text-green-300" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-green-700 dark:text-green-300 font-semibold">{t('identity.verified')}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('verification.active')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-label-lg text-label-lg text-on-surface font-semibold">{t('identity.verified')}</p>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">{t('verification.active')}</p>
+              ) : user?.ssn_card_image_path ? (
+                <div className="flex items-center gap-sm p-sm bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-500/20">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-amber-700 dark:text-amber-300" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>hourglass_empty</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-amber-700 dark:text-amber-300 font-semibold">{t('pending.verification') || 'Pending Review'}</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('expect.review.desc') || 'Under review (1–2 business days)'}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-sm p-sm bg-error-container/30 rounded-lg border border-error/20">
+                  <div className="w-10 h-10 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-error" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>warning</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-label-lg text-label-lg text-error font-semibold">{t('identity.unverified')}</p>
+                    <button
+                      onClick={() => navigate('/dashboard/parents/upload-ssn')}
+                      className="text-primary hover:underline font-label-md text-label-md mt-0.5 block text-left font-semibold"
+                    >
+                      {t('upload.id.doc') || 'Upload SSN Card'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Quick Actions Card */}
@@ -247,7 +303,7 @@ export default function Dashboard() {
                       </div>
                       <div className="col-span-2 flex justify-start md:justify-end">
                         <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold ${STATUS_STYLES[req.status] || STATUS_STYLES.pending}`}>
-                          {STATUS_LABELS[req.status] || req.status || 'Pending'}
+                          {t(req.status || 'pending')}
                         </span>
                       </div>
                     </div>

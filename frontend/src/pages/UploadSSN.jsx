@@ -4,10 +4,12 @@ import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function UploadSSN() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { fetchProfile } = useAuth();
   const inputRef = useRef(null);
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
@@ -34,8 +36,9 @@ export default function UploadSSN() {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('idDocument', file);
-      await apiFetch('/identity/upload', { method: 'POST', body: formData });
+      formData.append('ssn_image', file);
+      await apiFetch('/parent/upload-ssn-card', { method: 'POST', body: formData });
+      await fetchProfile();
       navigate('/dashboard/parents/verify-ssn');
     } catch (err) {
       setError(err.message);

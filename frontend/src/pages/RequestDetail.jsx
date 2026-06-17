@@ -4,9 +4,11 @@ import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_STYLES = {
   pending: 'bg-surface-container-high text-on-surface-variant',
+  pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready: 'bg-tertiary-fixed text-on-tertiary-fixed',
   issued: 'bg-secondary-container/60 text-on-secondary-container',
@@ -18,6 +20,7 @@ export default function RequestDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [req, setReq] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +34,7 @@ export default function RequestDetail() {
   const getStatusLabel = (status) => {
     if (status === 'ready') return t('ready.pickup');
     if (status === 'action') return t('action.required');
+    if (status === 'pending_verification') return t('pending_verification') || 'Pending Identity Verification';
     return t(status || 'pending');
   };
 
@@ -121,6 +125,77 @@ export default function RequestDetail() {
 
           {/* Right */}
           <div className="lg:col-span-5 flex flex-col gap-md">
+            {/* Download Document Card */}
+            {req.generated_file_path && (
+              <div className="bg-primary text-on-primary rounded-xl p-md relative overflow-hidden flex flex-col gap-sm shadow-md" style={{ background: 'linear-gradient(135deg, var(--md-sys-color-primary, #1e3a8a) 0%, var(--md-sys-color-primary-container, #3b82f6) 100%)' }}>
+                <div className="absolute inset-0 bento-texture opacity-10" />
+                <div className="relative z-10 flex items-start gap-sm">
+                  <span className="material-symbols-outlined text-white" style={{ fontSize: '36px', fontVariationSettings: "'FILL' 1" }}>
+                    {req.delivery_method === 'emailed' ? 'verified_user' : 'info'}
+                  </span>
+                  <div>
+                    <h3 className="font-headline-sm text-headline-sm font-bold text-white">
+                      {req.delivery_method === 'emailed' 
+                        ? (t('academic.doc.ready') || 'Academic Document Ready')
+                        : (t('reference.digital.copy') || 'Reference Digital Copy')}
+                    </h3>
+                    <p className="font-body-sm text-white opacity-80 mt-xxs">
+                      {req.delivery_method === 'emailed'
+                        ? (t('download.desc') || 'Your requested document has been issued by the institution. You can download the official copy below.')
+                        : (t('reference.copy.disclaimer') || 'This is a reference copy. Please collect the official physical document.')}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="relative z-10 mt-xs border-t border-white/20 pt-sm flex justify-between items-center gap-sm">
+                  <div className="min-w-0">
+                    <p className="font-label-md text-white font-semibold truncate">
+                      {req.generated_file_path.split('/').pop()}
+                    </p>
+                    <p className="font-body-xs text-white opacity-60">
+                      {req.delivery_method === 'emailed'
+                        ? (t('official.digital.copy') || 'Official Digital Copy')
+                        : (t('reference.digital.copy') || 'Reference Digital Copy')}
+                    </p>
+                  </div>
+                  <a
+                    href={`/${req.generated_file_path}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-xs px-md py-xs bg-white text-primary hover:bg-surface-container font-label-lg rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    {t('download') || 'Download'}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Pending Identity Verification Banner */}
+            {req.status === 'pending_verification' && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30 rounded-xl p-md flex flex-col gap-sm">
+                <div className="flex gap-sm items-start">
+                  <span className="material-symbols-outlined text-amber-700 dark:text-amber-400 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>hourglass_empty</span>
+                  <div>
+                    <h3 className="font-headline-sm text-headline-sm text-amber-800 dark:text-amber-300 font-semibold">{t('pending.verification') || 'Pending Identity Verification'}</h3>
+                    <p className="font-body-sm text-on-surface-variant mt-xs">
+                      {user?.ssn_card_image_path
+                        ? t('ver.submitted.desc') || 'Your identity document has been received and is pending review. Once verified, this request will automatically proceed to processing.'
+                        : t('id.ver.desc') || 'This request is paused because your identity has not been verified yet. Please upload your SSN or ID document to proceed.'}
+                    </p>
+                  </div>
+                </div>
+                {!user?.ssn_card_image_path && (
+                  <button
+                    onClick={() => navigate('/dashboard/parents/upload-ssn')}
+                    className="bg-primary text-on-primary hover:brightness-110 px-md py-xs rounded-lg font-label-lg w-fit font-bold"
+                  >
+                    {t('upload.id.doc') || 'Upload ID Document'}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Action Required Banner */}
             {req.status === 'action' && (
               <div className="bg-error-container border border-error/30 rounded-xl p-md flex flex-col gap-sm">
@@ -165,9 +240,35 @@ export default function RequestDetail() {
                 <p className="font-body-md text-on-surface">{req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}</p>
               </div>
               <div className="flex justify-between items-center py-xs">
-                <p className="font-label-lg text-label-lg text-primary font-bold">{t('total.paid')}</p>
+                <p className="font-label-lg text-label-lg text-primary font-bold">{req.payment_verified ? t('total.paid') : t('total.due')}</p>
                 <p className="font-body-md text-primary font-bold">{req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}</p>
               </div>
+
+              {req.requires_payment && !req.payment_id && (
+                <button
+                  onClick={() => navigate('/dashboard/parents/bank-details', {
+                    state: { requestId: req.id, fee: req.fee, docLabel: req.document_type }
+                  })}
+                  className="w-full mt-md bg-primary text-on-primary py-xs rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all"
+                >
+                  <span className="material-symbols-outlined">payments</span>
+                  {t('pay.now') || 'Pay Now'}
+                </button>
+              )}
+
+              {req.requires_payment && req.payment_id && !req.payment_verified && (
+                <div className="mt-md p-xs bg-surface-container rounded border-l-4 border-amber-600 flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-amber-600">hourglass_empty</span>
+                  <p className="font-body-sm text-on-surface-variant">{t('payment.pending.verification') || 'Payment uploaded. Pending verification.'}</p>
+                </div>
+              )}
+
+              {req.requires_payment && req.payment_verified && (
+                <div className="mt-md p-xs bg-surface-container rounded border-l-4 border-green-700 flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-green-700">check_circle</span>
+                  <p className="font-body-sm text-green-700 font-semibold">{t('payment.verified') || 'Payment verified.'}</p>
+                </div>
+              )}
             </div>
 
             {/* Need Help */}

@@ -26,6 +26,14 @@ export default function StaffPayments() {
     } catch (_) {}
   };
 
+  const handleViewReceipt = (p) => {
+    if (p.receipt_image_path) {
+      window.open(`/${p.receipt_image_path}`, '_blank');
+    } else {
+      navigate(`/staff/requests/${p.request_id || p.id}`);
+    }
+  };
+
   const STATUS_BADGE = {
     pending: 'bg-surface-container-high text-on-surface-variant',
     verified: 'bg-secondary-container text-on-secondary-container',
@@ -89,7 +97,7 @@ export default function StaffPayments() {
                         <span className="material-symbols-outlined text-sm">check_circle</span> {t('verify')}
                       </button>
                       <button
-                        onClick={() => navigate(`/staff/requests/${p.request_id || p.id}`)}
+                        onClick={() => handleViewReceipt(p)}
                         className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span> {t('view.receipt')}
@@ -141,7 +149,7 @@ export default function StaffPayments() {
                           <span className="material-symbols-outlined">check_circle</span>
                         </button>
                         <button 
-                          onClick={() => navigate(`/staff/requests/${p.request_id || p.id}`)}
+                          onClick={() => handleViewReceipt(p)}
                           className="p-2 hover:text-primary transition-colors" 
                           title={t('view.receipt')}
                         >

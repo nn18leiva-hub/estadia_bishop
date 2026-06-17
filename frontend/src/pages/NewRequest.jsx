@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiFetch } from '../services/api';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import Stepper from '../components/Stepper';
 import { useLanguage } from '../contexts/LanguageContext';
+import { apiFetch } from '../services/api';
 
 /* ── Document Types ─────────────────────────────── */
 const DOCUMENT_TYPES = [
@@ -17,10 +17,7 @@ const DOCUMENT_TYPES = [
   { id: 'other', labelKey: 'other.special', price: 0, icon: 'help_outline', descKey: 'other.special' },
 ];
 
-const SAVED_STUDENTS = [
-  { id: 1, name: 'Emma Johnson', grade: 'Year 11', type: 'Current' },
-  { id: 2, name: 'Liam Johnson', grade: 'Class of 2022', type: 'Alumni' },
-];
+// Past students are loaded dynamically from request history
 
 const DELIVERY_METHODS = [
   { id: 'digital', labelKey: 'digital.delivery', sublabelKey: 'pdf.sec.email', price: 0, icon: 'mark_email_read' },
@@ -37,8 +34,36 @@ export default function NewRequest() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [step, setStep] = useState(1);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [savedStudents, setSavedStudents] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Load real student history from past requests
+  useEffect(() => {
+    apiFetch('/requests/my-requests')
+      .then(data => {
+        const list = Array.isArray(data) ? data : data.requests || [];
+        // Deduplicate by student name — keep most recent entry per student
+        const seen = new Map();
+        list.forEach(req => {
+          const key = req.student_full_name?.toLowerCase();
+          if (key && !seen.has(key)) {
+            seen.set(key, {
+              // All fields needed to pre-fill step 2
+              name:         req.student_full_name || '',
+              studentId:    req.student_bemis_id || '',
+              grade:        req.student_graduation_year_or_years_attended || '',
+              dob:          req.form_data?.dob || '',
+              relationship: req.form_data?.relationship || 'Parent',
+              requestDate:  req.request_date,
+            });
+          }
+        });
+        setSavedStudents([...seen.values()]);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingHistory(false));
+  }, []);
 
   // Form state
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -48,6 +73,24 @@ export default function NewRequest() {
   const [processing, setProcessing] = useState('standard');
   const [notes, setNotes] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
+
+  // When a saved student is picked, populate ALL form fields
+  const selectSavedStudent = (s) => {
+    if (selectedStudent?.name === s.name) {
+      // Deselect — clear the form
+      setSelectedStudent(null);
+      setStudentForm({ fullName: '', studentId: '', dob: '', grade: '', relationship: 'Parent' });
+    } else {
+      setSelectedStudent(s);
+      setStudentForm({
+        fullName:     s.name,
+        studentId:    s.studentId,
+        dob:          s.dob,
+        grade:        s.grade,
+        relationship: s.relationship,
+      });
+    }
+  };
 
   const doc = DOCUMENT_TYPES.find(d => d.id === selectedDoc);
   const deliveryItem = DELIVERY_METHODS.find(d => d.id === delivery);
@@ -71,33 +114,23 @@ export default function NewRequest() {
     else navigate('/dashboard/parents');
   };
 
-  const handleSubmit = async () => {
-    setError('');
-    setSubmitting(true);
-    try {
-      const body = {
-        document_type: doc?.label,
-        student_name: selectedStudent ? selectedStudent.name : studentForm.fullName,
-        student_id: selectedStudent ? selectedStudent.id : studentForm.studentId,
-        dob: studentForm.dob,
-        grade: selectedStudent ? selectedStudent.grade : studentForm.grade,
-        relationship: studentForm.relationship,
-        delivery_method: delivery,
-        processing_speed: processing,
-        notes,
-        recipient_email: recipientEmail,
-        fee: totalFee,
-      };
-      const data = await apiFetch('/requests', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-      navigate('/dashboard/parents/sign', { state: { requestId: data?.id, fee: totalFee, doc: doc?.label } });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+  const handleNavigateToSign = () => {
+    const body = {
+      document_type_name: selectedDoc,
+      student_full_name: studentForm.fullName,
+      student_bemis_id: studentForm.studentId || '',
+      student_graduation_year_or_years_attended: studentForm.grade,
+      delivery_method: delivery,
+      processing_speed: processing,
+      recipient_email: recipientEmail,
+      fee: totalFee,
+      notes,
+      // Store dob + relationship inside form_data so they can be re-populated next time
+      form_data: JSON.stringify({ dob: studentForm.dob, relationship: studentForm.relationship }),
+    };
+    navigate('/dashboard/parents/sign', {
+      state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey) }
+    });
   };
 
   return (
@@ -173,40 +206,85 @@ export default function NewRequest() {
               <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
             </div>
 
-            {/* Saved Students */}
-            {SAVED_STUDENTS.length > 0 && (
+            {/* Past Students from Request History */}
+            {loadingHistory ? (
+              <div className="mb-md flex gap-sm">
+                {[1,2].map(i => (
+                  <div key={i} className="flex-shrink-0 w-56 h-20 rounded-xl border border-outline-variant/20 bg-surface-container animate-pulse" />
+                ))}
+              </div>
+            ) : savedStudents.length > 0 && (
               <div className="mb-md">
-                <p className="font-label-lg text-label-lg text-on-surface mb-sm">{t('saved.students')}</p>
-                <div className="flex gap-sm overflow-x-auto no-scrollbar pb-xs">
-                  {SAVED_STUDENTS.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setSelectedStudent(selectedStudent?.id === s.id ? null : s)}
-                      className={`flex-shrink-0 flex items-center gap-sm px-sm py-xs rounded-full border-2 transition-all
-                        ${selectedStudent?.id === s.id
-                          ? 'border-primary bg-primary-fixed/30 text-primary'
-                          : 'border-outline-variant/30 text-on-surface-variant hover:border-primary/40'
-                        }`}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-label-md">
-                        {s.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div className="text-left">
-                        <p className="font-label-lg text-label-lg">{s.name}</p>
-                        <p className="font-label-md text-label-md opacity-70">{s.type} · {s.grade}</p>
-                      </div>
-                      {selectedStudent?.id === s.id && (
-                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                      )}
-                    </button>
-                  ))}
+                <p className="font-label-lg text-label-lg text-on-surface mb-sm flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>history</span>
+                  {t('saved.students')}
+                  <span className="font-body-sm text-on-surface-variant text-xs ml-auto">Tap to auto-fill</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+                  {savedStudents.map((s, idx) => {
+                    const isSelected = selectedStudent?.name === s.name;
+                    const initials = s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => selectSavedStudent(s)}
+                        className={`text-left p-sm rounded-xl border-2 transition-all flex flex-col gap-xs relative
+                          ${isSelected
+                            ? 'border-primary bg-primary-fixed/20 shadow-sm'
+                            : 'border-outline-variant/30 hover:border-primary/40 hover:shadow-sm bg-surface-container-lowest'
+                          }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        )}
+                        <div className="flex items-center gap-sm">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-label-lg flex-shrink-0
+                            ${isSelected ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'}`}>
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-label-lg text-on-surface truncate">{s.name}</p>
+                            <p className="font-body-sm text-on-surface-variant text-xs">{s.relationship}</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-xs pt-xs border-t border-outline-variant/10">
+                          {s.studentId && (
+                            <div>
+                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>STUDENT ID</p>
+                              <p className="font-body-sm text-on-surface text-xs truncate">{s.studentId}</p>
+                            </div>
+                          )}
+                          {s.grade && (
+                            <div>
+                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>GRADE / YEAR</p>
+                              <p className="font-body-sm text-on-surface text-xs truncate">{s.grade}</p>
+                            </div>
+                          )}
+                          {s.dob && (
+                            <div>
+                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>DATE OF BIRTH</p>
+                              <p className="font-body-sm text-on-surface text-xs">{new Date(s.dob).toLocaleDateString('en-BZ')}</p>
+                            </div>
+                          )}
+                          {s.requestDate && (
+                            <div>
+                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>LAST REQUEST</p>
+                              <p className="font-body-sm text-on-surface text-xs">{new Date(s.requestDate).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
             <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-md">
-              <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest">
-                {selectedStudent ? t('or.manual.override') : t('student.details')}
+              <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest flex items-center gap-xs">
+                {selectedStudent ? (
+                  <><span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>edit</span> {t('or.manual.override')}</>
+                ) : t('student.details')}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
@@ -214,11 +292,10 @@ export default function NewRequest() {
                   <label className="font-label-lg text-label-lg text-on-surface">{t('manual.fullName')}</label>
                   <input
                     type="text" required
-                    value={selectedStudent ? selectedStudent.name : studentForm.fullName}
+                    value={studentForm.fullName}
                     onChange={setStudentField('fullName')}
-                    disabled={!!selectedStudent}
                     placeholder="Student's full name"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md disabled:opacity-50"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
                   />
                 </div>
                 <div className="flex flex-col gap-xs">
@@ -244,11 +321,10 @@ export default function NewRequest() {
                   <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade')}</label>
                   <input
                     type="text"
-                    value={selectedStudent ? selectedStudent.grade : studentForm.grade}
+                    value={studentForm.grade}
                     onChange={setStudentField('grade')}
-                    disabled={!!selectedStudent}
                     placeholder="e.g. Year 11 or Class of 2022"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md disabled:opacity-50"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
                   />
                 </div>
               </div>
@@ -468,15 +544,10 @@ export default function NewRequest() {
             </button>
           ) : (
             <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 transition-all font-semibold"
+              onClick={handleNavigateToSign}
+              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all font-semibold"
             >
-              {submitting ? (
-                <><span className="material-symbols-outlined animate-spin">sync</span>{t('submitting.request')}</>
-              ) : (
-                <>{t('submit.request')} <span className="material-symbols-outlined">draw</span></>
-              )}
+              {t('submit.request')} <span className="material-symbols-outlined">draw</span>
             </button>
           )}
         </div>

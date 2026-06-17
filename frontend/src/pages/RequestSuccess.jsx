@@ -1,11 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function RequestSuccess() {
   const { t } = useLanguage();
-  const refId = `BM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { requestId, fee, docLabel } = location.state || {};
+  const refId = requestId ? `BM-${String(requestId).padStart(5, '0')}` : `BM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const copyRef = () => {
     navigator.clipboard.writeText(refId);
@@ -76,21 +79,38 @@ export default function RequestSuccess() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-sm w-full">
-            <Link
-              to="/dashboard/parents"
-              className="flex-1 bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              {t('return.dashboard')}
-            </Link>
-            <Link
-              to="/dashboard/parents/new"
-              className="flex-1 border border-primary text-primary py-sm rounded-lg font-label-lg hover:bg-primary-fixed/30 flex items-center justify-center gap-sm transition-all"
-            >
-              <span className="material-symbols-outlined">add_circle</span>
-              {t('new.request')}
-            </Link>
+          <div className="flex flex-col gap-sm w-full">
+            {fee > 0 && (
+              <button
+                onClick={() => navigate('/dashboard/parents/bank-details', {
+                  state: { requestId, fee, docLabel }
+                })}
+                className="w-full bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all font-bold"
+              >
+                <span className="material-symbols-outlined">payments</span>
+                {t('pay.now') || 'Pay Now'}
+              </button>
+            )}
+            <div className="flex flex-col sm:flex-row gap-sm w-full">
+              <Link
+                to="/dashboard/parents"
+                className={`flex-1 py-sm rounded-lg font-label-lg flex items-center justify-center gap-sm transition-all font-semibold
+                  ${fee > 0
+                    ? 'border border-primary text-primary hover:bg-primary-fixed/30'
+                    : 'bg-primary text-on-primary hover:bg-primary-container shadow-sm'
+                  }`}
+              >
+                <span className="material-symbols-outlined">dashboard</span>
+                {t('return.dashboard')}
+              </Link>
+              <Link
+                to="/dashboard/parents/new"
+                className="flex-1 border border-primary text-primary py-sm rounded-lg font-label-lg hover:bg-primary-fixed/30 flex items-center justify-center gap-sm transition-all font-semibold"
+              >
+                <span className="material-symbols-outlined">add_circle</span>
+                {t('new.request')}
+              </Link>
+            </div>
           </div>
         </div>
       </main>

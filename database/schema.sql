@@ -15,6 +15,7 @@ CREATE TABLE parents (
     phone VARCHAR(50),
     password_hash VARCHAR(255) NOT NULL,
     ssn_card_image_path TEXT,
+    profile_picture_path TEXT,
     verified BOOLEAN DEFAULT FALSE,
     user_type VARCHAR(50) DEFAULT 'parent' CHECK (user_type IN ('parent', 'past_student')),
     dob DATE,
@@ -40,6 +41,10 @@ CREATE TABLE document_requests (
     form_data JSONB,
     generated_file_path TEXT,
     delivery_method VARCHAR(50) CHECK (delivery_method IN ('pickup', 'mailed', 'emailed')),
+    processing_speed VARCHAR(50) DEFAULT 'standard',
+    recipient_email VARCHAR(255),
+    fee NUMERIC(10,2) DEFAULT 0,
+    staff_notes TEXT,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(50) DEFAULT 'pending',
     notes TEXT
@@ -50,6 +55,7 @@ CREATE TABLE staff (
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    profile_picture_path TEXT,
     role VARCHAR(50) CHECK (role IN ('viewer', 'admin', 'super_admin')),
     last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

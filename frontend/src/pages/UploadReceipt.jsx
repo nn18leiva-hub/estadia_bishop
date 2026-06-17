@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
@@ -7,8 +7,16 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export default function UploadReceipt() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { requestId, fee, docLabel } = location.state || {};
   const { t } = useLanguage();
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!requestId) {
+      navigate('/dashboard/parents');
+    }
+  }, [requestId, navigate]);
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [refNumber, setRefNumber] = useState('');
@@ -37,11 +45,16 @@ export default function UploadReceipt() {
     setError('');
     try {
       const formData = new FormData();
-      formData.append('receipt', file);
-      formData.append('reference', refNumber);
-      await apiFetch('/payment/receipt', { method: 'POST', body: formData });
+      formData.append('receipt_image', file);
+      formData.append('transfer_reference', refNumber);
+      if (requestId) {
+        formData.append('request_id', requestId);
+      }
+      await apiFetch('/payment/upload-receipt', { method: 'POST', body: formData });
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard/parents/success'), 1800);
+      setTimeout(() => navigate('/dashboard/parents/success', {
+        state: { requestId, fee, docLabel }
+      }), 1800);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -51,7 +64,7 @@ export default function UploadReceipt() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
-      <TopAppBar showBack backTo="/dashboard/parents/bank-details" />
+      <TopAppBar showBack />
 
       <main className="pt-24 pb-24 px-sm md:px-gutter max-w-container-max mx-auto">
         <div className="mb-lg">

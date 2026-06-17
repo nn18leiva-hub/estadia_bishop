@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const STATUS_STYLES = {
   pending: 'bg-surface-container-high text-on-surface-variant',
+  pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready: 'bg-tertiary-fixed text-on-tertiary-fixed',
   issued: 'bg-secondary-container/60 text-on-secondary-container',
@@ -16,6 +17,7 @@ const STATUS_STYLES = {
 
 const STATUS_LABELS = {
   pending: 'Pending',
+  pending_verification: 'Pending Identity Verification',
   processing: 'Processing',
   ready: 'Ready for Pickup',
   issued: 'Issued',
@@ -41,7 +43,7 @@ export default function RequestHistory() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    apiFetch('/requests')
+    apiFetch('/requests/my-requests')
       .then(data => setRequests(Array.isArray(data) ? data : data.requests || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -65,7 +67,11 @@ export default function RequestHistory() {
 
   const filtered = requests.filter(r => {
     const q = search.toLowerCase();
-    const matchesSearch = !q || r.document_type?.toLowerCase().includes(q) || r.student_name?.toLowerCase().includes(q) || String(r.id).includes(q);
+    // Backend returns: document_type_name, student_full_name, request_id
+    const docType = r.document_type_name || r.document_type || '';
+    const studentName = r.student_full_name || r.student_name || '';
+    const id = String(r.request_id || r.id || '');
+    const matchesSearch = !q || docType.toLowerCase().includes(q) || studentName.toLowerCase().includes(q) || id.includes(q);
     const matchesStatus = !statusFilter || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -139,28 +145,33 @@ export default function RequestHistory() {
               <div className="col-span-2 text-right">{t('status')}</div>
             </div>
             <div className="divide-y divide-outline-variant/10">
-              {filtered.map((req, i) => (
+              {filtered.map((req, i) => {
+                const docType = req.document_type_name || req.document_type || '';
+                const studentName = req.student_full_name || req.student_name || '—';
+                const reqId = req.request_id || req.id;
+                const submittedDate = req.request_date || req.created_at;
+                return (
                 <div
-                  key={req.id || i}
+                  key={reqId || i}
                   className="grid grid-cols-1 md:grid-cols-12 px-sm py-sm items-center hover:bg-secondary-container/10 transition-colors cursor-pointer group"
-                  onClick={() => navigate(`/dashboard/parents/request/${req.id}`)}
+                  onClick={() => navigate(`/dashboard/parents/request/${reqId}`)}
                   onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
                   onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                 >
                   <div className="col-span-1 font-body-sm text-on-surface-variant">
-                    #{String(req.id || i + 1).padStart(4, '0')}
+                    #{String(reqId || i + 1).padStart(4, '0')}
                   </div>
                   <div className="col-span-4 flex items-center gap-sm">
                     <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>
-                      {DOC_ICON[req.document_type] || 'description'}
+                      {DOC_ICON[docType] || 'description'}
                     </span>
                     <div>
-                      <p className="font-body-md font-semibold text-on-surface">{translateDocType(req.document_type)}</p>
-                      <p className="font-body-sm text-on-surface-variant">{req.student_name || '—'}</p>
+                      <p className="font-body-md font-semibold text-on-surface">{translateDocType(docType)}</p>
+                      <p className="font-body-sm text-on-surface-variant">{studentName}</p>
                     </div>
                   </div>
                   <div className="col-span-3 font-body-sm text-on-surface-variant">
-                    {req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                    {submittedDate ? new Date(submittedDate).toLocaleDateString('en-BZ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
                   </div>
                   <div className="col-span-2 font-body-md font-semibold">
                     {req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}
@@ -171,7 +182,8 @@ export default function RequestHistory() {
                     </span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

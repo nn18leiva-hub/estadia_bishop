@@ -6,8 +6,13 @@ INSERT INTO document_types (name, description, is_auto_generated, requires_payme
 ('lateness_form', 'Lateness Form (Auto-generated slip)', TRUE, FALSE),
 ('absence_form', 'Absence Form (Auto-generated slip)', TRUE, FALSE),
 ('permission_slip', 'Permission Slip (Auto-generated)', TRUE, FALSE),
-('enrolment_letter', 'Enrolment Letter', FALSE, TRUE),
-('transcript', 'Transcript', FALSE, TRUE);
+('transcript', 'Official Transcript', FALSE, TRUE),
+('enrollment', 'Letter of Enrollment / Enrollment Letter', FALSE, TRUE),
+('graduation', 'Graduation Certificate', FALSE, TRUE),
+('deans', 'Dean''s Letter', FALSE, TRUE),
+('diploma', 'Replacement Diploma', FALSE, TRUE),
+('good_moral', 'Good Moral Certificate', FALSE, TRUE),
+('other', 'Other / Special Request', FALSE, FALSE);
 
 TRUNCATE TABLE school_payment_info RESTART IDENTITY CASCADE;
 

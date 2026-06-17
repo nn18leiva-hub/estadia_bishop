@@ -12,12 +12,14 @@ const signatureStorage = multer.diskStorage({
 });
 const uploadSignature = multer({ storage: signatureStorage });
 
+// Public — fetch available document types (used by frontend wizard)
+router.get('/document-types', requestController.getDocumentTypes);
+
 router.use(authenticate, requireRole('parent'));
 
-router.post('/create', uploadSignature.single('signature_image'), (req, res, next) => {
-    next();
-}, requestController.createRequest);
+router.post('/create', uploadSignature.single('signature_image'), requestController.createRequest);
 router.get('/my-requests', requestController.getMyRequests);
+router.get('/', requestController.getMyRequests);
 router.get('/:request_id', requestController.getRequestById);
 
 module.exports = router;

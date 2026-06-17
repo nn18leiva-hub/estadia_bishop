@@ -9,13 +9,34 @@ export const AuthProvider = ({ children }) => {
 
   // Load user profile if we have a token
   const fetchProfile = async (type, role, email) => {
+    let resolvedType = type;
+    let resolvedRole = role;
+    let resolvedEmail = email;
+
+    if (!resolvedType) {
+      const token = getAuthToken();
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          resolvedType = payload.type;
+          resolvedRole = payload.role;
+          resolvedEmail = payload.email;
+        } catch (e) {}
+      }
+    }
+
     try {
-      if (type === 'staff') {
-         // In the future, fetch from /staff/profile
-         setUser({ type, role, email, full_name: 'Administrator' });
+      if (resolvedType === 'staff') {
+        try {
+          const data = await apiFetch('/staff/profile');
+          setUser({ ...data, type: 'staff', role: data.role || resolvedRole, email: data.email || resolvedEmail });
+        } catch {
+          // Fallback if staff profile endpoint not yet available
+          setUser({ type: 'staff', role: resolvedRole, email: resolvedEmail, full_name: resolvedEmail?.split('@')[0] || 'Administrator' });
+        }
       } else {
-         const data = await apiFetch('/parent/profile');
-         setUser(data);
+        const data = await apiFetch('/parent/profile');
+        setUser({ ...data, type: data.user_type || 'parent' });
       }
     } catch (err) {
       console.error('Failed to load profile', err);
@@ -45,12 +66,11 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, password })
     });
     setAuthToken(res.token);
-    
-    // Only fetch profile if it's a parent/past_student.
+
     if (res.type === 'parent' || res.type === 'past_student' || !res.type) {
-      await fetchProfile();
+      await fetchProfile('parent', res.role, email);
     } else {
-      setUser({ type: res.type, role: res.role });
+      await fetchProfile('staff', res.role, email);
     }
     return res;
   };
@@ -68,8 +88,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Allows Profile page to update in-memory user state after save
+  const updateUser = (patch) => {
+    setUser(prev => prev ? { ...prev, ...patch } : prev);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, fetchProfile }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, fetchProfile, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

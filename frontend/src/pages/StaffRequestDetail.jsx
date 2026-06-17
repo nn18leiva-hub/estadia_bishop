@@ -26,6 +26,57 @@ export default function StaffRequestDetail() {
   const [processing, setProcessing] = useState(false);
   const [toast, setToast] = useState('');
 
+  const [selectedDocFile, setSelectedDocFile] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleDocFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 20 * 1024 * 1024) {
+        setUploadError(t('err.file.too.large') || 'File size exceeds the 20MB limit.');
+        setSelectedDocFile(null);
+      } else {
+        setUploadError('');
+        setSelectedDocFile(file);
+      }
+    }
+  };
+
+  const handleDocUpload = async () => {
+    if (!selectedDocFile) return;
+    setUploadingDoc(true);
+    setUploadError('');
+    try {
+      const formData = new FormData();
+      formData.append('document_file', selectedDocFile);
+      
+      const data = await apiFetch(`/staff/requests/${id}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const isDigital = req?.delivery_method === 'emailed';
+      setReq(prev => ({
+        ...prev,
+        generated_file_path: data.generated_file_path,
+        status: isDigital ? 'issued' : prev.status
+      }));
+      if (isDigital) {
+        setSelectedStatus('issued');
+        setToast(t('toast.doc.uploaded') || 'Document uploaded and status updated to Issued.');
+      } else {
+        setToast(t('toast.doc.uploaded.physical') || 'Document uploaded successfully for archiving.');
+      }
+      setSelectedDocFile(null);
+      setTimeout(() => setToast(''), 3000);
+    } catch (err) {
+      setUploadError(err.message || 'Error uploading document.');
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
   useEffect(() => {
     const fetchReq = async () => {
       try {
@@ -132,6 +183,48 @@ export default function StaffRequestDetail() {
                 </div>
               </div>
 
+              {req.requires_payment && (
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
+                    {t('payment.summary') || 'Payment Summary'}
+                  </h3>
+                  <div className="flex flex-col gap-xs">
+                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                      <p className="font-body-sm text-on-surface-variant">{t('status') || 'Status'}</p>
+                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${
+                        req.payment_verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-high text-on-surface-variant'
+                      }`}>
+                        {req.payment_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Verification'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                      <p className="font-body-sm text-on-surface-variant">{t('ref') || 'Reference'}</p>
+                      <p className="font-mono text-body-sm text-on-surface">{req.transfer_reference || '—'}</p>
+                    </div>
+                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                      <p className="font-body-sm text-on-surface-variant">{t('date') || 'Date'}</p>
+                      <p className="font-body-md text-on-surface">
+                        {req.payment_date ? new Date(req.payment_date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
+                      </p>
+                    </div>
+                    {req.receipt_image_path && (
+                      <div className="mt-md flex flex-col gap-sm">
+                        <a
+                          href={`/${req.receipt_image_path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 flex items-center justify-center gap-sm transition-all"
+                        >
+                          <span className="material-symbols-outlined">receipt_long</span>
+                          {t('view.receipt') || 'View Receipt'}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Document Preview */}
               <div className="bg-tertiary-container rounded-xl p-md flex flex-col items-center justify-center gap-sm min-h-[180px] relative overflow-hidden">
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%)' }} />
@@ -216,6 +309,95 @@ export default function StaffRequestDetail() {
                     {t('flag.correction')}
                   </button>
                 </div>
+              </div>
+
+              {/* Document Upload Zone */}
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
+                  {t('upload.document') || 'Upload Final Document'}
+                </h3>
+                
+                {req.generated_file_path ? (
+                  <div className="flex flex-col gap-sm">
+                    <div className="p-sm bg-secondary-container/20 border border-secondary/20 rounded-lg flex items-center gap-sm">
+                      <span className="material-symbols-outlined text-secondary" style={{ fontSize: '32px' }}>task</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-label-lg text-on-surface font-semibold truncate">
+                          {req.generated_file_path.split('/').pop()}
+                        </p>
+                        <p className="font-body-xs text-on-surface-variant">
+                          {t('document.issued') || 'Document Issued'}
+                        </p>
+                      </div>
+                      <a
+                        href={`/${req.generated_file_path}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-xs hover:bg-secondary-container/30 rounded-full transition-colors text-primary"
+                        title={t('download.document') || 'Download Document'}
+                      >
+                        <span className="material-symbols-outlined">download</span>
+                      </a>
+                    </div>
+                    
+                    <p className="font-body-xs text-on-surface-variant">
+                      {t('upload.new.doc.desc') || 'You can upload a new version to replace the existing document.'}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-body-sm text-on-surface-variant mb-sm">
+                    {req.delivery_method === 'emailed' 
+                      ? t('upload.doc.desc') || 'Upload the finalized PDF or document to automatically issue it to the parent for digital download.'
+                      : t('upload.archive.desc') || 'Upload a scanned copy of the document for digital archiving (optional).'}
+                  </p>
+                )}
+
+                <div className="mt-sm">
+                  <input
+                    type="file"
+                    id="staff-doc-upload"
+                    accept=".pdf,image/*"
+                    onChange={handleDocFileChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="staff-doc-upload"
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-lg p-md cursor-pointer transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50"
+                  >
+                    <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '32px' }}>
+                      cloud_upload
+                    </span>
+                    <span className="font-label-md text-on-surface mt-xs text-center">
+                      {selectedDocFile ? selectedDocFile.name : (t('select.file') || 'Select Document File')}
+                    </span>
+                    <span className="font-body-xs text-on-surface-variant mt-xxs">
+                      {t('max.file.size') || 'PDF, images up to 20MB'}
+                    </span>
+                  </label>
+                </div>
+
+                {uploadError && (
+                  <p className="font-body-sm text-error mt-xs">{uploadError}</p>
+                )}
+
+                {selectedDocFile && (
+                  <button
+                    onClick={handleDocUpload}
+                    disabled={uploadingDoc}
+                    className="w-full mt-md bg-primary text-on-primary py-xs rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all disabled:opacity-50"
+                  >
+                    {uploadingDoc ? (
+                      <><span className="material-symbols-outlined animate-spin text-sm">sync</span> {t('uploading') || 'Uploading...'}</>
+                    ) : (
+                      <><span className="material-symbols-outlined text-sm">upload</span> {
+                        req.delivery_method === 'emailed'
+                          ? t('submit.document') || 'Upload & Issue Document'
+                          : t('upload.document') || 'Upload Document'
+                      }</>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Quick Info */}

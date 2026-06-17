@@ -1,39 +1,80 @@
 import { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { apiFetch } from '../services/api';
 
 export default function DigitalSignature() {
   const navigate = useNavigate();
+  const location = useLocation();
   const canvasRef = useRef(null);
+  const lastWidthRef = useRef(0);
+  const startDrawRef = useRef(null);
+  const drawRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const [fullName, setFullName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [authorized, setAuthorized] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const { theme } = useTheme();
   const { t } = useLanguage();
 
-  useEffect(() => {
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, [theme]);
+  // Form data passed from NewRequest
+  const { requestData, fee, docLabel } = location.state || {};
 
+  // Pre-fill typed name from the student name so the user doesn't have to retype
+  const [fullName, setFullName] = useState(requestData?.student_full_name || '');
+
+  // ── Canvas helpers ────────────────────────────────────────────────────────
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    const newWidth = Math.round(rect.width);
+
+    // Skip height-only resize (mobile URL bar show/hide) to preserve drawing
+    if (newWidth === lastWidthRef.current && hasSignature) return;
+    lastWidthRef.current = newWidth;
+
+    const imageData = canvas.width > 0 && canvas.height > 0
+      ? canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)
+      : null;
+
+    canvas.width = newWidth;
+    canvas.height = Math.round(rect.height);
+
     const ctx = canvas.getContext('2d');
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.strokeStyle = theme === 'dark' ? '#ffb4a8' : '#570000';
+
+    if (imageData) ctx.putImageData(imageData, 0, 0);
   };
+
+  useEffect(() => {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Attach native touch listeners with passive:false so preventDefault() works
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const onTouchStart = (e) => { e.preventDefault(); startDrawRef.current(e); };
+      const onTouchMove  = (e) => { e.preventDefault(); drawRef.current(e); };
+      canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+      canvas.addEventListener('touchmove',  onTouchMove,  { passive: false });
+      return () => {
+        window.removeEventListener('resize', resizeCanvas);
+        canvas.removeEventListener('touchstart', onTouchStart);
+        canvas.removeEventListener('touchmove',  onTouchMove);
+      };
+    }
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, [theme]);
+
+  // ── Draw handlers ─────────────────────────────────────────────────────────
 
   const getPos = (e) => {
     const canvas = canvasRef.current;
@@ -55,10 +96,10 @@ export default function DigitalSignature() {
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
+  startDrawRef.current = startDraw;
 
   const draw = (e) => {
     if (!isDrawing) return;
-    e.preventDefault();
     const { x, y } = getPos(e);
     const ctx = canvasRef.current.getContext('2d');
     ctx.strokeStyle = theme === 'dark' ? '#ffb4a8' : '#570000';
@@ -67,6 +108,7 @@ export default function DigitalSignature() {
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
+  drawRef.current = draw;
 
   const stopDraw = () => {
     setIsDrawing(false);
@@ -84,10 +126,45 @@ export default function DigitalSignature() {
   const handleAuthorize = async () => {
     if (!agreed || (!hasSignature && !fullName.trim())) return;
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1600));
-    setAuthorized(true);
-    await new Promise(r => setTimeout(r, 800));
-    navigate('/dashboard/parents/bank-details');
+    setSubmitError('');
+
+    try {
+      const formData = new FormData();
+
+      // Attach all request fields
+      if (requestData) {
+        Object.entries(requestData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value);
+          }
+        });
+      }
+
+      // Attach signature image if drawn
+      if (hasSignature && canvasRef.current) {
+        await new Promise((resolve) => {
+          canvasRef.current.toBlob((blob) => {
+            if (blob) formData.append('signature_image', blob, 'signature.png');
+            resolve();
+          }, 'image/png');
+        });
+      }
+
+      const data = await apiFetch('/requests/create', {
+        method: 'POST',
+        body: formData,
+      });
+
+      setAuthorized(true);
+      setTimeout(() => {
+        navigate('/dashboard/parents/success', {
+          state: { requestId: data?.request?.request_id, fee, docLabel }
+        });
+      }, 900);
+    } catch (err) {
+      setSubmitError(err.message);
+      setSubmitting(false);
+    }
   };
 
   const canAuthorize = agreed && (hasSignature || fullName.trim().length >= 2);
@@ -113,6 +190,12 @@ export default function DigitalSignature() {
             <p className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
               {t('consent.text')}
             </p>
+            {docLabel && (
+              <div className="mt-sm inline-flex items-center gap-xs px-sm py-xs bg-primary-fixed/30 rounded-full">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>description</span>
+                <span className="font-label-md text-primary">{docLabel} · BZD ${fee}.00</span>
+              </div>
+            )}
           </div>
 
           {/* Main Card */}
@@ -164,12 +247,11 @@ export default function DigitalSignature() {
                 <canvas
                   ref={canvasRef}
                   className="signature-pad w-full h-full cursor-crosshair relative z-10 bg-transparent"
+                  style={{ touchAction: 'none' }}
                   onMouseDown={startDraw}
                   onMouseMove={draw}
                   onMouseUp={stopDraw}
                   onMouseLeave={stopDraw}
-                  onTouchStart={e => { e.preventDefault(); startDraw(e); }}
-                  onTouchMove={e => { e.preventDefault(); draw(e); }}
                   onTouchEnd={stopDraw}
                 />
                 {!hasSignature && (
@@ -194,6 +276,14 @@ export default function DigitalSignature() {
                 />
               </div>
             </div>
+
+            {/* Error */}
+            {submitError && (
+              <div className="flex items-center gap-sm px-sm py-xs bg-error-container rounded-lg border border-error/20">
+                <span className="material-symbols-outlined text-error">error</span>
+                <p className="font-body-sm text-on-error-container">{submitError}</p>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row items-center justify-end gap-md mt-md">

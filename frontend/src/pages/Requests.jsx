@@ -6,8 +6,16 @@ import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const STATUS_OPTS = ['pending', 'processing', 'ready', 'issued', 'action'];
-const STATUS_LABELS = { pending: 'Pending', processing: 'Processing', ready: 'Ready for Pickup', issued: 'Issued', action: 'Action Required' };
+const STATUS_OPTS = ['pending', 'processing', 'ready', 'issued', 'action', 'cancelled'];
+const STATUS_LABELS = { pending: 'Pending', processing: 'Processing', ready: 'Ready for Pickup', issued: 'Issued', action: 'Action Required', cancelled: 'Cancelled' };
+const STATUS_COLORS = {
+  pending: 'bg-surface-container text-on-surface-variant border-outline-variant/50',
+  processing: 'bg-secondary-container text-on-secondary-container border-secondary/30',
+  ready: 'bg-tertiary-fixed/50 text-on-tertiary-fixed border-tertiary/30',
+  issued: 'bg-primary-fixed/30 text-primary border-primary/30',
+  action: 'bg-error-container text-on-error-container border-error/30',
+  cancelled: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/50',
+};
 
 export default function Requests() {
   const navigate = useNavigate();
@@ -51,14 +59,21 @@ export default function Requests() {
     setLoading(false);
   };
 
+  const [updatingId, setUpdatingId] = useState(null);
+
   const updateStatus = async (id, status) => {
+    setUpdatingId(id);
     try {
       await apiFetch(`/staff/requests/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
       setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-    } catch (_) {}
+    } catch (err) {
+      console.error('Status update failed:', err);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const filtered = requests.filter(r => {
@@ -201,25 +216,57 @@ export default function Requests() {
                         <td className="px-sm py-md block md:table-cell">
                           <span className="font-body-md text-on-surface">{translateDocType(req.document_type)}</span>
                         </td>
-                        <td className="px-sm py-md block md:table-cell">
-                          <select
-                            value={req.status || 'pending'}
-                            onChange={e => updateStatus(req.id, e.target.value)}
-                            className="bg-transparent border border-outline px-xs py-1 font-label-md focus:border-primary text-primary outline-none rounded-lg cursor-pointer w-full max-w-[160px]"
-                          >
-                            {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
-                          </select>
+                        <td className="px-sm py-md block md:table-cell" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center gap-xs relative">
+                            {updatingId === req.id ? (
+                              <div className="flex items-center gap-xs">
+                                <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '16px' }}>sync</span>
+                                <span className="font-label-md text-on-surface-variant text-xs">Saving…</span>
+                              </div>
+                            ) : (
+                              <select
+                                value={req.status || 'pending'}
+                                onChange={e => { e.stopPropagation(); updateStatus(req.id, e.target.value); }}
+                                onClick={e => e.stopPropagation()}
+                                className={`border font-label-md text-xs px-xs py-0.5 rounded-full cursor-pointer outline-none focus:ring-2 focus:ring-primary/40 transition-all ${STATUS_COLORS[req.status] || STATUS_COLORS.pending}`}
+                              >
+                                {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
+                              </select>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-sm py-md text-right block md:table-cell">
+                        <td className="px-sm py-md text-right block md:table-cell" onClick={e => e.stopPropagation()}>
                           <div className="flex justify-end gap-xs opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => navigate(`/staff/requests/${req.id}`)} className="p-2 hover:text-primary transition-colors" title="Review">
-                              <span className="material-symbols-outlined">visibility</span>
+                            <button
+                              onClick={e => { e.stopPropagation(); navigate(`/staff/requests/${req.id}`); }}
+                              className="p-2 hover:text-primary transition-colors rounded"
+                              title="Open detail"
+                            >
+                              <span className="material-symbols-outlined">open_in_new</span>
                             </button>
-                            <button onClick={() => updateStatus(req.id, 'issued')} className="p-2 hover:text-primary transition-colors" title="Approve">
+                            <button
+                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'processing'); }}
+                              disabled={updatingId === req.id || req.status === 'processing'}
+                              className="p-2 hover:text-secondary transition-colors rounded disabled:opacity-30"
+                              title="Mark Processing"
+                            >
+                              <span className="material-symbols-outlined">pending</span>
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'issued'); }}
+                              disabled={updatingId === req.id || req.status === 'issued'}
+                              className="p-2 hover:text-primary transition-colors rounded disabled:opacity-30"
+                              title="Mark Issued / Approve"
+                            >
                               <span className="material-symbols-outlined">check_circle</span>
                             </button>
-                            <button onClick={() => updateStatus(req.id, 'action')} className="p-2 hover:text-error transition-colors" title="Flag">
-                              <span className="material-symbols-outlined">cancel</span>
+                            <button
+                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'action'); }}
+                              disabled={updatingId === req.id || req.status === 'action'}
+                              className="p-2 hover:text-error transition-colors rounded disabled:opacity-30"
+                              title="Flag — Action Required"
+                            >
+                              <span className="material-symbols-outlined">flag</span>
                             </button>
                           </div>
                         </td>

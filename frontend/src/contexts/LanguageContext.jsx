@@ -89,6 +89,7 @@ const translations = {
     
     // Statuses
     "pending": "Pending",
+    "pending_verification": "Pending Identity Verification",
     "approved": "Approved",
     "processing": "Processing",
     "ready": "Ready",
@@ -533,6 +534,23 @@ const translations = {
     "requester.notes": "Requester Notes",
     "user.id": "User ID",
     "phone": "Phone",
+    "academic.doc.ready": "Academic Document Ready",
+    "download.desc": "Your requested document has been issued by the institution. You can download the official copy below.",
+    "official.digital.copy": "Official Digital Copy",
+    "download": "Download",
+    "upload.document": "Upload Final Document",
+    "document.issued": "Document Issued",
+    "upload.new.doc.desc": "You can upload a new version to replace the existing document.",
+    "upload.doc.desc": "Upload the finalized PDF or document to automatically issue it to the parent for digital download.",
+    "select.file": "Select Document File",
+    "max.file.size": "PDF, images up to 20MB",
+    "submit.document": "Upload & Issue Document",
+    "toast.doc.uploaded": "Document uploaded and status updated to Issued.",
+    "payment.summary": "Payment Summary",
+    "upload.archive.desc": "Upload a scanned copy of the document for digital archiving (optional).",
+    "reference.copy.disclaimer": "This is a reference copy. Please collect the official physical document.",
+    "reference.digital.copy": "Reference Digital Copy",
+    "toast.doc.uploaded.physical": "Document uploaded successfully for archiving.",
   },
   es: {
     // Auth & Common
@@ -620,6 +638,7 @@ const translations = {
     
     // Statuses
     "pending": "Pendiente",
+    "pending_verification": "Verificación de Identidad Pendiente",
     "approved": "Aprobado",
     "processing": "Procesando",
     "ready": "Listo",
@@ -1064,6 +1083,23 @@ const translations = {
     "preview.not.available": "Vista previa del documento no disponible en esta vista",
     "user.id": "ID de Usuario",
     "phone": "Teléfono",
+    "academic.doc.ready": "Documento Académico Listo",
+    "download.desc": "Su documento solicitado ha sido emitido por la institución. Puede descargar la copia oficial a continuación.",
+    "official.digital.copy": "Copia Digital Oficial",
+    "download": "Descargar",
+    "upload.document": "Subir Documento Final",
+    "document.issued": "Documento Emitido",
+    "upload.new.doc.desc": "Puede subir una nueva versión para reemplazar el documento existente.",
+    "upload.doc.desc": "Suba el PDF o documento finalizado para que el padre pueda descargarlo.",
+    "select.file": "Seleccionar Archivo de Documento",
+    "max.file.size": "PDF, imágenes de hasta 20MB",
+    "submit.document": "Subir y Emitir Documento",
+    "toast.doc.uploaded": "Documento subido y estado actualizado a Emitido.",
+    "payment.summary": "Resumen del Pago",
+    "upload.archive.desc": "Suba una copia escaneada del documento para archivo digital (opcional).",
+    "reference.copy.disclaimer": "Esta es una copia de referencia. Por favor, recoja el documento físico oficial.",
+    "reference.digital.copy": "Copia de Referencia Digital",
+    "toast.doc.uploaded.physical": "Documento subido con éxito para archivo.",
   }
 };
 

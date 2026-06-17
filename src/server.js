@@ -24,7 +24,10 @@ app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-// Basic health check route
+// Basic health check routes (for Docker + monitoring)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'API is running' });
+});
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is running' });
 });
@@ -49,7 +52,8 @@ app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Global Error Handler Caught:", err.message, "Field:", err.field);
-  res.status(500).json({ error: err.message, field: err.field });
+  const status = (err.name === 'MulterError' || err.message.includes('file type') || err.message.includes('limit')) ? 400 : 500;
+  res.status(status).json({ message: err.message, error: err.message, field: err.field });
 });
 
 const PORT = process.env.PORT || 3000;

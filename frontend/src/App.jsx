@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
@@ -49,6 +49,64 @@ import ScrollToTop from './components/ScrollToTop';
 
 import './index.css';
 
+function ParentRouteWrapper() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!loading) {
+      const type = user?.type || user?.user_type;
+      if (!user) {
+        navigate('/login');
+      } else if (type !== 'parent' && type !== 'past_student') {
+        navigate('/staff');
+      }
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '48px' }}>sync</span>
+      </div>
+    );
+  }
+
+  const type = user?.type || user?.user_type;
+  if (!user || (type !== 'parent' && type !== 'past_student')) return null;
+
+  return <Outlet />;
+}
+
+function StaffRouteWrapper() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!loading) {
+      const type = user?.type || user?.user_type;
+      if (!user) {
+        navigate('/login');
+      } else if (type !== 'staff') {
+        navigate('/dashboard/parents');
+      }
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '48px' }}>sync</span>
+      </div>
+    );
+  }
+
+  const type = user?.type || user?.user_type;
+  if (!user || type !== 'staff') return null;
+
+  return <Outlet />;
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -68,25 +126,29 @@ function App() {
 
               {/* ── Parent Portal ────────────────────────── */}
               {/* Pages that use TopAppBar/BottomNav themselves (no DashboardLayout wrapper needed) */}
-              <Route path="/dashboard/parents" element={<Dashboard />} />
-              <Route path="/dashboard/parents/history" element={<RequestHistory />} />
-              <Route path="/dashboard/parents/request/:id" element={<RequestDetail />} />
-              <Route path="/dashboard/parents/new" element={<NewRequest />} />
-              <Route path="/dashboard/parents/sign" element={<DigitalSignature />} />
-              <Route path="/dashboard/parents/success" element={<RequestSuccess />} />
-              <Route path="/dashboard/parents/bank-details" element={<BankDetails />} />
-              <Route path="/dashboard/parents/upload-receipt" element={<UploadReceipt />} />
-              <Route path="/dashboard/parents/upload-ssn" element={<UploadSSN />} />
-              <Route path="/dashboard/parents/verify-ssn" element={<ProcessSSN />} />
-              <Route path="/dashboard/parents/verification-submitted" element={<VerificationSubmitted />} />
+              <Route element={<ParentRouteWrapper />}>
+                <Route path="/dashboard/parents" element={<Dashboard />} />
+                <Route path="/dashboard/parents/history" element={<RequestHistory />} />
+                <Route path="/dashboard/parents/request/:id" element={<RequestDetail />} />
+                <Route path="/dashboard/parents/new" element={<NewRequest />} />
+                <Route path="/dashboard/parents/sign" element={<DigitalSignature />} />
+                <Route path="/dashboard/parents/success" element={<RequestSuccess />} />
+                <Route path="/dashboard/parents/bank-details" element={<BankDetails />} />
+                <Route path="/dashboard/parents/upload-receipt" element={<UploadReceipt />} />
+                <Route path="/dashboard/parents/upload-ssn" element={<UploadSSN />} />
+                <Route path="/dashboard/parents/verify-ssn" element={<ProcessSSN />} />
+                <Route path="/dashboard/parents/verification-submitted" element={<VerificationSubmitted />} />
+              </Route>
 
               {/* ── Staff Portal ─────────────────────────── */}
-              <Route path="/staff" element={<StaffDashboard />} />
-              <Route path="/staff/requests" element={<Requests />} />
-              <Route path="/staff/requests/:id" element={<StaffRequestDetail />} />
-              <Route path="/staff/verification" element={<StaffVerification />} />
-              <Route path="/staff/payments" element={<StaffPayments />} />
-              <Route path="/staff/history" element={<ComingSoon />} />
+              <Route element={<StaffRouteWrapper />}>
+                <Route path="/staff" element={<StaffDashboard />} />
+                <Route path="/staff/requests" element={<Requests />} />
+                <Route path="/staff/requests/:id" element={<StaffRequestDetail />} />
+                <Route path="/staff/verification" element={<StaffVerification />} />
+                <Route path="/staff/payments" element={<StaffPayments />} />
+                <Route path="/staff/history" element={<ComingSoon />} />
+              </Route>
 
 
               {/* ── Admin Portal ─────────────────────────── */}

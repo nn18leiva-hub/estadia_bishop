@@ -1,25 +1,81 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { useLanguage } from '../contexts/LanguageContext';
+import { apiFetch } from '../services/api';
 
 export default function Profile({ embedded = false }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [name, setName] = useState(user?.name || '');
+  const [saveError, setSaveError] = useState('');
+  const [name, setName] = useState(user?.full_name || user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [uploadingPic, setUploadingPic] = useState(false);
+  const [picPreview, setPicPreview] = useState(user?.profile_picture_path ? `/${user.profile_picture_path}` : null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user?.profile_picture_path) {
+      setPicPreview(`/${user.profile_picture_path}`);
+    } else {
+      setPicPreview(null);
+    }
+  }, [user?.profile_picture_path]);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.full_name || user.name || '');
+      setPhone(user.phone || '');
+    }
+  }, [user]);
+
+  const isStaff = user?.type === 'staff' || user?.role;
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-    setSaving(false);
+    setSaveError('');
+    try {
+      const endpoint = isStaff ? '/staff/profile' : '/parent/profile';
+      const body = isStaff ? { full_name: name } : { full_name: name, phone };
+      const res = await apiFetch(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      });
+      updateUser(res.user || { full_name: name, phone });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePictureChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Immediate local preview
+    const objectUrl = URL.createObjectURL(file);
+    setPicPreview(objectUrl);
+
+    setUploadingPic(true);
+    try {
+      const formData = new FormData();
+      formData.append('profile_picture', file);
+      const endpoint = isStaff ? '/staff/profile/upload-picture' : '/parent/upload-profile-picture';
+      const res = await apiFetch(endpoint, { method: 'POST', body: formData });
+      updateUser({ profile_picture_path: res.profile_picture_path });
+    } catch (err) {
+      console.error('Profile picture upload failed:', err.message);
+    } finally {
+      setUploadingPic(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -27,7 +83,7 @@ export default function Profile({ embedded = false }) {
     navigate('/login');
   };
 
-  const initials = (user?.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const initials = (user?.full_name || user?.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <div className={embedded ? '' : 'min-h-screen bg-background text-on-surface'}>
@@ -43,14 +99,39 @@ export default function Profile({ embedded = false }) {
           {/* Avatar + Quick Info */}
           <div className="lg:col-span-4 flex flex-col gap-md">
             <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col items-center gap-md text-center">
-              <div className="w-24 h-24 rounded-full bg-primary-container flex items-center justify-center text-headline-lg text-on-primary font-bold shadow-sm">
-                {initials}
+              {/* Clickable profile picture */}
+              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-headline-lg text-on-primary font-bold shadow-sm ring-2 ring-primary/20 group-hover:ring-primary/60 transition-all">
+                  {picPreview ? (
+                    <img src={picPreview} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  {uploadingPic ? (
+                    <span className="material-symbols-outlined text-white animate-spin" style={{ fontSize: '20px' }}>sync</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }}>photo_camera</span>
+                  )}
+                </div>
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handlePictureChange}
+              />
+              <p className="font-body-sm text-on-surface-variant text-xs">
+                {uploadingPic ? 'Uploading…' : 'Click photo to change'}
+              </p>
               <div>
-                <p className="font-headline-sm text-headline-sm text-on-surface">{user?.name || t('parent.portal')}</p>
+                <p className="font-headline-sm text-headline-sm text-on-surface">{user?.full_name || user?.name || t('parent.portal')}</p>
                 <p className="font-body-sm text-on-surface-variant">{user?.email || '—'}</p>
                 <span className="mt-xs inline-block px-sm py-0.5 bg-primary-fixed rounded-full font-label-md text-label-md text-primary capitalize">
-                  {user?.role || t('parents').slice(0, -1)}
+                  {user?.role || (isStaff ? 'Staff' : t('parents')?.slice(0, -1))}
                 </span>
               </div>
             </div>
@@ -60,7 +141,7 @@ export default function Profile({ embedded = false }) {
               {[
                 { label: t('member.since'), value: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-BZ') : '—' },
                 { label: t('email'), value: user?.email || '—' },
-                { label: t('role'), value: user?.role || t('parents').slice(0, -1), capitalize: true },
+                { label: t('role'), value: user?.role || (isStaff ? 'Staff' : t('parents')?.slice(0, -1)), capitalize: true },
                 { label: t('verification'), value: t('active.verified'), green: true },
               ].map(item => (
                 <div key={item.label} className="flex justify-between items-center py-xs border-b border-outline-variant/10 last:border-none">
@@ -94,14 +175,16 @@ export default function Profile({ embedded = false }) {
                       className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
                     />
                   </div>
-                  <div className="flex flex-col gap-xs">
-                    <label className="font-label-lg text-label-lg text-on-surface">{t('phone.number')}</label>
-                    <input
-                      type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                      placeholder="+501 600-0000"
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                    />
-                  </div>
+                  {!isStaff && (
+                    <div className="flex flex-col gap-xs">
+                      <label className="font-label-lg text-label-lg text-on-surface">{t('phone.number')}</label>
+                      <input
+                        type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                        placeholder="+501 600-0000"
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-xs">
@@ -112,6 +195,13 @@ export default function Profile({ embedded = false }) {
                   />
                   <p className="font-body-sm text-on-surface-variant">{t('email.unchangeable')}</p>
                 </div>
+
+                {saveError && (
+                  <div className="flex items-center gap-sm px-sm py-xs bg-error-container rounded-lg border border-error/20">
+                    <span className="material-symbols-outlined text-error text-sm">error</span>
+                    <p className="font-body-sm text-on-error-container">{saveError}</p>
+                  </div>
+                )}
 
                 <div className="flex justify-end">
                   <button
@@ -149,7 +239,7 @@ export default function Profile({ embedded = false }) {
         </div>
       </main>
 
-      {!embedded && <BottomNav variant="parent" />}
+      {!embedded && <BottomNav variant={isStaff ? 'staff' : 'parent'} />}
     </div>
   );
 }

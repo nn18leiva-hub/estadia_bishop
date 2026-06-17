@@ -1,13 +1,21 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function BankDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { requestId, fee, docLabel } = location.state || {};
   const [toast, setToast] = useState('');
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (!requestId) {
+      navigate('/dashboard/parents');
+    }
+  }, [requestId, navigate]);
 
   const ACCOUNT_DETAILS = [
     { label: t('bank.name'), value: 'Belize Bank Limited', copy: false },
@@ -25,7 +33,7 @@ export default function BankDetails() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
-      <TopAppBar showBack backTo="/dashboard/parents/sign" />
+      <TopAppBar showBack />
 
       <main className="max-w-container-max mx-auto px-sm md:px-lg py-lg min-h-[calc(100vh-128px)] pt-24">
         {/* Header */}
@@ -127,33 +135,36 @@ export default function BankDetails() {
               <div className="p-md space-y-sm">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-label-lg text-label-lg text-on-surface">{t('doc.fee')}</p>
-                    <p className="font-body-sm text-on-surface-variant">{t('doc.fee.desc')}</p>
+                    <p className="font-label-lg text-label-lg text-on-surface">{docLabel || t('document')}</p>
+                    <p className="font-body-sm text-on-surface-variant">{t('document.type')}</p>
                   </div>
-                  <p className="font-body-md text-on-surface font-semibold">BZD $—</p>
+                  <p className="font-body-md text-on-surface font-semibold">{fee ? `BZD $${Number(fee).toFixed(2)}` : 'BZD $—'}</p>
                 </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-label-lg text-label-lg text-on-surface">{t('processing.fee')}</p>
-                    <p className="font-body-sm text-on-surface-variant">{t('processing.fee.desc')}</p>
+                {requestId && (
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-label-lg text-label-lg text-on-surface">{t('ref') || 'Reference'}</p>
+                    </div>
+                    <p className="font-body-md text-on-surface font-mono font-semibold">BM-{requestId}</p>
                   </div>
-                  <p className="font-body-md text-on-surface font-semibold">BZD $—</p>
-                </div>
+                )}
                 <div className="pt-md border-t border-outline-variant/20 mt-md flex justify-between items-center">
                   <p className="font-headline-sm text-headline-sm text-on-surface">{t('total.due')}</p>
-                  <p className="font-headline-md text-headline-md text-primary font-bold">BZD $—</p>
+                  <p className="font-headline-md text-headline-md text-primary font-bold">{fee ? `BZD $${Number(fee).toFixed(2)}` : 'BZD $—'}</p>
                 </div>
               </div>
             </div>
 
             {/* CTA */}
-            <Link
-              to="/dashboard/parents/upload-receipt"
+            <button
+              onClick={() => navigate('/dashboard/parents/upload-receipt', {
+                state: { requestId, fee, docLabel }
+              })}
               className="w-full bg-primary text-white py-4 rounded-xl font-label-lg text-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-sm"
             >
               {t('confirm.initiated')}
               <span className="material-symbols-outlined">arrow_forward</span>
-            </Link>
+            </button>
             <p className="text-center font-body-sm text-on-surface-variant px-md">
               {t('confirm.initiated.desc')}
             </p>
