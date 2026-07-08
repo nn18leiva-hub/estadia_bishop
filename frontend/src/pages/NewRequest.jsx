@@ -8,10 +8,12 @@ import { apiFetch } from '../services/api';
 
 /* ── Document Types ─────────────────────────────── */
 const DOCUMENT_TYPES = [
+  { id: 'lateness_form', labelKey: 'lateness.form', price: 0, icon: 'schedule', descKey: 'lateness.form.desc' },
+  { id: 'absence_form', labelKey: 'absence.form', price: 0, icon: 'event_busy', descKey: 'absence.form.desc' },
   { id: 'transcript', labelKey: 'official.transcript', price: 15, icon: 'description', descKey: 'official.transcript' },
-  { id: 'enrollment', labelKey: 'enrollment.letter', price: 5, icon: 'history_edu', descKey: 'enrollment.letter' },
+  { id: 'enrollment', labelKey: 'enrollment.letter', price: 10, icon: 'history_edu', descKey: 'enrollment.letter' },
   { id: 'graduation', labelKey: 'graduation.cert', price: 45, icon: 'workspace_premium', descKey: 'graduation.cert' },
-  { id: 'deans', labelKey: 'deans.letter', price: 20, icon: 'article', descKey: 'deans.letter' },
+  { id: 'deans', labelKey: 'deans.letter', price: 10, icon: 'article', descKey: 'deans.letter' },
   { id: 'diploma', labelKey: 'replacement.diploma', price: 75, icon: 'menu_book', descKey: 'replacement.diploma' },
   { id: 'good_moral', labelKey: 'Good Moral Certificate', price: 10, icon: 'verified', descKey: 'Good Moral Certificate' },
   { id: 'other', labelKey: 'other.special', price: 0, icon: 'help_outline', descKey: 'other.special' },
@@ -26,8 +28,8 @@ const DELIVERY_METHODS = [
 
 const PROCESSING_SPEEDS = [
   { id: 'standard', labelKey: 'std.proc', sublabelKey: 'std.proc.desc', price: 0, icon: 'schedule' },
-  { id: 'expedited', labelKey: 'exp.proc', sublabelKey: 'exp.proc.desc', price: 25, icon: 'fast_forward' },
-  { id: 'urgent', labelKey: 'urg.proc', sublabelKey: 'urg.proc.desc', price: 50, icon: 'bolt' },
+  { id: 'expedited', labelKey: 'exp.proc', sublabelKey: 'exp.proc.desc', price: 10, icon: 'fast_forward' },
+  { id: 'urgent', labelKey: 'urg.proc', sublabelKey: 'urg.proc.desc', price: 20, icon: 'bolt' },
 ];
 
 export default function NewRequest() {
@@ -74,6 +76,94 @@ export default function NewRequest() {
   const [notes, setNotes] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
 
+  // Absence/Lateness Form state
+  const [dateOfReturn, setDateOfReturn] = useState('');
+  const [classGrade, setClassGrade] = useState('');
+  const [datesOfAbsenceOrLateness, setDatesOfAbsenceOrLateness] = useState('');
+  const [numberOfDaysAbsent, setNumberOfDaysAbsent] = useState('');
+  const [reasonCategory, setReasonCategory] = useState('sickness');
+  const [reasonDetails, setReasonDetails] = useState('');
+  const [homeRoomTeacher, setHomeRoomTeacher] = useState('');
+
+  // Dropdown states for Class/Grade initials/number
+  const [classLevel, setClassLevel] = useState('');
+  const [classNumber, setClassNumber] = useState('');
+
+  // Calendar states for Date(s) of Absence / Lateness
+  const [startDateOfAbsence, setStartDateOfAbsence] = useState('');
+  const [endDateOfAbsence, setEndDateOfAbsence] = useState('');
+  const [dateOfLateness, setDateOfLateness] = useState('');
+
+  // Handle class level/number updates
+  const handleClassLevelChange = (level) => {
+    setClassLevel(level);
+    setClassGrade(level ? level + classNumber : '');
+  };
+  const handleClassNumberChange = (num) => {
+    setClassNumber(num);
+    setClassGrade(classLevel ? classLevel + num : '');
+  };
+
+  // Prefill Class / Grade in sub-form if available in studentForm
+  useEffect(() => {
+    if (studentForm.grade) {
+      setClassGrade(studentForm.grade);
+      const match = studentForm.grade.match(/^(Sr|F|S|J)(\d+)$/i);
+      if (match) {
+        setClassLevel(match[1]);
+        setClassNumber(match[2]);
+      } else {
+        setClassLevel('');
+        setClassNumber('');
+      }
+    } else {
+      setClassGrade('');
+      setClassLevel('');
+      setClassNumber('');
+    }
+  }, [studentForm.grade]);
+
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
+
+  // Sync datesOfAbsenceOrLateness string
+  useEffect(() => {
+    if (selectedDoc === 'absence_form') {
+      if (startDateOfAbsence && endDateOfAbsence) {
+        if (startDateOfAbsence === endDateOfAbsence) {
+          setDatesOfAbsenceOrLateness(startDateOfAbsence);
+        } else {
+          setDatesOfAbsenceOrLateness(`${startDateOfAbsence} to ${endDateOfAbsence}`);
+        }
+      } else if (startDateOfAbsence) {
+        setDatesOfAbsenceOrLateness(startDateOfAbsence);
+      } else {
+        setDatesOfAbsenceOrLateness('');
+      }
+    } else if (selectedDoc === 'lateness_form') {
+      setDatesOfAbsenceOrLateness(dateOfLateness);
+    }
+  }, [startDateOfAbsence, endDateOfAbsence, dateOfLateness, selectedDoc]);
+
+  // Auto-calculate days absent
+  useEffect(() => {
+    if (selectedDoc === 'absence_form' && startDateOfAbsence && endDateOfAbsence) {
+      const start = new Date(startDateOfAbsence);
+      const end = new Date(endDateOfAbsence);
+      if (!isNaN(start) && !isNaN(end) && end >= start) {
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        setNumberOfDaysAbsent(diffDays.toString());
+      } else {
+        setNumberOfDaysAbsent('');
+      }
+    } else {
+      setNumberOfDaysAbsent('');
+    }
+  }, [startDateOfAbsence, endDateOfAbsence, selectedDoc]);
+
   // When a saved student is picked, populate ALL form fields
   const selectSavedStudent = (s) => {
     if (selectedStudent?.name === s.name) {
@@ -101,20 +191,60 @@ export default function NewRequest() {
 
   const canProceed = () => {
     if (step === 1) return !!selectedDoc;
-    if (step === 2) return selectedStudent !== null || (studentForm.fullName && studentForm.studentId);
+    if (step === 2) {
+      const studentOk = selectedStudent !== null || (studentForm.fullName && studentForm.studentId);
+      if (!studentOk) return false;
+
+      if (selectedDoc === 'lateness_form') {
+        return !!dateOfReturn && !!classGrade && !!datesOfAbsenceOrLateness && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+      }
+      if (selectedDoc === 'absence_form') {
+        return !!dateOfReturn && !!classGrade && !!datesOfAbsenceOrLateness && !!numberOfDaysAbsent && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+      }
+      return true;
+    }
     if (step === 3) return !!delivery && !!processing;
     return true;
   };
 
+  const isForm = selectedDoc === 'lateness_form' || selectedDoc === 'absence_form';
+
   const handleNext = () => {
-    if (step < 4) setStep(s => s + 1);
+    if (isForm && step === 2) {
+      setStep(4); // Skip Step 3 and go straight to Step 4 (Review)
+    } else if (step < 4) {
+      setStep(s => s + 1);
+    }
   };
+
   const handleBack = () => {
-    if (step > 1) setStep(s => s - 1);
-    else navigate('/dashboard/parents');
+    if (isForm && step === 4) {
+      setStep(2); // Skip Step 3 when going back
+    } else if (step > 1) {
+      setStep(s => s - 1);
+    } else {
+      navigate('/dashboard/parents');
+    }
   };
 
   const handleNavigateToSign = () => {
+    const customFormData = {
+      dob: studentForm.dob,
+      relationship: studentForm.relationship
+    };
+
+    if (selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') {
+      customFormData.date_of_return = dateOfReturn;
+      customFormData.class = classGrade;
+      customFormData.dates_of_absence_or_lateness = datesOfAbsenceOrLateness;
+      if (selectedDoc === 'absence_form') {
+        customFormData.number_of_days_absent = numberOfDaysAbsent;
+      }
+      customFormData.reason_category = reasonCategory;
+      customFormData.reason_details = reasonDetails;
+      customFormData.home_room_teacher = homeRoomTeacher;
+    }
+
     const body = {
       document_type_name: selectedDoc,
       student_full_name: studentForm.fullName,
@@ -125,8 +255,7 @@ export default function NewRequest() {
       recipient_email: recipientEmail,
       fee: totalFee,
       notes,
-      // Store dob + relationship inside form_data so they can be re-populated next time
-      form_data: JSON.stringify({ dob: studentForm.dob, relationship: studentForm.relationship }),
+      form_data: JSON.stringify(customFormData),
     };
     navigate('/dashboard/parents/sign', {
       state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey) }
@@ -147,7 +276,16 @@ export default function NewRequest() {
 
         {/* Stepper */}
         <div className="mb-lg px-xs">
-          <Stepper currentStep={step} />
+          <Stepper steps={isForm ? [
+            { label: 'Document', icon: 'description' },
+            { label: 'Form Details', icon: 'assignment' },
+            { label: 'Review', icon: 'fact_check' }
+          ] : [
+            { label: 'Document', icon: 'description' },
+            { label: 'Student', icon: 'person' },
+            { label: 'Delivery', icon: 'local_shipping' },
+            { label: 'Review', icon: 'fact_check' }
+          ]} currentStep={isForm ? (step === 4 ? 3 : step) : step} />
         </div>
 
         {/* Error */}
@@ -188,8 +326,8 @@ export default function NewRequest() {
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">{d.id === 'good_moral' ? t('verification.active') : t(d.descKey)}</p>
                   </div>
                   <div className="mt-auto pt-sm border-t border-outline-variant/20">
-                    <p className={`font-label-lg text-label-lg ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
-                      {d.price === 0 ? t('other.special') : `BZD $${d.price}.00`}
+                    <p className={`font-label-lg text-label-lg ${(d.id === 'lateness_form' || d.id === 'absence_form') ? 'text-primary font-bold' : d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
+                      {(d.id === 'lateness_form' || d.id === 'absence_form') ? (t('digital.submission.no.fee') || 'No Fee') : d.price === 0 ? t('other.special') : `BZD $${d.price}.00`}
                     </p>
                   </div>
                 </button>
@@ -309,15 +447,6 @@ export default function NewRequest() {
                   />
                 </div>
                 <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.dob')}</label>
-                  <input
-                    type="date"
-                    value={studentForm.dob}
-                    onChange={setStudentField('dob')}
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                  />
-                </div>
-                <div className="flex flex-col gap-xs">
                   <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade')}</label>
                   <input
                     type="text"
@@ -343,126 +472,312 @@ export default function NewRequest() {
                 </select>
               </div>
             </div>
+
+            {/* Custom fields for Lateness and Absence forms */}
+            {(selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') && (
+              <div className="mt-md bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-md">
+                <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>assignment</span>
+                  {selectedDoc === 'lateness_form' ? t('lateness.form') : t('absence.form')} {t('details') || 'Details'}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                  <div className="flex flex-col gap-xs">
+                    <label className="font-label-lg text-label-lg text-on-surface">{t('date.of.return')} *</label>
+                    <input
+                      type="date"
+                      required
+                      value={dateOfReturn}
+                      onChange={e => setDateOfReturn(e.target.value)}
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-xs">
+                    <label className="font-label-lg text-label-lg text-on-surface">{t('class.grade')} *</label>
+                    <div className="grid grid-cols-2 gap-xs">
+                      <select
+                        required
+                        value={classLevel}
+                        onChange={e => handleClassLevelChange(e.target.value)}
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
+                      >
+                        <option value="">{t('select.level') || 'Level'}</option>
+                        <option value="F">F (Freshman)</option>
+                        <option value="S">S (Sophomore)</option>
+                        <option value="J">J (Junior)</option>
+                        <option value="Sr">Sr (Senior)</option>
+                      </select>
+                      <select
+                        required
+                        value={classNumber}
+                        onChange={e => handleClassNumberChange(e.target.value)}
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
+                      >
+                        <option value="">{t('select.number') || 'Number'}</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {selectedDoc === 'absence_form' ? (
+                    <>
+                      <div className="flex flex-col gap-xs">
+                        <label className="font-label-lg text-label-lg text-on-surface">{t('start.date.absence') || 'Start Date'} *</label>
+                        <input
+                          type="date"
+                          required
+                          value={startDateOfAbsence}
+                          onChange={e => setStartDateOfAbsence(e.target.value)}
+                          className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-xs">
+                        <label className="font-label-lg text-label-lg text-on-surface">{t('end.date.absence') || 'End Date'} *</label>
+                        <input
+                          type="date"
+                          required
+                          value={endDateOfAbsence}
+                          min={startDateOfAbsence}
+                          onChange={e => setEndDateOfAbsence(e.target.value)}
+                          className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-xs">
+                      <label className="font-label-lg text-label-lg text-on-surface">{t('date.of.lateness') || 'Date of Lateness'} *</label>
+                      <input
+                        type="date"
+                        required
+                        value={dateOfLateness}
+                        onChange={e => setDateOfLateness(e.target.value)}
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                      />
+                    </div>
+                  )}
+
+                  {selectedDoc === 'absence_form' && (
+                    <div className="flex flex-col gap-xs">
+                      <label className="font-label-lg text-label-lg text-on-surface">{t('num.days.absent')} *</label>
+                      <input
+                        type="number"
+                        required
+                        readOnly
+                        value={numberOfDaysAbsent}
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface-container-low text-on-surface-variant font-body-md cursor-not-allowed"
+                        placeholder="Calculated automatically..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('home.room.teacher')} *</label>
+                  <input
+                    type="text"
+                    required
+                    value={homeRoomTeacher}
+                    onChange={e => setHomeRoomTeacher(e.target.value)}
+                    placeholder="e.g. Mr. Smith"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-sm border-t border-outline-variant/20 pt-md">
+                  <label className="font-label-lg text-label-lg text-on-surface uppercase tracking-widest text-primary">
+                    {t('reason.absence.lateness') || 'Reason for Absence or Lateness'} *
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-sm">
+                    {[
+                      { key: 'sickness', label: t('reason.sickness') },
+                      { key: 'traffic', label: t('reason.traffic') },
+                      { key: 'medical', label: t('reason.medical') },
+                      { key: 'dental', label: t('reason.dental') },
+                      { key: 'funeral', label: t('reason.funeral') },
+                      { key: 'other', label: t('reason.other') },
+                    ].map(r => (
+                      <label key={r.key} className="flex items-center gap-xs cursor-pointer p-xs hover:bg-surface-container rounded-lg border border-outline-variant/30">
+                        <input
+                          type="radio"
+                          name="reasonCategory"
+                          value={r.key}
+                          checked={reasonCategory === r.key}
+                          onChange={e => setReasonCategory(e.target.value)}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                        <span className="font-body-sm text-on-surface text-xs leading-none">{r.label}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col gap-xs mt-sm">
+                    <label className="font-label-lg text-label-lg text-on-surface">
+                      {reasonCategory === 'sickness' || reasonCategory === 'traffic'
+                        ? t('specify.details') + ' *'
+                        : (reasonCategory === 'medical' || reasonCategory === 'dental' || reasonCategory === 'funeral')
+                        ? (t('reason.details.time') || 'Dismissal / Return Time') + ' *'
+                        : (t('reason.details.specify') || 'Specify Reason') + ' *'
+                      }
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={reasonDetails}
+                      onChange={e => setReasonDetails(e.target.value)}
+                      placeholder={
+                        reasonCategory === 'sickness' || reasonCategory === 'traffic'
+                          ? "Specify details (e.g. Flu, Car broke down)..."
+                          : (reasonCategory === 'medical' || reasonCategory === 'dental' || reasonCategory === 'funeral')
+                          ? "e.g. Dismissal 10:00 AM, Return 11:30 AM..."
+                          : "Specify the reason..."
+                      }
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
         {/* ── Step 3: Delivery & Speed ── */}
         {step === 3 && (
           <section className="max-w-3xl">
-            <div className="mb-md">
-              <h2 className="font-headline-lg text-headline-lg text-primary">{t('delivery.processing')}</h2>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.del.desc')}</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-              <div className="lg:col-span-2 flex flex-col gap-md">
-                {/* Delivery Method */}
-                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                  <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
-                    {DELIVERY_METHODS.map(d => (
-                      <button
-                        key={d.id}
-                        onClick={() => setDelivery(d.id)}
-                        className={`flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all
-                          ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
-                      >
-                        <span className={`material-symbols-outlined ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
-                        <div>
-                          <p className="font-label-lg text-label-lg text-on-surface">{t(d.labelKey)}</p>
-                          <p className="font-body-sm text-body-sm text-on-surface-variant">{t(d.sublabelKey)}</p>
-                          <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
-                            {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Processing Speed */}
-                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                  <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
-                  <div className="flex flex-col gap-sm">
-                    {PROCESSING_SPEEDS.map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => setProcessing(p.id)}
-                        className={`flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all
-                          ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
-                      >
-                        <span className={`material-symbols-outlined ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
-                        <div className="flex-1">
-                          <p className="font-label-lg text-label-lg text-on-surface">{t(p.labelKey)}</p>
-                          <p className="font-body-sm text-body-sm text-on-surface-variant">{t(p.sublabelKey)}</p>
-                        </div>
-                        <p className={`font-label-lg font-bold ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
-                          {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Additional Info */}
-                {delivery === 'digital' && (
-                  <div className="flex flex-col gap-xs">
-                    <label className="font-label-lg text-label-lg text-on-surface">{t('where.send')}</label>
-                    <input
-                      type="email"
-                      value={recipientEmail}
-                      onChange={e => setRecipientEmail(e.target.value)}
-                      placeholder="Where should we send the document?"
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('special.instructions')}</label>
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    rows={3}
-                    placeholder="Any special notes for the Registrar's Office..."
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Fee Breakdown Sidebar */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md h-fit sticky top-20">
-                <h3 className="font-headline-sm text-headline-sm text-primary mb-md flex items-center gap-xs">
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>receipt_long</span>
-                  {t('fee.breakdown')}
-                </h3>
-                <div className="flex flex-col gap-sm">
-                  <div className="flex justify-between items-center">
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t(doc?.labelKey)}</p>
-                    <p className="font-label-lg text-label-lg text-on-surface">BZD ${doc?.price}.00</p>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('delivery')}</p>
-                    <p className="font-label-lg text-label-lg text-on-surface">
-                      {deliveryItem?.price === 0 ? t('free') : `BZD $${deliveryItem?.price}`}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('processing')}</p>
-                    <p className="font-label-lg text-label-lg text-on-surface">
-                      {processingItem?.price === 0 ? t('free') : `BZD $${processingItem?.price}`}
-                    </p>
-                  </div>
-                  <div className="border-t border-outline-variant/30 pt-sm mt-sm flex justify-between items-center">
-                    <p className="font-headline-sm text-headline-sm text-on-surface">Total</p>
-                    <p className="font-headline-md text-headline-md text-primary font-bold">BZD ${totalFee}.00</p>
-                  </div>
-                </div>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-md opacity-70">
-                  {t('confirm.initiated.desc')}
+            {(selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') ? (
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-lg flex flex-col gap-md max-w-2xl mx-auto text-center items-center shadow-sm">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '56px' }}>forward_to_inbox</span>
+                <h3 className="font-headline-md text-headline-md text-primary">{t('auto.submission.delivery') || 'Digital Submission'}</h3>
+                <p className="font-body-md text-on-surface-variant">
+                  {t('auto.submission.delivery.desc') || 'This form will be submitted digitally directly to the high school administration records. You do not need to choose a delivery method or pay any processing fees.'}
                 </p>
+                <div className="w-full border-t border-outline-variant/20 pt-md flex justify-between items-center">
+                  <p className="font-label-lg text-on-surface-variant">{t('base.fee')}</p>
+                  <p className="font-label-lg text-primary font-bold">{t('FREE') || 'FREE'}</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="mb-md">
+                  <h2 className="font-headline-lg text-headline-lg text-primary">{t('delivery.processing')}</h2>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.del.desc')}</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+                  <div className="lg:col-span-2 flex flex-col gap-md">
+                    {/* Delivery Method */}
+                    <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                      <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+                        {DELIVERY_METHODS.map(d => (
+                          <button
+                            key={d.id}
+                            onClick={() => setDelivery(d.id)}
+                            className={`flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all
+                              ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                          >
+                            <span className={`material-symbols-outlined ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
+                            <div>
+                              <p className="font-label-lg text-label-lg text-on-surface">{t(d.labelKey)}</p>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant">{t(d.sublabelKey)}</p>
+                              <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
+                                {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Processing Speed */}
+                    <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                      <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
+                      <div className="flex flex-col gap-sm">
+                        {PROCESSING_SPEEDS.map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => setProcessing(p.id)}
+                            className={`flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all
+                              ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                          >
+                            <span className={`material-symbols-outlined ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
+                            <div className="flex-1">
+                              <p className="font-label-lg text-label-lg text-on-surface">{t(p.labelKey)}</p>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant">{t(p.sublabelKey)}</p>
+                            </div>
+                            <p className={`font-label-lg font-bold ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
+                              {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Additional Info */}
+                    {delivery === 'digital' && (
+                      <div className="flex flex-col gap-xs">
+                        <label className="font-label-lg text-label-lg text-on-surface">{t('where.send')}</label>
+                        <input
+                          type="email"
+                          value={recipientEmail}
+                          onChange={e => setRecipientEmail(e.target.value)}
+                          placeholder="Where should we send the document?"
+                          className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-xs">
+                      <label className="font-label-lg text-label-lg text-on-surface">{t('special.instructions')}</label>
+                      <textarea
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        rows={3}
+                        placeholder="Any special notes for the Registrar's Office..."
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fee Breakdown Sidebar */}
+                  <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md h-fit sticky top-20">
+                    <h3 className="font-headline-sm text-headline-sm text-primary mb-md flex items-center gap-xs">
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>receipt_long</span>
+                      {t('fee.breakdown')}
+                    </h3>
+                    <div className="flex flex-col gap-sm">
+                      <div className="flex justify-between items-center">
+                        <p className="font-body-sm text-body-sm text-on-surface-variant">{t(doc?.labelKey)}</p>
+                        <p className="font-label-lg text-label-lg text-on-surface">BZD ${doc?.price}.00</p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="font-body-sm text-body-sm text-on-surface-variant">{t('delivery')}</p>
+                        <p className="font-label-lg text-label-lg text-on-surface">
+                          {deliveryItem?.price === 0 ? t('free') : `BZD $${deliveryItem?.price}`}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="font-body-sm text-body-sm text-on-surface-variant">{t('processing')}</p>
+                        <p className="font-label-lg text-label-lg text-on-surface">
+                          {processingItem?.price === 0 ? t('free') : `BZD $${processingItem?.price}`}
+                        </p>
+                      </div>
+                      <div className="border-t border-outline-variant/30 pt-sm mt-sm flex justify-between items-center">
+                        <p className="font-headline-sm text-headline-sm text-on-surface">Total</p>
+                        <p className="font-headline-md text-headline-md text-primary font-bold">BZD ${totalFee}.00</p>
+                      </div>
+                    </div>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-md opacity-70">
+                      {t('confirm.initiated.desc')}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </section>
         )}
 
@@ -489,27 +804,60 @@ export default function NewRequest() {
                 </div>
               </div>
 
-              {/* Student */}
+              {/* Student & Form Details */}
               <div className="p-md border-b border-outline-variant/20">
                 <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm">{t('student.details')}</p>
-                <div className="grid grid-cols-2 gap-sm">
+                <div className="grid grid-cols-2 gap-sm mb-md">
                   <div><p className="font-label-md text-label-md text-on-surface-variant">{t('student.name')}</p><p className="font-body-md text-body-md">{selectedStudent?.name || studentForm.fullName}</p></div>
-                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('grade.year')}</p><p className="font-body-md text-body-md">{selectedStudent?.grade || studentForm.grade}</p></div>
+                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('class.grade') || t('grade.year')}</p><p className="font-body-md text-body-md">{selectedStudent?.grade || studentForm.grade}</p></div>
                   <div><p className="font-label-md text-label-md text-on-surface-variant">{t('relationship')}</p><p className="font-body-md text-body-md">{t('rel.' + studentForm.relationship.toLowerCase().replace(' ', '')) || studentForm.relationship}</p></div>
-                  <div><p className="font-label-md text-label-md text-on-surface-variant">{t('delivery')}</p><p className="font-body-md text-body-md capitalize">{t(delivery + '.delivery') || delivery}</p></div>
                 </div>
+
+                {(selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') && (
+                  <>
+                    <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm border-t border-outline-variant/20 pt-md">{t('form.details') || 'Form Details'}</p>
+                    <div className="grid grid-cols-2 gap-sm">
+                      <div><p className="font-label-md text-label-md text-on-surface-variant">{t('date.of.return')}</p><p className="font-body-md text-body-md">{dateOfReturn}</p></div>
+                      <div><p className="font-label-md text-label-md text-on-surface-variant">{t('dates.of.absence.lateness')}</p><p className="font-body-md text-body-md">{datesOfAbsenceOrLateness}</p></div>
+                      {selectedDoc === 'absence_form' && (
+                        <div><p className="font-label-md text-label-md text-on-surface-variant">{t('num.days.absent')}</p><p className="font-body-md text-body-md">{numberOfDaysAbsent}</p></div>
+                      )}
+                      <div><p className="font-label-md text-label-md text-on-surface-variant">{t('home.room.teacher')}</p><p className="font-body-md text-body-md">{homeRoomTeacher}</p></div>
+                      <div><p className="font-label-md text-label-md text-on-surface-variant">{t('reason')}</p><p className="font-body-md text-body-md font-semibold text-primary">{t('reason.' + reasonCategory) || reasonCategory}</p></div>
+                      <div className="col-span-2"><p className="font-label-md text-label-md text-on-surface-variant">{t('specify.details')}</p><p className="font-body-md text-body-md">{reasonDetails}</p></div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Total */}
-              <div className="p-md bg-surface-container">
-                <div className="flex justify-between items-center">
-                  <p className="font-headline-sm text-headline-sm text-on-surface">{t('total.due')}</p>
-                  <p className="font-headline-md text-headline-md text-primary font-bold">BZD ${totalFee}.00</p>
+              {isForm ? (
+                <div className="p-md bg-surface-container border-l-4 border-primary">
+                  <div className="flex gap-sm">
+                    <span className="material-symbols-outlined text-primary">forward_to_inbox</span>
+                    <div>
+                      <p className="font-body-md text-on-surface font-semibold">
+                        {t('digital.submission.no.fee') || 'Direct Digital Submission (No Fee)'}
+                      </p>
+                      <p className="font-body-sm text-on-surface-variant mt-xs">
+                        {t('form.submission.notice') || 'This form has been submitted electronically directly to school records. No processing fee or payment is required.'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                  {t('processing.speed')}: <span className="font-semibold">{t(processingItem?.labelKey)}</span>
-                </p>
-              </div>
+              ) : (
+                <div className="p-md bg-surface-container">
+                  <div className="flex justify-between items-center">
+                    <p className="font-headline-sm text-headline-sm text-on-surface">{t('total.due')}</p>
+                    <p className="font-headline-md text-headline-md text-primary font-bold">
+                      BZD ${totalFee}.00
+                    </p>
+                  </div>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">
+                    <>{t('processing.speed')}: <span className="font-semibold">{t(processingItem?.labelKey)}</span></>
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mt-md p-sm bg-surface-container rounded-lg border-l-4 border-primary">

@@ -5,12 +5,13 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', password: '', confirmPassword: '', terms: false,
+    userType: 'parent', dob: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,10 +23,40 @@ export default function Register() {
     e.preventDefault();
     if (form.password !== form.confirmPassword) return setError(t('pw.mismatch'));
     if (!form.terms) return setError(t('err.agree.terms') || 'Please agree to the Terms of Service to continue.');
+
+    // Validate past student has dob
+    if (form.userType === 'past_student' && !form.dob) {
+      return setError(t('dob.required.err'));
+    }
+
+    // Validate past student age limit
+    if (form.userType === 'past_student') {
+      const birthDate = new Date(form.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        return setError(t('past.student.age.error'));
+      }
+    }
+
     setError('');
     setLoading(true);
     try {
-      await register({ name: form.fullName, email: form.email, phone: form.phone, password: form.password });
+      await register({
+        full_name: form.fullName,
+        email: form.email,
+        phone: form.phone || undefined,
+        password: form.password,
+        user_type: form.userType,
+        dob: form.dob || (form.userType === 'parent' ? '1990-01-01' : '')
+      });
+      
+      // Auto login user after registration
+      await login(form.email, form.password);
       navigate('/dashboard/parents');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -94,6 +125,43 @@ export default function Register() {
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-md">
+              {/* Account Type Toggle */}
+              <div className="flex flex-col gap-xs">
+                <label className="font-label-lg text-label-lg text-on-surface">{t('i.am.a')}</label>
+                <div className="flex p-1 bg-surface-container-low rounded-xl border border-outline-variant/30 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, userType: 'parent' }))}
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all ${
+                      form.userType === 'parent'
+                        ? 'bg-primary text-on-primary font-bold shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">family_restroom</span>
+                    {t('parent.guardian')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, userType: 'past_student' }))}
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all ${
+                      form.userType === 'past_student'
+                        ? 'bg-primary text-on-primary font-bold shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">school</span>
+                    {t('past.student')}
+                  </button>
+                </div>
+                {form.userType === 'past_student' && (
+                  <p className="mt-1 font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs text-amber-600 dark:text-amber-400">
+                    <span className="material-symbols-outlined text-[16px]">info</span>
+                    {t('past.student.age.error')}
+                  </p>
+                )}
+              </div>
+
               {/* Full Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
                 <div className="flex flex-col gap-xs">
@@ -116,17 +184,34 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Email */}
-              <div className="flex flex-col gap-xs">
-                <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">{t('email.address')}</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">mail</span>
-                  <input
-                    id="email" type="email" required autoComplete="email"
-                    value={form.email} onChange={set('email')}
-                    placeholder="guardian@example.com"
-                    className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
-                  />
+              {/* Email & Date of Birth */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div className="flex flex-col gap-xs">
+                  <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">{t('email.address')}</label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">mail</span>
+                    <input
+                      id="email" type="email" required autoComplete="email"
+                      value={form.email} onChange={set('email')}
+                      placeholder="guardian@example.com"
+                      className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-xs">
+                  <label htmlFor="dob" className="font-label-lg text-label-lg text-on-surface">
+                    {t('dob')} {form.userType === 'parent' && <span className="text-on-surface-variant opacity-60 font-label-md">({t('dob.required.note')})</span>}
+                  </label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">cake</span>
+                    <input
+                      id="dob" type="date"
+                      required={form.userType === 'past_student'}
+                      value={form.dob} onChange={set('dob')}
+                      className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
+                    />
+                  </div>
                 </div>
               </div>
 

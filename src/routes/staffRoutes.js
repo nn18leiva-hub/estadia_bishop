@@ -23,5 +23,7 @@ router.get('/stats', staffController.getStats);
 router.get('/queue', staffController.getUrgentQueue);
 router.get('/payments', staffController.getPayments);
 router.patch('/payments/:id/verify', staffController.verifyPaymentById);
+router.get('/verifications', staffController.getVerifications);
+router.patch('/verifications/:id', staffController.updateVerification);
 
 module.exports = router;

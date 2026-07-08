@@ -32,6 +32,15 @@ const DOC_ICON = {
   "Dean's Letter": 'article',
   'Replacement Diploma': 'menu_book',
   'Good Moral Certificate': 'verified',
+  // DB keys
+  'transcript': 'description',
+  'enrollment': 'history_edu',
+  'graduation': 'workspace_premium',
+  'deans': 'article',
+  'diploma': 'menu_book',
+  'good_moral': 'verified',
+  'lateness_form': 'schedule',
+  'absence_form': 'event_busy',
 };
 
 export default function RequestHistory() {

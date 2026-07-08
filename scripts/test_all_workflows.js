@@ -28,6 +28,14 @@ async function checkAllWorkflows() {
     const baseURL = 'http://localhost:3000';
 
     try {
+        // --- SETUP TEST USERS ---
+        const db = require('../src/config/db');
+        const bcrypt = require('bcrypt');
+        const vHash = await bcrypt.hash('password123', 10);
+        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Admin User', 'admin@bmhs.edu.bz', $1, 'admin') ON CONFLICT DO NOTHING", [vHash]);
+        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Super Admin', 'superadmin@bmhs.edu.bz', $1, 'super_admin') ON CONFLICT DO NOTHING", [vHash]);
+        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Viewer User', 'viewer@tester.bz', $1, 'viewer') ON CONFLICT DO NOTHING", [vHash]);
+
         // --- SETUP DUMMY IMAGE ---
         const imageBlob = new Blob(['dummy image content'], { type: 'image/png' });
 
@@ -35,7 +43,7 @@ async function checkAllWorkflows() {
         
         // 1. Parent Registration
         const parentEmail = `parent_${Date.now()}@test.com`;
-        let res = await fetch(`${baseURL}/auth/register`, {
+        let res = await fetch(`${baseURL}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -50,7 +58,7 @@ async function checkAllWorkflows() {
         const parentData = await assertCondition(res, 201, "Parent Registration");
         
         // 2. Parent Login
-        res = await fetch(`${baseURL}/auth/login`, {
+        res = await fetch(`${baseURL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: parentEmail, password: 'password123' })
@@ -61,7 +69,7 @@ async function checkAllWorkflows() {
         // 3. Parent Uploads SSN
         let fd = new FormData();
         fd.append('ssn_image', imageBlob, 'ssn.png');
-        res = await fetch(`${baseURL}/parent/upload-ssn-card`, {
+        res = await fetch(`${baseURL}/api/parent/upload-ssn-card`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${parentToken}` },
             body: fd
@@ -69,7 +77,7 @@ async function checkAllWorkflows() {
         let uploadSsnData = await assertCondition(res, 200, "Parent Uploads SSN Card");
 
         // 5. Parent Submits Enrolment Letter (Requires payment, no signature)
-        res = await fetch(`${baseURL}/requests/create`, {
+        res = await fetch(`${baseURL}/api/requests/create`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${parentToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -84,7 +92,7 @@ async function checkAllWorkflows() {
         console.log("\n--- PHASE 3: STAFF & ADMIN PROCESSING ---");
         
         // 6. Admin Login
-        res = await fetch(`${baseURL}/auth/login`, {
+        res = await fetch(`${baseURL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'admin@bmhs.edu.bz', password: 'password123' })
@@ -93,14 +101,14 @@ async function checkAllWorkflows() {
         const adminToken = adminLogin.token;
 
         // 7. Admin fetches all pending requests
-        res = await fetch(`${baseURL}/staff/requests`, {
+        res = await fetch(`${baseURL}/api/staff/requests`, {
             headers: { 'Authorization': `Bearer ${adminToken}` }
         });
         const allReqs = await assertCondition(res, 200, "Admin fetches all pending requests");
 
         // 8. Admin validates SSN & sets to Ready
         if (absenceReqId) {
-            res = await fetch(`${baseURL}/staff/update-request-status`, {
+            res = await fetch(`${baseURL}/api/staff/update-request-status`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -115,14 +123,10 @@ async function checkAllWorkflows() {
 
         console.log("\n--- PHASE 4: SUPER ADMIN & VIEWER CONSTRAINTS ---");
         
-        // Create Viewer via script if not exists (seed doesn't always apply)
-        const db = require('./src/config/db');
-        const bcrypt = require('bcrypt');
-        const vHash = await bcrypt.hash('password123', 10);
-        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Viewer', 'viewer@tester.bz', $1, 'viewer') ON CONFLICT DO NOTHING", [vHash]);
+        // Viewer is already created at the start of checkAllWorkflows
 
         // 9. Viewer Login
-        res = await fetch(`${baseURL}/auth/login`, {
+        res = await fetch(`${baseURL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'viewer@tester.bz', password: 'password123' })
@@ -131,7 +135,7 @@ async function checkAllWorkflows() {
         const viewerToken = viewerLogin.token;
 
         // 10. Viewer tries to modify a request (Should fail 403)
-        res = await fetch(`${baseURL}/staff/update-request-status`, {
+        res = await fetch(`${baseURL}/api/staff/update-request-status`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${viewerToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -143,7 +147,7 @@ async function checkAllWorkflows() {
 
         // 11. Super Admin Login
         await db.query("UPDATE staff SET password_hash = $1 WHERE email = 'superadmin@bmhs.edu.bz'", [vHash]);
-        res = await fetch(`${baseURL}/auth/login`, {
+        res = await fetch(`${baseURL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'superadmin@bmhs.edu.bz', password: 'password123' })
@@ -152,7 +156,7 @@ async function checkAllWorkflows() {
         const superToken = saLogin.token;
 
         // 12. Super Admin fetches Staff
-        res = await fetch(`${baseURL}/superadmin/staff`, {
+        res = await fetch(`${baseURL}/api/superadmin/staff`, {
             headers: { 'Authorization': `Bearer ${superToken}` }
         });
         const staffList = await assertCondition(res, 200, "Super Admin accesses Staff Directory");

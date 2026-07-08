@@ -53,7 +53,7 @@ tailwind.config = {
     <header class="flex items-center justify-between px-sm w-full h-16 z-30 bg-surface border-b border-outline-variant/20 sticky top-0 md:h-[72px]">
       <div class="flex items-center gap-sm">
         <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer"><span class="material-symbols-outlined text-primary">menu</span></button>
-        <span class="font-headline-sm text-headline-sm font-semibold text-primary">Bishop Martin Parent Portal</span>
+        <span class="font-headline-sm text-base sm:text-headline-sm font-semibold text-primary truncate max-w-[170px] min-[375px]:max-w-[210px] min-[410px]:max-w-[250px] sm:max-w-none">Bishop Martin Parent Portal</span>
       </div>
       <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
         <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
@@ -135,13 +135,8 @@ tailwind.config = {
       container.innerHTML = `
         <!-- Profile Header Card -->
         <div class="bg-surface-container-lowest border border-outline-variant/20 rounded overflow-hidden shadow-sm">
-          <div class="h-24 bg-primary relative overflow-hidden">
-            <div class="absolute inset-0 opacity-10 flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-[200px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
-            </div>
-          </div>
-          <div class="px-lg pb-lg">
-            <div class="w-20 h-20 rounded bg-primary flex items-center justify-center text-on-primary font-bold text-2xl -mt-10 border-4 border-surface-container-lowest">
+          <div class="px-lg pb-lg pt-lg">
+            <div class="w-20 h-20 rounded bg-primary flex items-center justify-center text-on-primary font-bold text-2xl border-4 border-surface-container-lowest">
               ${(profile.full_name || '?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}
             </div>
             <div class="mt-sm flex flex-col md:flex-row md:items-center md:justify-between gap-sm">

@@ -389,6 +389,64 @@ const uploadDocument = async (req, res) => {
     }
 };
 
+const getVerifications = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT 
+                parent_id as id,
+                full_name as name,
+                email,
+                created_at,
+                ssn_card_image_path,
+                CASE WHEN verified = TRUE THEN 'approved' ELSE 'pending' END as status
+            FROM parents
+            WHERE ssn_card_image_path IS NOT NULL
+            ORDER BY created_at DESC
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching verifications.' });
+    }
+};
+
+const updateVerification = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!status || !['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Valid status (approved or rejected) is required.' });
+        }
+
+        if (status === 'approved') {
+            await db.query('UPDATE parents SET verified = TRUE WHERE parent_id = $1', [id]);
+            // Progress any suspended requests
+            await db.query(`UPDATE document_requests SET status = 'pending' WHERE parent_id = $1 AND status = 'pending_verification'`, [id]);
+            
+            // Add a notification for the parent
+            await db.query(
+                `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
+                [id, 'Identity Verified', 'Your identity verification request has been approved. You can now request academic documents.']
+            );
+        } else {
+            // Rejection: reset verified to false and clear ssn_card_image_path
+            await db.query('UPDATE parents SET verified = FALSE, ssn_card_image_path = NULL WHERE parent_id = $1', [id]);
+            
+            // Add a notification for the parent
+            await db.query(
+                `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
+                [id, 'Identity Verification Rejected', 'Your identity verification request was rejected. Please re-upload a clear copy of your government ID/SSN.']
+            );
+        }
+
+        res.json({ message: `Verification status updated to ${status} successfully.` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error updating verification.' });
+    }
+};
+
 module.exports = { 
     getProfile, 
     updateProfile, 
@@ -403,5 +461,7 @@ module.exports = {
     getUrgentQueue,
     getPayments,
     verifyPaymentById,
-    uploadDocument
+    uploadDocument,
+    getVerifications,
+    updateVerification
 };

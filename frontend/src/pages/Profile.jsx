@@ -171,9 +171,10 @@ export default function Profile({ embedded = false }) {
                   <div className="flex flex-col gap-xs">
                     <label className="font-label-lg text-label-lg text-on-surface">{t('full.name')}</label>
                     <input
-                      type="text" value={name} onChange={e => setName(e.target.value)}
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                      type="text" value={name} disabled
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface-container font-body-md opacity-60 cursor-not-allowed"
                     />
+                    <p className="font-body-sm text-on-surface-variant">{t('name.unchangeable')}</p>
                   </div>
                   {!isStaff && (
                     <div className="flex flex-col gap-xs">

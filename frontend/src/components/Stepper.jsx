@@ -1,15 +1,16 @@
-const STEPS = [
+const DEFAULT_STEPS = [
   { label: 'Document', icon: 'description' },
   { label: 'Student', icon: 'person' },
   { label: 'Delivery', icon: 'local_shipping' },
   { label: 'Review', icon: 'fact_check' },
 ];
 
-export default function Stepper({ currentStep }) {
+export default function Stepper({ steps, currentStep }) {
+  const displaySteps = steps || DEFAULT_STEPS;
   // currentStep is 1-indexed
   return (
     <div className="flex items-center w-full max-w-2xl mx-auto">
-      {STEPS.map((step, idx) => {
+      {displaySteps.map((step, idx) => {
         const stepNum = idx + 1;
         const isDone = stepNum < currentStep;
         const isActive = stepNum === currentStep;
@@ -42,7 +43,7 @@ export default function Stepper({ currentStep }) {
             </div>
 
             {/* Connector line */}
-            {idx < STEPS.length - 1 && (
+            {idx < displaySteps.length - 1 && (
               <div
                 className={`stepper-line flex-1 ${isDone ? 'active' : ''}`}
                 style={{ marginBottom: '18px' }}
@@ -54,3 +55,4 @@ export default function Stepper({ currentStep }) {
     </div>
   );
 }
+

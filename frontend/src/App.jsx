@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -52,6 +52,7 @@ import './index.css';
 function ParentRouteWrapper() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   React.useEffect(() => {
     if (!loading) {
@@ -75,12 +76,17 @@ function ParentRouteWrapper() {
   const type = user?.type || user?.user_type;
   if (!user || (type !== 'parent' && type !== 'past_student')) return null;
 
-  return <Outlet />;
+  return (
+    <div key={location.pathname} className="animate-page flex flex-col min-h-screen">
+      <Outlet />
+    </div>
+  );
 }
 
 function StaffRouteWrapper() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   React.useEffect(() => {
     if (!loading) {
@@ -104,7 +110,20 @@ function StaffRouteWrapper() {
   const type = user?.type || user?.user_type;
   if (!user || type !== 'staff') return null;
 
-  return <Outlet />;
+  return (
+    <div key={location.pathname} className="animate-page flex flex-col min-h-screen">
+      <Outlet />
+    </div>
+  );
+}
+
+function PublicRouteWrapper() {
+  const location = useLocation();
+  return (
+    <div key={location.pathname} className="animate-page flex flex-col min-h-screen">
+      <Outlet />
+    </div>
+  );
 }
 
 function App() {
@@ -119,10 +138,13 @@ function App() {
               <Route path="/" element={<Navigate to="/login" replace />} />
 
               {/* ── Public Auth ─────────────────────────── */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route element={<PublicRouteWrapper />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/help" element={<ComingSoon />} />
+              </Route>
 
               {/* ── Parent Portal ────────────────────────── */}
               {/* Pages that use TopAppBar/BottomNav themselves (no DashboardLayout wrapper needed) */}
@@ -150,7 +172,6 @@ function App() {
                 <Route path="/staff/history" element={<ComingSoon />} />
               </Route>
 
-
               {/* ── Admin Portal ─────────────────────────── */}
               <Route element={<AdminLayout />}>
                 <Route path="/superadmin" element={<SuperAdminDashboard />} />
@@ -167,7 +188,6 @@ function App() {
               <Route element={<SharedLayout />}>
                 <Route path="/profile" element={<Profile />} />
               </Route>
-              <Route path="/help" element={<ComingSoon />} />
 
               {/* 404 fallback */}
               <Route path="*" element={<Navigate to="/login" replace />} />
@@ -180,3 +200,4 @@ function App() {
 }
 
 export default App;
+

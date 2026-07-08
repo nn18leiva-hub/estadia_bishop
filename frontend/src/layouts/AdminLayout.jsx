@@ -157,7 +157,9 @@ const AdminLayout = () => {
 
         {/* Page Content */}
         <div className="p-xs sm:p-md md:p-lg flex-grow w-full max-w-[1200px] mx-auto overflow-x-hidden">
-          <Outlet />
+          <div key={location.pathname} className="animate-page">
+            <Outlet />
+          </div>
         </div>
 
         {/* Mobile Bottom Nav */}

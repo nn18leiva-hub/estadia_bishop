@@ -31,6 +31,15 @@ const DOC_ICON = {
   'Dean\'s Letter': 'article',
   'Replacement Diploma': 'menu_book',
   'Good Moral Certificate': 'verified',
+  // DB keys
+  'transcript': 'description',
+  'enrollment': 'history_edu',
+  'graduation': 'workspace_premium',
+  'deans': 'article',
+  'diploma': 'menu_book',
+  'good_moral': 'verified',
+  'lateness_form': 'schedule',
+  'absence_form': 'event_busy',
 };
 
 export default function Dashboard() {
@@ -39,6 +48,16 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const translateDocType = (docType) => {
+    if (docType === 'Official Transcript') return t('official.transcript');
+    if (docType === 'Letter of Enrollment' || docType === 'Enrollment Letter') return t('enrollment.letter');
+    if (docType === 'Graduation Certificate') return t('graduation.cert');
+    if (docType === "Dean's Letter") return t('deans.letter');
+    if (docType === 'Replacement Diploma') return t('replacement.diploma');
+    if (docType === 'Other/Special Request') return t('other.special');
+    return t(docType);
+  };
 
   useEffect(() => {
     fetchRequests();
@@ -291,7 +310,7 @@ export default function Dashboard() {
                           {DOC_ICON[req.document_type] || 'description'}
                         </span>
                         <div>
-                          <p className="font-body-md text-body-md font-semibold text-on-surface">{req.document_type}</p>
+                          <p className="font-body-md text-body-md font-semibold text-on-surface">{translateDocType(req.document_type)}</p>
                           <p className="font-body-sm text-body-sm text-on-surface-variant">{req.student_name || '—'}</p>
                         </div>
                       </div>

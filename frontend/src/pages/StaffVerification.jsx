@@ -97,6 +97,19 @@ export default function StaffVerification() {
                   </span>
                 </div>
 
+                {/* View Document */}
+                {item.ssn_card_image_path && (
+                  <a
+                    href={`/${item.ssn_card_image_path}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline flex items-center gap-xs font-label-lg mt-xs self-start"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+                    {t('view.document')}
+                  </a>
+                )}
+
                 {/* Actions */}
                 {item.status === 'pending' || item.status === 'reviewing' ? (
                   <div className="flex gap-sm mt-auto">

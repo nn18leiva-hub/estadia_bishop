@@ -4,6 +4,7 @@ import TopAppBar from '../components/TopAppBar';
 import BottomNav from '../components/BottomNav';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
 export default function DigitalSignature() {
@@ -22,11 +23,21 @@ export default function DigitalSignature() {
   const { theme } = useTheme();
   const { t } = useLanguage();
 
+  const { user } = useAuth();
+
   // Form data passed from NewRequest
   const { requestData, fee, docLabel } = location.state || {};
+  const isForm = requestData?.document_type_name === 'lateness_form' || requestData?.document_type_name === 'absence_form';
 
-  // Pre-fill typed name from the student name so the user doesn't have to retype
-  const [fullName, setFullName] = useState(requestData?.student_full_name || '');
+  // Pre-fill typed name from the parent account name so the parent doesn't have to retype
+  const [fullName, setFullName] = useState(user?.full_name || '');
+
+  // Keep signature name in sync if user loads asynchronously
+  useEffect(() => {
+    if (user?.full_name) {
+      setFullName(user.full_name);
+    }
+  }, [user]);
 
   // ── Canvas helpers ────────────────────────────────────────────────────────
   const resizeCanvas = () => {
@@ -158,7 +169,7 @@ export default function DigitalSignature() {
       setAuthorized(true);
       setTimeout(() => {
         navigate('/dashboard/parents/success', {
-          state: { requestId: data?.request?.request_id, fee, docLabel }
+          state: { requestId: data?.request?.request_id, fee, docLabel, docType: requestData?.document_type_name }
         });
       }, 900);
     } catch (err) {
@@ -193,7 +204,9 @@ export default function DigitalSignature() {
             {docLabel && (
               <div className="mt-sm inline-flex items-center gap-xs px-sm py-xs bg-primary-fixed/30 rounded-full">
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>description</span>
-                <span className="font-label-md text-primary">{docLabel} · BZD ${fee}.00</span>
+                <span className="font-label-md text-primary">
+                  {docLabel} {isForm ? '' : `· BZD $${fee}.00`}
+                </span>
               </div>
             )}
           </div>
