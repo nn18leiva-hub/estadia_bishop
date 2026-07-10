@@ -1,27 +1,38 @@
-const db = require('../src/config/db');
 const bcrypt = require('bcrypt');
+const { Pool } = require('pg');
+require('dotenv').config();
 
-(async () => {
-  try {
-    const hash = await bcrypt.hash('Loganito2', 10);
-    const result = await db.query(
-      "UPDATE staff SET password_hash = $1, role = 'admin', full_name = 'Nelson Leiva', last_activity = NOW() WHERE email = $2 RETURNING staff_id, full_name, email, role",
-      [hash, 'nn15leiva@gmail.com']
-    );
-    if (result.rows.length > 0) {
-      console.log('✅ Staff account updated successfully!');
-      console.log(result.rows[0]);
-    } else {
-      console.log('No existing account found, inserting...');
-      await db.query(
-        "INSERT INTO staff (full_name, email, password_hash, role, last_activity) VALUES ($1, $2, $3, 'admin', NOW())",
-        ['Nelson Leiva', 'nn15leiva@gmail.com', hash]
-      );
-      console.log('✅ Staff account created!');
+const pool = new Pool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+});
+
+const users = [
+    { full_name: 'Super Admin', email: 'nn19leiva@gmail.com', password: 'Loganito2', role: 'super_admin' },
+];
+
+async function run() {
+    for (const u of users) {
+        // Delete if exists
+        await pool.query('DELETE FROM staff WHERE email = $1', [u.email]);
+        console.log(`Deleted existing user (if any): ${u.email}`);
+
+        // Hash password
+        const hash = await bcrypt.hash(u.password, 10);
+
+        // Insert
+        await pool.query(
+            'INSERT INTO staff (full_name, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+            [u.full_name, u.email, hash, u.role]
+        );
+        console.log(`✅ Created ${u.role} — ${u.email}`);
     }
-    process.exit(0);
-  } catch (err) {
-    console.error('❌ Failed:', err.message);
-    process.exit(1);
-  }
-})();
+
+    await pool.end();
+    console.log('Done!');
+}
+
+run().catch(err => { console.error(err); process.exit(1); });

@@ -64,14 +64,14 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Email and password are required.' });
         }
 
-        let result = await db.query('SELECT * FROM parents WHERE email = $1', [email]);
+        let result = await db.query('SELECT * FROM staff WHERE email = $1', [email]);
         let user = result.rows[0];
-        let userType = 'parent';
+        let userType = 'staff';
         
         if (!user) {
-            result = await db.query('SELECT * FROM staff WHERE email = $1', [email]);
+            result = await db.query('SELECT * FROM parents WHERE email = $1', [email]);
             user = result.rows[0];
-            userType = 'staff';
+            userType = 'parent';
         }
 
         if (!user) {
