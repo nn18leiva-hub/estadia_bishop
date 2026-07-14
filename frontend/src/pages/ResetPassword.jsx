@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { apiFetch } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import bishopLogo from '../assets/bishop_martin_logo.png';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function ResetPassword() {
       {/* Top brand strip */}
       <header className="flex items-center justify-between px-sm md:px-lg h-16 border-b border-outline-variant/20 bg-surface">
         <div className="flex items-center gap-xs">
-          <span className="material-symbols-outlined text-primary" style={{ fontSize: '28px' }}>school</span>
+          <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
           <span className="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</span>
         </div>
         <div className="flex items-center gap-md">

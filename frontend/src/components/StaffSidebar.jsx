@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import bishopLogo from '../assets/bishop_martin_logo.png';
 
 const STAFF_NAV = [
   { icon: 'dashboard', label: 'Dashboard', to: '/staff' },
@@ -34,9 +35,7 @@ export default function StaffSidebar({ variant = 'staff' }) {
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-80 bg-surface-container-low border-r border-outline-variant/30 flex-col pt-0 z-40">
       {/* Logo */}
       <div className="flex items-center gap-xs px-sm h-16 border-b border-outline-variant/30">
-        <div className="w-9 h-9 bg-primary flex items-center justify-center rounded">
-          <span className="material-symbols-outlined text-on-primary text-xl">school</span>
-        </div>
+        <img src={bishopLogo} alt="Bishop Martin" className="w-9 h-9 object-contain rounded-full" />
         <div>
           <p className="font-headline-sm text-headline-sm text-primary font-bold leading-tight">Bishop Martin</p>
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">

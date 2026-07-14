@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import bishopLogo from '../assets/bishop_martin_logo.png';
 
 export default function TopAppBar({ showBack = false, backTo = null, title = 'Bishop Martin Parent Portal', showNotifications = true }) {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function TopAppBar({ showBack = false, backTo = null, title = 'Bi
             className="flex items-center gap-xs cursor-pointer active:opacity-80 hover:opacity-80 transition-opacity"
             aria-label="Go to dashboard"
           >
-            <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>school</span>
+            <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
             <h1 className="font-headline-md text-headline-md font-bold text-primary hidden sm:block">{t(title)}</h1>
           </button>
         </div>

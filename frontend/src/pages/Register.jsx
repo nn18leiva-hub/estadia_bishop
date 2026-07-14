@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import bishopLogo from '../assets/bishop_martin_logo.png';
 
 export default function Register() {
   const { register, login } = useAuth();
@@ -72,7 +73,7 @@ export default function Register() {
       {/* Top brand strip */}
       <header className="flex items-center justify-between px-sm md:px-lg h-16 border-b border-outline-variant/20 bg-surface">
         <div className="flex items-center gap-xs">
-          <span className="material-symbols-outlined text-primary" style={{ fontSize: '28px' }}>school</span>
+          <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
           <span className="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</span>
         </div>
         <div className="flex items-center gap-md">
@@ -291,7 +292,7 @@ export default function Register() {
           {/* Subtle texture */}
           <div className="absolute inset-0 bento-texture" style={{ opacity: 0.08 }} />
           <div className="relative z-10 flex flex-col items-center text-center px-lg gap-lg text-on-primary">
-            <span className="material-symbols-outlined text-on-primary/80" style={{ fontSize: '80px' }}>school</span>
+            <img src={bishopLogo} alt="Bishop Martin High School" className="w-24 h-24 object-contain drop-shadow-lg" />
             <h2 className="font-headline-lg text-headline-lg text-on-primary">Bishop Martin High School</h2>
             <p className="font-body-md text-body-md text-on-primary/70 max-w-xs">
               {t('login.subtitle')}
