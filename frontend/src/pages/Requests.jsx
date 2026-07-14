@@ -225,7 +225,7 @@ export default function Requests() {
                       
                       <div className="flex justify-between items-center mt-xs">
                         <div className="min-w-0 pr-xs">
-                          <p className="font-body-sm text-on-surface font-semibold truncate">{translateDocType(req.document_type)}</p>
+                          <p className="font-body-sm text-on-surface font-semibold text-wrap">{translateDocType(req.document_type)}</p>
                           <p className="text-[10px] text-on-surface-variant">Ref: BM-{req.id}</p>
                         </div>
                         
