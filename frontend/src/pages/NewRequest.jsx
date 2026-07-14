@@ -292,7 +292,7 @@ export default function NewRequest() {
     <div className="min-h-screen bg-background text-on-surface">
       <TopAppBar showBack backTo="/dashboard/parents" />
 
-      <main className="pt-16 pb-24 md:pb-10 px-sm md:px-gutter max-w-container-max mx-auto">
+      <main className="pt-16 pb-48 md:pb-32 px-sm md:px-gutter max-w-container-max mx-auto">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant py-md">
           <span>{t('dashboard')}</span>
@@ -955,8 +955,8 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* Sticky/Floating Navigation Buttons Bar */}
-        <div className="sticky bottom-20 md:bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/90 backdrop-blur-md border-t border-outline-variant/20 py-md px-md shadow-lg -mx-sm md:-mx-gutter mt-xl">
+        {/* Fixed Floating Navigation Buttons Bar */}
+        <div className="fixed bottom-20 md:bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 py-md px-md shadow-lg">
           <div className="flex items-center justify-between w-full max-w-3xl mx-auto">
             <button
               onClick={handleBack}
