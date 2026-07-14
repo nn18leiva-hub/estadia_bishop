@@ -26,7 +26,11 @@ export default function StaffHeader({ title = 'staff.portal', showQueueButton = 
             <span className="material-symbols-outlined text-primary">arrow_back</span>
           </button>
         )}
-        {!showBack && <img src={bishopLogo} alt="Bishop Martin" className="w-7 h-7 object-contain rounded-full hidden md:block" />}
+        {!showBack && (
+          <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 flex-shrink-0 overflow-hidden shadow-sm hidden md:flex">
+            <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain" />
+          </div>
+        )}
         <h1 className="font-headline-sm text-headline-sm font-bold text-primary truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">{t(title)}</h1>
       </div>
       <div className="flex items-center gap-xs sm:gap-md flex-shrink-0">

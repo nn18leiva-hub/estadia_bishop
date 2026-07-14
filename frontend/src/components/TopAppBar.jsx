@@ -95,7 +95,9 @@ export default function TopAppBar({ showBack = false, backTo = null, title = 'Bi
             className="flex items-center gap-xs cursor-pointer active:opacity-80 hover:opacity-80 transition-opacity"
             aria-label="Go to dashboard"
           >
-            <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 flex-shrink-0 overflow-hidden shadow-sm">
+              <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain" />
+            </div>
             <h1 className="font-headline-md text-headline-md font-bold text-primary hidden sm:block">{t(title)}</h1>
           </button>
         </div>

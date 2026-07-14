@@ -73,7 +73,9 @@ export default function Register() {
       {/* Top brand strip */}
       <header className="flex items-center justify-between px-sm md:px-lg h-16 border-b border-outline-variant/20 bg-surface">
         <div className="flex items-center gap-xs">
-          <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
+          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 flex-shrink-0 overflow-hidden shadow-sm">
+            <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain" />
+          </div>
           <span className="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</span>
         </div>
         <div className="flex items-center gap-md">
@@ -292,7 +294,9 @@ export default function Register() {
           {/* Subtle texture */}
           <div className="absolute inset-0 bento-texture" style={{ opacity: 0.08 }} />
           <div className="relative z-10 flex flex-col items-center text-center px-lg gap-lg text-on-primary">
-            <img src={bishopLogo} alt="Bishop Martin High School" className="w-24 h-24 object-contain drop-shadow-lg" />
+            <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 shadow-lg overflow-hidden p-1 flex-shrink-0">
+              <img src={bishopLogo} alt="Bishop Martin High School" className="w-full h-full object-contain rounded-full" />
+            </div>
             <h2 className="font-headline-lg text-headline-lg text-on-primary">Bishop Martin High School</h2>
             <p className="font-body-md text-body-md text-on-primary/70 max-w-xs">
               {t('login.subtitle')}

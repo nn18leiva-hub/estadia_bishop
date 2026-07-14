@@ -47,7 +47,9 @@ export default function Login() {
       {/* Top brand strip */}
       <header className="flex items-center justify-between px-sm md:px-lg h-16 border-b border-outline-variant/20 bg-surface">
         <div className="flex items-center gap-xs">
-          <img src={bishopLogo} alt="Bishop Martin" className="w-8 h-8 object-contain rounded-full" />
+          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 flex-shrink-0 overflow-hidden shadow-sm">
+            <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain" />
+          </div>
           <span className="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</span>
         </div>
         <div className="flex items-center gap-md">
@@ -93,8 +95,8 @@ export default function Login() {
             <div className="p-lg">
               {/* Icon + Title */}
               <div className="flex flex-col items-center mb-lg">
-                <div className="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center mb-md">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '36px' }}>account_balance</span>
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 shadow-sm overflow-hidden p-1 flex-shrink-0 mb-md">
+                  <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain rounded-full" />
                 </div>
                 <h1 className="font-headline-lg text-headline-lg text-primary text-center">{t('welcome.back')}</h1>
                 <p className="font-body-sm text-body-sm text-on-surface-variant text-center mt-xs">

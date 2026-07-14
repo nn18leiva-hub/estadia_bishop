@@ -35,7 +35,9 @@ export default function StaffSidebar({ variant = 'staff' }) {
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-80 bg-surface-container-low border-r border-outline-variant/30 flex-col pt-0 z-40">
       {/* Logo */}
       <div className="flex items-center gap-xs px-sm h-16 border-b border-outline-variant/30">
-        <img src={bishopLogo} alt="Bishop Martin" className="w-9 h-9 object-contain rounded-full" />
+        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center border border-outline-variant/30 flex-shrink-0 overflow-hidden shadow-sm">
+          <img src={bishopLogo} alt="Bishop Martin" className="w-full h-full object-contain" />
+        </div>
         <div>
           <p className="font-headline-sm text-headline-sm text-primary font-bold leading-tight">Bishop Martin</p>
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">
