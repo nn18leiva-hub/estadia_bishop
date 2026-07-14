@@ -15,10 +15,10 @@ The system employs a strict, JSON Web Token (JWT)-enforced Role-Based Access Con
   - If a user selects `past_student`, the backend automatically calculates their age using the provided `dob`. 
   - The system will **block** the registration entirely if the calculated age is under 18.
   - Past students are systematically restricted: they are **ONLY permitted to request Transcripts**. All other document types are hidden and blocked for them at the API level.
-- **SSN Verification Flow**:
-  - The application uses a non-blocking queue model. Users can seamlessly create accounts and submit document requests immediately, *before* providing verified ID/SSN.
-  - However, all requests from unverified users are initially flagged as `pending_verification` and held in stasis. They will not be processed or seen as actionable by staff.
-  - Once the user uploads their SSN card (`POST /parent/upload-ssn-card`) and an Admin verifies it, the system automatically unpauses their held requests, transitioning them to standard `pending` status.
+- **ID Verification Flow**:
+  - The application links ID verification to each document request. Every request must be submitted with an uploaded copy of the parent/requester's ID card.
+  - All new requests are initially set to `pending_verification`. Staff must verify the uploaded ID directly from the request's details view.
+  - Once staff approves the ID, the request progresses to `pending` (if payment is required) or `processing` (if automated or already paid).
 
 ### Tier 2: Viewers (e.g., Principal)
 - **Purpose**: A read-only analytical account meant for high-level administration/principals who need full visibility of the school's operational queues without the risk of structurally altering data.
@@ -45,17 +45,17 @@ The system employs a strict, JSON Web Token (JWT)-enforced Role-Based Access Con
 
 The behavior of every request is centrally coordinated by the `document_types` database matrix. This dictates if a document is "Automated" (`is_auto_generated: true/false`) or if it requires banking verification (`requires_payment: true/false`).
 
-> [!CAUTION]
-> ### The Universal Crucial Rule: Student Name & ID 
-> **Regardless of the exact type of request—whether it is a free automated absence slip, a paid verification letter, or a past student transcript—the student's FULL NAME and STUDENT ID are explicitly and irrevocably REQUIRED in the payload.** 
+> [!IMPORTANT]
+> ### The Universal Crucial Rule: Student Name
+> **Regardless of the exact type of request—whether it is a free automated absence slip, a paid verification letter, or a past student transcript—the student's FULL NAME is explicitly and irrevocably REQUIRED in the payload.** 
 > 
-> The system will immediately reject any request payload missing these two core attributes. This is necessary because every request, manual or automated, relies on these identifiers for correct database linkage, PDF generation, and historical archiving. **Leave nothing out.**
+> The system will immediately reject any request payload missing the student's full name. This is necessary because every request, manual or automated, relies on this identifier for correct database linkage, PDF generation, and historical archiving. Note that the Student ID/BEMIS ID field is no longer required or collected anywhere in the system.
 
 ### A. Simple / Manual Requests (Transcripts & General Letters)
 - **Configuration**: `is_auto_generated: false`, `requires_payment: true`
 - **Flow**:
   1. The user selects the document type (e.g., Transcript) from the front-end.
-  2. The user inputs the mandatory **Student Name** and **Student ID**.
+  2. The user uploads their government ID and inputs the mandatory **Student Name**.
   3. The API logs a blank, passive request in the database.
   4. The office staff is tasked to physically type out the letter or print the transcript themselves from internal school management systems.
   5. **Payment Process:** Because these documents incur a fee, the site will prominently display the proper Account Information (Bank Details) to the parent. The parent must then perform a bank transfer and upload proof of payment (e.g. a receipt image) via the front-end to the `POST /payment/upload-receipt` endpoint. Until this proof of payment is uploaded by the user and verified by an Admin, the request will remain paused and will not progress to `ready_for_pickup`.
@@ -65,11 +65,11 @@ These are not traditional document "requests" that parents physically pick up. I
 - **Configuration**: `is_auto_generated: true`, `requires_payment: false`
 - **Flow**:
   1. The user selects an automated submission type (e.g., Lateness Slip).
-  2. The user provides the mandatory **Student Name** and **Student ID**.
+  2. The user uploads their government ID and provides the mandatory **Student Name**.
   3. The front-end renders a custom sub-form collecting `form_data` (e.g., "Reason for lateness: Missed the bus").
   4. The parent is required to use their touchscreen/mouse to physically draw their signature on an HTML canvas.
-  5. The front-end packages the **Student Name**, **Student ID**, the JSON `form_data`, and a base64 string of the signature (`signature_image`) and fires it to the API.
-  6. **The Backend PDF Engine**: Our server intercepts these data points, immediately boots up `pdfkit`, and dynamically paints a perfectly formatted PDF document. It stamps the Student Name, ID, Reason, and explicitly embeds the drawn signature onto the document's signature line. 
+  5. The front-end packages the **Student Name**, the JSON `form_data`, the ID file, and a base64 string of the signature (`signature_image`) and fires it to the API.
+  6. **The Backend PDF Engine**: Our server intercepts these data points, immediately boots up `pdfkit`, and dynamically paints a perfectly formatted PDF document. It stamps the Student Name, Reason, and explicitly embeds the drawn signature onto the document's signature line. 
   7. **Internal Retention:** The final PDF is automatically generated and saved directly to the school's active server directory. It is then held securely by the school for their internal records without any manual data entry required. The parents are not prompted to pick up these documents.
 
 ---
@@ -92,8 +92,8 @@ A single, universal endpoint (`POST /auth/login`) handles all 5 tiers of users s
 - If the user selects **'Past Student'**, the UI must conditionally reveal a Date Picker. **The backend validation will crash if `dob` is omitted or if they are under 18.**
 
 ### III. Parent & Past Student Dashboards
-- **Crucial Component**: A clear form requesting the **Student Name** and **Student ID**, strictly enforced before activating the "Submit Request" button.
-- **SSN Warning Banner**: If the `/user/me` endpoint determines `ssn_verified` is false, show a persistent UI banner reminding them to upload their ID to unlock their queued requests (`POST /parent/upload-ssn-card`).
+- **Crucial Component**: A clear form requesting the **Student Name**, strictly enforced before activating the "Submit Request" button.
+- **In-Wizard ID Upload**: The request wizard contains an **Identity Verification** step (Step 2) requiring the parent/requester to upload their government ID file before continuing.
 - **Dynamic Render Logic**:
   - When the user selects a document from the dropdown. 
   - If the document is `is_auto_generated: true`: Reveal the reason input text boxes and the HTML Canvas Signature pad. Hide everything else.
@@ -104,7 +104,7 @@ A single, universal endpoint (`POST /auth/login`) handles all 5 tiers of users s
 - A powerful, highly-responsive Data Table populated from `GET /staff/requests`. 
 - **Required UI Triggers**:
   - A button rendering a modal to view uploaded Bank Payment slips, with "Approve Payment" and "Reject Payment" buttons.
-  - A button rendering a modal to view SSN cards, with an "Approve Identity" button.
+  - A card on the request details page displaying the uploaded ID file, with "Approve ID" and "Reject ID" buttons.
   - A dropdown selector on each request row that patches the status to "Ready for Pickup" when the document is physically prepared, triggering the final notification to the parent.
 
 ### V. Super Admin Control Panel (3-Tab Orchestration)

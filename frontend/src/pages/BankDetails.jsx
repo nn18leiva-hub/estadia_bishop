@@ -19,7 +19,7 @@ export default function BankDetails() {
 
   const ACCOUNT_DETAILS = [
     { label: t('bank.name'), value: 'Belize Bank Limited', copy: false },
-    { label: t('account.holder'), value: 'Bishop Martin Academy – Registrar', copy: false },
+    { label: t('account.holder'), value: 'Bishop Martin High School – Registrar', copy: false },
     { label: t('account.number'), value: '1234-5678-9012', copy: true, copyValue: '123456789012' },
     { label: t('branch.swift'), value: 'BZLIBRLI', copy: true, copyValue: 'BZLIBRLI' },
   ];
@@ -76,10 +76,10 @@ export default function BankDetails() {
                       {detail.copy && (
                         <button
                           onClick={() => copyToClipboard(detail.copyValue, detail.label)}
-                          className="material-symbols-outlined text-primary p-2 hover:bg-primary-fixed/30 rounded transition-colors flex-shrink-0"
+                          className="p-2 hover:bg-primary-fixed/30 rounded transition-colors flex-shrink-0"
                           title={`Copy ${detail.label}`}
                         >
-                          content_copy
+                          <span className="material-symbols-outlined text-primary">content_copy</span>
                         </button>
                       )}
                     </div>
@@ -160,7 +160,7 @@ export default function BankDetails() {
               onClick={() => navigate('/dashboard/parents/upload-receipt', {
                 state: { requestId, fee, docLabel }
               })}
-              className="w-full bg-primary text-white py-4 rounded-xl font-label-lg text-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-sm"
+              className="w-full bg-primary text-on-primary py-4 rounded-xl font-label-lg text-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-sm"
             >
               {t('confirm.initiated')}
               <span className="material-symbols-outlined">arrow_forward</span>
@@ -174,7 +174,7 @@ export default function BankDetails() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-tertiary-container text-white px-lg py-sm rounded-full font-label-lg shadow-xl border border-white/10 z-50 animate-fade-in">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-tertiary-container text-on-tertiary-container px-lg py-sm rounded-full font-label-lg shadow-xl border border-outline-variant/10 z-50 animate-fade-in">
           {toast}
         </div>
       )}

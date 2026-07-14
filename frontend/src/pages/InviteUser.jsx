@@ -96,9 +96,9 @@ export default function InviteUser() {
                 id="inv-role" value={form.role} onChange={set('role')}
                 className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
               >
-                <option value="staff">{t('staff.registrar')}</option>
-                <option value="admin">{t('administrator')}</option>
-                <option value="superadmin">{t('super.admin')}</option>
+                <option value="staff">{t('level.staff')}</option>
+                <option value="viewer">{t('viewer')}</option>
+                <option value="admin">{t('admin')}</option>
               </select>
             </div>
           </div>

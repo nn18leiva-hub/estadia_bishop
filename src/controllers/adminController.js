@@ -61,7 +61,7 @@ const getUsers = async (req, res) => {
         name: row.full_name,
         email: row.email,
         role: row.role,
-        role_title: row.role === 'super_admin' ? 'Super Admin' : (row.role === 'admin' ? 'Admin' : 'Viewer'),
+        role_title: row.role === 'admin' || row.role === 'super_admin' ? 'Admin' : (row.role === 'staff' ? 'Staff' : 'Viewer'),
         status: 'active',
         last_login: row.last_activity,
         created_at: row.created_at,
@@ -158,7 +158,7 @@ const getUserById = async (req, res) => {
         name: row.full_name,
         email: row.email,
         role: row.role,
-        role_title: row.role === 'super_admin' ? 'Super Admin' : (row.role === 'admin' ? 'Admin' : 'Viewer'),
+        role_title: row.role === 'admin' || row.role === 'super_admin' ? 'Admin' : (row.role === 'staff' ? 'Staff' : 'Viewer'),
         status: 'active',
         last_login: row.last_activity,
         created_at: row.created_at,
@@ -203,7 +203,7 @@ const getUserById = async (req, res) => {
           name: row.full_name,
           email: row.email,
           role: row.role,
-          role_title: row.role === 'super_admin' ? 'Super Admin' : (row.role === 'admin' ? 'Admin' : 'Viewer'),
+          role_title: row.role === 'admin' || row.role === 'super_admin' ? 'Admin' : (row.role === 'staff' ? 'Staff' : 'Viewer'),
           status: 'active',
           last_login: row.last_activity,
           created_at: row.created_at,
@@ -288,8 +288,8 @@ const inviteUser = async (req, res) => {
 
     // Role mapping: frontend role to db role
     let dbRole = 'viewer';
-    if (role === 'admin') dbRole = 'admin';
-    if (role === 'superadmin' || role === 'super_admin') dbRole = 'super_admin';
+    if (role === 'staff') dbRole = 'staff';
+    if (role === 'admin' || role === 'super_admin' || role === 'superadmin') dbRole = 'admin';
 
     // Check email uniqueness across both tables
     const staffEmailCheck = await db.query('SELECT staff_id FROM staff WHERE email = $1', [email]);
@@ -307,12 +307,12 @@ const inviteUser = async (req, res) => {
     let permissionsObj = {
       view_requests: true,
       manage_requests: dbRole !== 'viewer',
-      approve_documents: dbRole === 'super_admin',
+      approve_documents: dbRole === 'admin',
       view_payments: dbRole !== 'viewer',
       verify_payments: dbRole !== 'viewer',
       view_users: true,
       manage_users: dbRole !== 'viewer',
-      manage_permissions: dbRole === 'super_admin',
+      manage_permissions: dbRole === 'admin',
       view_verifications: true,
       approve_verifications: dbRole !== 'viewer'
     };

@@ -11,8 +11,12 @@ const STATUS_STYLES = {
   pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready:      'bg-tertiary-fixed text-on-tertiary-fixed',
+  ready_for_pickup: 'bg-tertiary-fixed text-on-tertiary-fixed',
   issued:     'bg-secondary-container/60 text-on-secondary-container',
+  completed:  'bg-secondary-container/60 text-on-secondary-container',
   cancelled:  'bg-error-container text-on-error-container',
+  denied:     'bg-error-container text-on-error-container',
+  action:     'bg-error-container text-on-error-container',
 };
 
 const STATUS_LABELS = {
@@ -20,8 +24,12 @@ const STATUS_LABELS = {
   pending_verification: 'Pending Identity Verification',
   processing: 'Processing',
   ready: 'Ready for Pickup',
+  ready_for_pickup: 'Ready for Pickup',
   issued: 'Issued',
+  completed: 'Issued/Completed',
   cancelled: 'Cancelled',
+  denied: 'Denied',
+  action: 'Action Required',
 };
 
 const DOC_ICON = {
@@ -74,7 +82,7 @@ export default function Dashboard() {
     }
   };
 
-  const firstName = user?.name?.split(' ')[0] || 'Parent';
+  const firstName = user?.full_name?.split(' ')[0] || user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
@@ -105,81 +113,13 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* SSN Warning Banner */}
-        {user && !user.verified && (
-          <div className="mb-md bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30 rounded-xl p-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
-            <div className="flex gap-sm items-start">
-              <span className="material-symbols-outlined text-amber-700 dark:text-amber-400 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
-              <div>
-                <h4 className="font-label-lg text-amber-800 dark:text-amber-300 font-semibold font-bold">
-                  {user.ssn_card_image_path ? t('pending.admin.review') || 'Identity Verification Pending' : t('id.verification.required') || 'Identity Verification Required'}
-                </h4>
-                <p className="font-body-sm text-on-surface-variant">
-                  {user.ssn_card_image_path
-                    ? t('ver.submitted.desc') || 'Your identity document is being reviewed. Document requests will be processed after approval.'
-                    : t('id.ver.desc') || 'Please upload your SSN or identity document. All document requests will remain locked until your identity is verified.'}
-                </p>
-              </div>
-            </div>
-            {!user.ssn_card_image_path && (
-              <button
-                onClick={() => navigate('/dashboard/parents/upload-ssn')}
-                className="bg-primary text-on-primary hover:brightness-110 px-md py-xs rounded-lg font-label-lg whitespace-nowrap self-stretch sm:self-auto text-center font-bold"
-              >
-                {t('upload.id.doc') || 'Upload ID'}
-              </button>
-            )}
-          </div>
-        )}
+
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 
           {/* Left: Quick Actions */}
           <aside className="lg:col-span-4 flex flex-col gap-gutter">
-            {/* Identity Status */}
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-              <div className="flex items-center gap-xs mb-sm">
-                <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>verified_user</span>
-                <h3 className="font-headline-sm text-headline-sm text-primary">{t('identity.status')}</h3>
-              </div>
-              {user?.verified ? (
-                <div className="flex items-center gap-sm p-sm bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-500/20">
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-green-700 dark:text-green-300" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>verified</span>
-                  </div>
-                  <div>
-                    <p className="font-label-lg text-label-lg text-green-700 dark:text-green-300 font-semibold">{t('identity.verified')}</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('verification.active')}</p>
-                  </div>
-                </div>
-              ) : user?.ssn_card_image_path ? (
-                <div className="flex items-center gap-sm p-sm bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-500/20">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-amber-700 dark:text-amber-300" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>hourglass_empty</span>
-                  </div>
-                  <div>
-                    <p className="font-label-lg text-label-lg text-amber-700 dark:text-amber-300 font-semibold">{t('pending.verification') || 'Pending Review'}</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('expect.review.desc') || 'Under review (1–2 business days)'}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-sm p-sm bg-error-container/30 rounded-lg border border-error/20">
-                  <div className="w-10 h-10 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-error" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>warning</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-label-lg text-label-lg text-error font-semibold">{t('identity.unverified')}</p>
-                    <button
-                      onClick={() => navigate('/dashboard/parents/upload-ssn')}
-                      className="text-primary hover:underline font-label-md text-label-md mt-0.5 block text-left font-semibold"
-                    >
-                      {t('upload.id.doc') || 'Upload SSN Card'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Quick Actions Card */}
             <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
@@ -195,20 +135,6 @@ export default function Dashboard() {
                   <div>
                     <p className="font-label-lg text-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">{t('request.doc')}</p>
                     <p className="font-body-sm text-body-sm text-on-surface-variant">{t('request.doc.desc')}</p>
-                  </div>
-                  <span className="material-symbols-outlined text-on-surface-variant ml-auto group-hover:text-primary transition-colors">chevron_right</span>
-                </Link>
-
-                <Link
-                  to="/dashboard/parents/upload-ssn"
-                  className="flex items-center gap-md px-sm py-sm rounded-lg hover:bg-secondary-container/30 transition-all group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: '20px' }}>badge</span>
-                  </div>
-                  <div>
-                    <p className="font-label-lg text-label-lg text-on-surface font-semibold group-hover:text-primary transition-colors">{t('identity.verification')}</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{t('upload.id.desc')}</p>
                   </div>
                   <span className="material-symbols-outlined text-on-surface-variant ml-auto group-hover:text-primary transition-colors">chevron_right</span>
                 </Link>
@@ -229,23 +155,19 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Administrative Resources */}
-            <div className="bg-primary text-on-primary rounded-xl p-md relative overflow-hidden">
-              <div className="absolute inset-0 bento-texture" style={{ opacity: 0.1 }} />
-              <div className="relative z-10">
-                <span className="material-symbols-outlined mb-sm" style={{ fontSize: '32px', opacity: 0.8 }}>info</span>
-                <h3 className="font-headline-sm text-headline-sm mb-xs">{t('need.help')}</h3>
-                <p className="font-body-sm text-body-sm opacity-80 mb-md">
-                  {t('office.hours.desc')}
-                </p>
-                <a
-                  href="tel:+5012345678"
-                  className="inline-flex items-center gap-xs bg-on-primary/10 hover:bg-on-primary/20 px-sm py-xs rounded-lg font-label-lg transition-all"
-                >
-                  <span className="material-symbols-outlined text-sm">phone</span>
-                  {t('call.registrar')}
-                </a>
+            {/* Help */}
+            <div className="bg-primary text-on-primary rounded-xl px-sm py-xs flex items-center justify-between gap-sm">
+              <div className="flex items-center gap-xs">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: 0.85 }}>info</span>
+                <span className="font-label-lg text-label-lg opacity-90">{t('need.help')}</span>
               </div>
+              <a
+                href="tel:+5012345678"
+                className="flex items-center gap-xs bg-on-primary/10 hover:bg-on-primary/20 px-xs py-0.5 rounded-lg font-label-md transition-all whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>phone</span>
+                {t('call.registrar')}
+              </a>
             </div>
           </aside>
 

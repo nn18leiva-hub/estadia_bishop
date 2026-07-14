@@ -233,7 +233,6 @@ export default function StaffDashboard() {
                 <div className="flex flex-col gap-sm mt-md">
                   {[
                     { label: t('process.next.queue'), icon: 'arrow_forward', to: '/staff/requests' },
-                    { label: t('review.id.verifications'), icon: 'badge', to: '/staff/verification' },
                     { label: t('pending.payments'), icon: 'payments', to: '/staff/payments' },
                   ].map(action => (
                     <button

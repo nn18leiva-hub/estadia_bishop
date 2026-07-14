@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 const users = [
-    { full_name: 'Super Admin', email: 'nn19leiva@gmail.com', password: 'Loganito2', role: 'super_admin' },
+    { full_name: 'Super Admin', email: 'nn19leiva@gmail.com', password: 'Loganito2', role: 'admin' },
 ];
 
 async function run() {

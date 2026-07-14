@@ -23,7 +23,7 @@ const AdminLayout = () => {
 
   if (loading || !user) return null;
 
-  const isSuperAdmin = user?.role === 'super_admin';
+  const isSuperAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   const navItems = isSuperAdmin ? [
     { label: 'Dashboard', icon: 'grid_view', path: '/superadmin' },
@@ -173,7 +173,7 @@ const AdminLayout = () => {
                 to={item.path}
                 className={`flex flex-col items-center justify-center active:scale-95 transition-all ${
                   isActive
-                    ? 'bg-primary-container text-white rounded-full px-4 py-1'
+                    ? 'bg-primary-container text-on-primary-container rounded-full px-4 py-1'
                     : 'text-on-surface-variant hover:text-primary'
                 }`}
               >

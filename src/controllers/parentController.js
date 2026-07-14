@@ -1,25 +1,5 @@
 const db = require('../config/db');
 
-const uploadSSNCard = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'Please upload an image.' });
-        }
-
-        const imagePath = `uploads/ssn_cards/${req.file.filename}`;
-
-        await db.query(
-            'UPDATE parents SET ssn_card_image_path = $1 WHERE parent_id = $2',
-            [imagePath, req.user.id]
-        );
-
-        res.json({ message: 'SSN card uploaded successfully.', imagePath });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error during SSN card upload.' });
-    }
-};
-
 const uploadProfilePicture = async (req, res) => {
     try {
         if (!req.file) {
@@ -76,4 +56,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { uploadSSNCard, uploadProfilePicture, updateProfile, getProfile };
+module.exports = { uploadProfilePicture, updateProfile, getProfile };

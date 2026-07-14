@@ -25,9 +25,9 @@ export default function Login() {
       const role = result?.role;
       const type = result?.type;
 
-      if (role === 'super_admin') {
+      if (role === 'admin' || role === 'super_admin') {
         navigate('/superadmin');
-      } else if (role === 'admin' || role === 'viewer' || type === 'staff') {
+      } else if (role === 'staff' || role === 'viewer' || type === 'staff') {
         navigate('/staff');
       } else {
         // parent or past_student

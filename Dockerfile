@@ -13,7 +13,7 @@ RUN npm install --omit=dev
 COPY . .
 
 # Create persistent upload directories
-RUN mkdir -p uploads/ssn_cards uploads/payment_receipts uploads/pdfs
+RUN mkdir -p uploads/ssn_cards uploads/payment_receipts uploads/profile_pictures uploads/signatures uploads/documents
 
 # Use non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

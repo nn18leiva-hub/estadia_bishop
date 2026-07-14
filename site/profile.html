@@ -176,42 +176,6 @@ tailwind.config = {
           </div>
         </div>
 
-        ${!isStaff ? `
-        <!-- ID Verification Upload -->
-        <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-md shadow-sm">
-          <div class="flex items-start gap-md mb-md">
-            <div class="w-10 h-10 rounded bg-${profile.verified ? 'secondary-container' : 'error-container'} flex items-center justify-center flex-shrink-0">
-              <span class="material-symbols-outlined text-${profile.verified ? 'on-secondary-container' : 'on-error-container'}">id_card</span>
-            </div>
-            <div>
-              <h3 class="font-headline-sm text-headline-sm text-on-surface">Identity Verification</h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">
-                ${profile.verified
-                  ? 'Your identity has been verified by the Bishop Martin registrar.'
-                  : 'Upload a government-issued ID or SSN card to verify your identity. This is required to process document requests.'}
-              </p>
-            </div>
-          </div>
-          ${!profile.verified ? `
-          <form id="id-upload-form" enctype="multipart/form-data">
-            <div id="id-upload-error" class="hidden p-sm bg-error-container text-on-error-container rounded font-body-sm text-body-sm mb-sm"></div>
-            <div id="id-upload-success" class="hidden p-sm bg-secondary-container text-on-secondary-container rounded font-body-sm text-body-sm mb-sm">ID uploaded successfully! Pending staff review.</div>
-            <div class="flex flex-col md:flex-row gap-md items-end">
-              <div class="flex-grow space-y-base">
-                <label class="font-label-lg text-label-lg text-on-surface-variant block">Select ID Document (JPG, PNG, PDF)</label>
-                <input id="id-file" type="file" accept="image/*,.pdf" class="w-full font-body-sm text-on-surface file:mr-md file:py-sm file:px-md file:rounded file:border-0 file:bg-surface-container-high file:text-on-surface file:font-label-lg file:text-label-lg hover:file:bg-surface-container-highest cursor-pointer">
-              </div>
-              <button type="submit" id="id-upload-btn" class="flex-shrink-0 flex items-center gap-xs bg-primary text-on-primary px-md py-sm rounded font-label-lg text-label-lg hover:opacity-90 active:scale-95 transition-all">
-                <span class="material-symbols-outlined text-[18px]">upload</span> Upload ID
-              </button>
-            </div>
-          </form>` : `
-          <div class="flex items-center gap-sm p-sm bg-secondary-container/30 rounded">
-            <span class="material-symbols-outlined text-on-secondary-container">check_circle</span>
-            <span class="font-body-sm text-body-sm text-on-secondary-container">Verification complete. No action needed.</span>
-          </div>`}
-        </div>
-
         <!-- Change Password -->
         <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-md shadow-sm">
           <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Security</h3>
@@ -232,7 +196,7 @@ tailwind.config = {
               <span class="material-symbols-outlined text-[18px]">lock_reset</span> Update Password
             </button>
           </form>
-        </div>` : ''}
+        </div>
 
         <!-- Sign Out -->
         <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-md shadow-sm flex items-center justify-between">
@@ -244,32 +208,6 @@ tailwind.config = {
             <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
           </button>
         </div>`;
-
-      // ID upload handler
-      const idForm = document.getElementById('id-upload-form');
-      if (idForm) {
-        idForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const file = document.getElementById('id-file').files[0];
-          const errEl = document.getElementById('id-upload-error');
-          const successEl = document.getElementById('id-upload-success');
-          const btn = document.getElementById('id-upload-btn');
-          errEl.classList.add('hidden');
-          if (!file) { errEl.textContent = 'Please select a file.'; errEl.classList.remove('hidden'); return; }
-          btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">hourglass_top</span> Uploading...';
-          try {
-            const fd = new FormData(); fd.append('ssn_image', file);
-            const res = await fetch('/api/parent/upload-ssn-card', { method:'POST', headers:{ Authorization:`Bearer ${getToken()}` }, body:fd });
-            const d = await res.json();
-            if (!res.ok) throw new Error(d.message);
-            successEl.classList.remove('hidden');
-            idForm.style.display = 'none';
-          } catch(err) {
-            errEl.textContent = err.message; errEl.classList.remove('hidden');
-            btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">upload</span> Upload ID';
-          }
-        });
-      }
 
       // Password change handler
       const pwForm = document.getElementById('pw-form');

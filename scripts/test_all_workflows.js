@@ -32,8 +32,8 @@ async function checkAllWorkflows() {
         const db = require('../src/config/db');
         const bcrypt = require('bcrypt');
         const vHash = await bcrypt.hash('password123', 10);
-        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Admin User', 'admin@bmhs.edu.bz', $1, 'admin') ON CONFLICT DO NOTHING", [vHash]);
-        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Super Admin', 'superadmin@bmhs.edu.bz', $1, 'super_admin') ON CONFLICT DO NOTHING", [vHash]);
+        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Admin User', 'admin@bmhs.edu.bz', $1, 'staff') ON CONFLICT DO NOTHING", [vHash]);
+        await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Super Admin', 'superadmin@bmhs.edu.bz', $1, 'admin') ON CONFLICT DO NOTHING", [vHash]);
         await db.query("INSERT INTO staff (full_name, email, password_hash, role) VALUES ('Viewer User', 'viewer@tester.bz', $1, 'viewer') ON CONFLICT DO NOTHING", [vHash]);
 
         // --- SETUP DUMMY IMAGE ---
@@ -108,6 +108,22 @@ async function checkAllWorkflows() {
 
         // 8. Admin validates SSN & sets to Ready
         if (absenceReqId) {
+            const parentId = parentData.user?.parent_id;
+            if (parentId) {
+                res = await fetch(`${baseURL}/api/staff/verifications/${parentId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'approved' })
+                });
+                await assertCondition(res, 200, "Admin verifies Parent ID");
+            }
+
+            // Insert a verified payment record so request can be processed
+            await db.query(
+                "INSERT INTO payments (request_id, receipt_image_path, transfer_reference, verified, verified_by_staff_id) VALUES ($1, 'uploads/receipts/test.png', 'REF123', TRUE, 1) ON CONFLICT DO NOTHING",
+                [absenceReqId]
+            );
+
             res = await fetch(`${baseURL}/api/staff/update-request-status`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },

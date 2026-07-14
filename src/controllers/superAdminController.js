@@ -5,7 +5,7 @@ const createStaffUser = async (req, res) => {
     try {
         const { full_name, email, password, role, permissions } = req.body;
         
-        if (!['viewer', 'admin', 'super_admin'].includes(role)) {
+        if (!['viewer', 'staff', 'admin'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role.' });
         }
 

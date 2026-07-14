@@ -15,7 +15,7 @@ const generateDocument = (documentType, parent, requestData, signatureFile) => {
                 fs.mkdirSync(generatedDir, { recursive: true });
             }
 
-            const fileName = `REQ-${Date.now()}-${requestData.student_bemis_id || 'SLIP'}.pdf`;
+            const fileName = `REQ-${Date.now()}-${(requestData.student_full_name || 'SLIP').replace(/\s+/g, '_')}.pdf`;
             const filePath = path.join(generatedDir, fileName);
             const stream = fs.createWriteStream(filePath);
 
@@ -119,7 +119,6 @@ const generateDocument = (documentType, parent, requestData, signatureFile) => {
                 doc.fontSize(12);
                 doc.text(`Date of Request: ${new Date().toLocaleDateString()}`);
                 doc.text(`Student Name: ${requestData.student_full_name}`);
-                doc.text(`BEMIS ID: ${requestData.student_bemis_id || 'N/A'}`);
                 doc.text(`Graduation Year/Years Attended: ${requestData.student_graduation_year_or_years_attended || 'N/A'}`);
                 doc.moveDown();
 

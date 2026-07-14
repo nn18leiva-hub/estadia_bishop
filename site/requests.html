@@ -197,17 +197,12 @@ tailwind.config = {
                   <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Student</p><p class="font-body-sm">${r.student_full_name || '—'}</p></div>
                   <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Submitted</p><p class="font-body-sm">${date}</p></div>
                   <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">Delivery</p><p class="font-body-sm capitalize">${r.delivery_method || '—'}</p></div>
-                  <div><p class="font-label-md text-label-md text-on-surface-variant uppercase">BEMIS ID</p><p class="font-body-sm">${r.student_bemis_id || '—'}</p></div>
                 </div>
               </div>
               <div class="flex flex-col gap-sm min-w-[180px]">
                 ${needsPayment ? `
                 <a href="/payment.html?request_id=${r.request_id}" class="flex items-center justify-center gap-xs w-full px-md py-sm bg-secondary-container text-on-secondary-container font-label-lg text-label-lg rounded hover:opacity-90 active:scale-95 transition-all">
                   <span class="material-symbols-outlined text-[18px]">receipt_long</span> Upload Payment
-                </a>` : ''}
-                ${r.status === 'pending_verification' ? `
-                <a href="/profile.html" class="flex items-center justify-center gap-xs w-full px-md py-sm bg-error-container text-on-error-container font-label-lg text-label-lg rounded hover:opacity-90 active:scale-95 transition-all">
-                  <span class="material-symbols-outlined text-[18px]">id_card</span> Upload ID
                 </a>` : ''}
               </div>
             </div>

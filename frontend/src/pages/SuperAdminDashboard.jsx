@@ -15,7 +15,7 @@ const SuperAdminDashboard = () => {
   const [stats, setStats] = useState({ registered: { staff: [], parents: [] }, online: { staff: [], parents: [] } });
   const [dataLoading, setDataLoading] = useState(true);
   
-  const [formData, setFormData] = useState({ full_name: '', email: '', password: '', role: 'admin' });
+  const [formData, setFormData] = useState({ full_name: '', email: '', password: '', role: 'staff' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,14 +44,14 @@ const SuperAdminDashboard = () => {
   };
 
   useEffect(() => { 
-     if (user && user.role === 'super_admin') loadData(); 
+     if (user && (user.role === 'admin' || user.role === 'super_admin')) loadData(); 
   }, [user]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab, userSubTab]);
 
-  if (!user || user.role !== 'super_admin') return null;
+  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return null;
 
   const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
 
@@ -64,7 +64,7 @@ const SuperAdminDashboard = () => {
         method: 'POST',
         body: JSON.stringify(formData)
       });
-      setFormData({ full_name: '', email: '', password: '', role: 'admin' });
+      setFormData({ full_name: '', email: '', password: '', role: 'staff' });
       setActiveTab('registry');
       loadData();
     } catch (err) {
@@ -156,7 +156,7 @@ const SuperAdminDashboard = () => {
             <span className="material-symbols-outlined text-green-600 text-[16px] sm:text-[20px]">badge</span>
           </div>
           <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">
-            {staffList.filter(s => s.role !== 'super_admin').length}
+            {staffList.filter(s => s.role !== 'admin' && s.role !== 'super_admin').length}
           </p>
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('admins.viewers')}</p>
         </div>
@@ -168,7 +168,7 @@ const SuperAdminDashboard = () => {
             <span className="material-symbols-outlined text-red-500 text-[16px] sm:text-[20px]">admin_panel_settings</span>
           </div>
           <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md text-on-surface leading-none font-bold">
-            {staffList.filter(s => s.role === 'super_admin').length}
+            {staffList.filter(s => s.role === 'admin' || s.role === 'super_admin').length}
           </p>
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-[2px] sm:mt-xs hidden sm:block">{t('root.access')}</p>
         </div>
@@ -243,9 +243,9 @@ const SuperAdminDashboard = () => {
                 <div className="space-y-base">
                   <label className="font-label-lg text-on-surface-variant block">{t('access.level')}</label>
                   <select name="role" className="w-full py-sm bg-surface border border-outline-variant focus:border-primary focus:ring-0 rounded font-body-md px-sm appearance-none" value={formData.role} onChange={handleChange}>
-                    <option value="admin">{t('level.admin')}</option>
+                    <option value="staff">{t('level.staff')}</option>
                     <option value="viewer">{t('level.viewer')}</option>
-                    <option value="super_admin">{t('level.superadmin')}</option>
+                    <option value="admin">{t('level.superadmin')}</option>
                   </select>
                 </div>
                 <div className="space-y-base">
@@ -255,7 +255,7 @@ const SuperAdminDashboard = () => {
               </div>
 
               <div className="pt-md border-t border-outline-variant/20 flex justify-end">
-                <button type="submit" className="w-full sm:w-auto px-xl py-sm bg-primary text-white font-label-lg rounded shadow-sm hover:opacity-90 active:scale-95 transition-all" disabled={creating}>
+                <button type="submit" className="w-full sm:w-auto px-xl py-sm bg-primary text-on-primary font-label-lg rounded shadow-sm hover:opacity-90 active:scale-95 transition-all" disabled={creating}>
                   {creating ? t('creating.account') : t('deploy.active.account')}
                 </button>
               </div>
@@ -278,13 +278,13 @@ const SuperAdminDashboard = () => {
                 <div 
                   key={`m-${staff.staff_id}`} 
                   className={`bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-xs shadow-sm flex flex-col relative overflow-hidden ${
-                    staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
+                    staff.role === 'admin' || staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-sm">
                     <span className="font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</span>
                     <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                      staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                      staff.role === 'admin' || staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
                     }`}>
                       {t(staff.role)}
                     </span>
@@ -302,7 +302,7 @@ const SuperAdminDashboard = () => {
                     >
                       <span className="material-symbols-outlined text-[16px]">key</span> {t('password')}
                     </button>
-                    {staff.role !== 'super_admin' && (
+                    {staff.role !== 'admin' && staff.role !== 'super_admin' && (
                       <button 
                         onClick={() => handleDeleteStaff(staff.staff_id)} 
                         className="flex-grow flex justify-center items-center gap-xs px-sm py-[8px] bg-error-container text-on-error-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
@@ -348,7 +348,7 @@ const SuperAdminDashboard = () => {
                         <strong className="block text-on-surface font-bold text-base mb-xs">{staff.full_name}</strong>
                         <div className="flex gap-sm items-center">
                           <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                            staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                            staff.role === 'admin' || staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
                           }`}>
                             {t(staff.role)}
                           </span>
@@ -367,7 +367,7 @@ const SuperAdminDashboard = () => {
                         </button>
                       </td>
                       <td className="p-md text-center">
-                        {staff.role !== 'super_admin' && (
+                        {staff.role !== 'admin' && staff.role !== 'super_admin' && (
                           <button 
                             onClick={() => handleDeleteStaff(staff.staff_id)} 
                             className="inline-flex items-center gap-xs px-md py-sm bg-error-container text-on-error-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
@@ -538,13 +538,13 @@ const SuperAdminDashboard = () => {
                     <div 
                       key={`um-staff-${staff.staff_id}`} 
                       className={`bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-xs shadow-sm flex flex-col relative overflow-hidden ${
-                        staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
+                        staff.role === 'admin' || staff.role === 'super_admin' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-primary'
                       }`}
                     >
                       <div className="flex justify-between items-start mb-sm">
                         <span className="font-bold text-primary text-base">SVR-{staff.staff_id.toString().padStart(4, '0')}</span>
                         <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                          staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                          staff.role === 'admin' || staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
                         }`}>
                           {t(staff.role)}
                         </span>
@@ -606,7 +606,7 @@ const SuperAdminDashboard = () => {
                             <strong className="block text-on-surface font-bold text-base mb-xs">{staff.full_name}</strong>
                             <div className="flex gap-sm items-center">
                               <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                                staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+                                staff.role === 'admin' || staff.role === 'super_admin' ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
                               }`}>
                                 {t(staff.role)}
                               </span>
@@ -687,7 +687,7 @@ const SuperAdminDashboard = () => {
                 <div className="flex flex-col sm:flex-row-reverse gap-sm pt-md border-t border-outline-variant/10">
                   <button 
                     onClick={executePasswordOverride} 
-                    className="bg-primary text-white px-xl py-md font-label-lg text-label-lg rounded hover:bg-primary-container transition-all active:scale-95 shadow-sm flex items-center justify-center gap-sm disabled:opacity-50"
+                    className="bg-primary text-on-primary px-xl py-md font-label-lg text-label-lg rounded hover:bg-primary-container transition-all active:scale-95 shadow-sm flex items-center justify-center gap-sm disabled:opacity-50"
                     disabled={overrideLoading || newPassword.length < 6}
                   >
                     {overrideLoading ? t('executing.reset') : t('execute.override')}

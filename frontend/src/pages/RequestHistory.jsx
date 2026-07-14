@@ -10,8 +10,11 @@ const STATUS_STYLES = {
   pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready: 'bg-tertiary-fixed text-on-tertiary-fixed',
+  ready_for_pickup: 'bg-tertiary-fixed text-on-tertiary-fixed',
   issued: 'bg-secondary-container/60 text-on-secondary-container',
+  completed: 'bg-secondary-container/60 text-on-secondary-container',
   cancelled: 'bg-error-container text-on-error-container',
+  denied: 'bg-error-container text-on-error-container',
   action: 'bg-error-container text-on-error-container',
 };
 
@@ -20,8 +23,11 @@ const STATUS_LABELS = {
   pending_verification: 'Pending Identity Verification',
   processing: 'Processing',
   ready: 'Ready for Pickup',
+  ready_for_pickup: 'Ready for Pickup',
   issued: 'Issued',
+  completed: 'Issued/Completed',
   cancelled: 'Cancelled',
+  denied: 'Denied',
   action: 'Action Required',
 };
 
@@ -146,6 +152,7 @@ export default function RequestHistory() {
           </div>
         ) : (
           <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm">
+            {/* Desktop Table Header */}
             <div className="hidden md:grid grid-cols-12 px-sm py-xs bg-surface-container border-b border-outline-variant/20 text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
               <div className="col-span-1">{t('ref')}</div>
               <div className="col-span-4">{t('document')}</div>
@@ -160,37 +167,61 @@ export default function RequestHistory() {
                 const reqId = req.request_id || req.id;
                 const submittedDate = req.request_date || req.created_at;
                 return (
-                <div
-                  key={reqId || i}
-                  className="grid grid-cols-1 md:grid-cols-12 px-sm py-sm items-center hover:bg-secondary-container/10 transition-colors cursor-pointer group"
-                  onClick={() => navigate(`/dashboard/parents/request/${reqId}`)}
-                  onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
-                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-                >
-                  <div className="col-span-1 font-body-sm text-on-surface-variant">
-                    #{String(reqId || i + 1).padStart(4, '0')}
-                  </div>
-                  <div className="col-span-4 flex items-center gap-sm">
-                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>
-                      {DOC_ICON[docType] || 'description'}
-                    </span>
-                    <div>
-                      <p className="font-body-md font-semibold text-on-surface">{translateDocType(docType)}</p>
-                      <p className="font-body-sm text-on-surface-variant">{studentName}</p>
+                  <div
+                    key={reqId || i}
+                    className="cursor-pointer hover:bg-secondary-container/10 transition-colors group"
+                    onClick={() => navigate(`/dashboard/parents/request/${reqId}`)}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                  >
+                    {/* Mobile Card View */}
+                    <div className="md:hidden px-sm py-sm flex flex-col gap-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-sm">
+                          <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>
+                            {DOC_ICON[docType] || 'description'}
+                          </span>
+                          <div>
+                            <p className="font-body-md font-semibold text-on-surface">{translateDocType(docType)}</p>
+                            <p className="font-body-sm text-on-surface-variant">{studentName}</p>
+                          </div>
+                        </div>
+                        <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold ${STATUS_STYLES[req.status] || STATUS_STYLES.pending}`}>
+                          {getStatusLabel(req.status)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-on-surface-variant font-body-sm mt-xs border-t border-outline-variant/10 pt-xs">
+                        <span>#{String(reqId || i + 1).padStart(4, '0')} · {submittedDate ? new Date(submittedDate).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</span>
+                        <span className="font-semibold text-on-surface">{req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : t('free') || 'Free'}</span>
+                      </div>
+                    </div>
+                    {/* Desktop Row View */}
+                    <div className="hidden md:grid grid-cols-12 px-sm py-sm items-center">
+                      <div className="col-span-1 font-body-sm text-on-surface-variant">
+                        #{String(reqId || i + 1).padStart(4, '0')}
+                      </div>
+                      <div className="col-span-4 flex items-center gap-sm">
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>
+                          {DOC_ICON[docType] || 'description'}
+                        </span>
+                        <div>
+                          <p className="font-body-md font-semibold text-on-surface">{translateDocType(docType)}</p>
+                          <p className="font-body-sm text-on-surface-variant">{studentName}</p>
+                        </div>
+                      </div>
+                      <div className="col-span-3 font-body-sm text-on-surface-variant">
+                        {submittedDate ? new Date(submittedDate).toLocaleDateString('en-BZ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                      </div>
+                      <div className="col-span-2 font-body-md font-semibold">
+                        {req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}
+                      </div>
+                      <div className="col-span-2 flex justify-end">
+                        <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold ${STATUS_STYLES[req.status] || STATUS_STYLES.pending}`}>
+                          {getStatusLabel(req.status)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-span-3 font-body-sm text-on-surface-variant">
-                    {submittedDate ? new Date(submittedDate).toLocaleDateString('en-BZ', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
-                  </div>
-                  <div className="col-span-2 font-body-md font-semibold">
-                    {req.fee ? `BZD $${Number(req.fee).toFixed(2)}` : '—'}
-                  </div>
-                  <div className="col-span-2 flex justify-end">
-                    <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold ${STATUS_STYLES[req.status] || STATUS_STYLES.pending}`}>
-                      {getStatusLabel(req.status)}
-                    </span>
-                  </div>
-                </div>
                 );
               })}
             </div>

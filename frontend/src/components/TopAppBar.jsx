@@ -19,7 +19,7 @@ export default function TopAppBar({ showBack = false, backTo = null, title = 'Bi
   const homeRoute = () => {
     const role = user?.role || user?.type;
     if (role === 'staff' || role === 'registrar') return '/staff';
-    if (role === 'superadmin' || role === 'admin') return '/superadmin/users';
+    if (role === 'superadmin' || role === 'admin' || role === 'super_admin') return '/superadmin/users';
     return '/dashboard/parents';
   };
 

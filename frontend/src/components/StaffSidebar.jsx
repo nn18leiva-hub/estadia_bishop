@@ -5,7 +5,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 const STAFF_NAV = [
   { icon: 'dashboard', label: 'Dashboard', to: '/staff' },
   { icon: 'rule', label: 'Queue', to: '/staff/requests' },
-  { icon: 'verified_user', label: 'Verification', to: '/staff/verification' },
   { icon: 'payments', label: 'Payments', to: '/staff/payments' },
   { icon: 'settings', label: 'Settings', to: '/staff/settings' },
 ];
@@ -27,8 +26,8 @@ export default function StaffSidebar({ variant = 'staff' }) {
     navigate('/login');
   };
 
-  const initials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = (user?.full_name || user?.name)
+    ? (user.full_name || user.name).split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'SM';
 
   return (
@@ -54,7 +53,7 @@ export default function StaffSidebar({ variant = 'staff' }) {
           </div>
           <div className="min-w-0">
             <p className="font-body-md text-body-md font-semibold text-primary truncate">
-              {user?.name || 'Staff Member'}
+              {user?.full_name || user?.name || 'Staff Member'}
             </p>
             <p className="text-label-md text-on-surface-variant truncate">
               {user?.email || 'Registrar Office'}

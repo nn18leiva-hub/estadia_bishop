@@ -34,7 +34,8 @@ CREATE TABLE document_types (
 CREATE TABLE document_requests (
     request_id SERIAL PRIMARY KEY,
     parent_id INTEGER REFERENCES parents(parent_id) ON DELETE CASCADE,
-    student_bemis_id VARCHAR(100),
+    id_image_path TEXT,
+    id_verified BOOLEAN DEFAULT FALSE,
     student_full_name VARCHAR(255) NOT NULL,
     student_graduation_year_or_years_attended VARCHAR(100),
     document_type_id INTEGER REFERENCES document_types(document_type_id),

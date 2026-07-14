@@ -84,6 +84,26 @@ export default function StaffPayments() {
                     <span className="font-mono text-body-sm text-on-surface-variant">Ref: {p.reference || '—'}</span>
                   </div>
                   
+                  {/* Receipt Preview */}
+                  {p.receipt_image_path && (
+                    <div className="w-full h-32 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low mb-xs">
+                      {p.receipt_image_path.toLowerCase().endsWith('.pdf') ? (
+                        <iframe
+                          src={`/${p.receipt_image_path}#toolbar=0`}
+                          title="Receipt Preview"
+                          className="w-full h-full border-none"
+                        />
+                      ) : (
+                        <img
+                          src={`/${p.receipt_image_path}`}
+                          alt="Receipt Preview"
+                          className="w-full h-full object-contain cursor-pointer"
+                          onClick={() => window.open(`/${p.receipt_image_path}`, '_blank')}
+                        />
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center mt-base">
                     <span className="font-body-sm text-on-surface-variant">
                       {p.created_at ? new Date(p.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
@@ -92,13 +112,13 @@ export default function StaffPayments() {
                       <button
                         onClick={() => verifyPayment(p.id)}
                         disabled={p.payment_status === 'verified'}
-                        className="inline-flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30"
+                        className="inline-flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-lg rounded hover:opacity-90 disabled:opacity-30"
                       >
                         <span className="material-symbols-outlined text-sm">check_circle</span> {t('verify')}
                       </button>
                       <button
                         onClick={() => handleViewReceipt(p)}
-                        className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                        className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-lg rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span> {t('view.receipt')}
                       </button>
@@ -112,8 +132,8 @@ export default function StaffPayments() {
             <table className="hidden md:table w-full text-left">
               <thead>
                 <tr className="bg-surface-container border-b border-outline-variant">
-                  {[t('submitted'), t('requester'), t('amount'), t('ref'), t('status'), t('actions')].map((h, i) => (
-                    <th key={h} className={`px-sm py-md font-label-lg text-label-lg uppercase tracking-wider ${i === 5 ? 'text-right' : ''}`}>{h}</th>
+                  {[t('submitted'), t('requester'), t('amount'), t('ref'), t('receipt') || 'Receipt', t('status'), t('actions')].map((h, i) => (
+                    <th key={h} className={`px-sm py-md font-label-lg text-label-lg uppercase tracking-wider ${i === 6 ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -124,7 +144,7 @@ export default function StaffPayments() {
                       {p.created_at ? new Date(p.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                     </td>
                     <td className="px-sm py-md">
-                      <p className="font-label-lg text-on-surface">{p.parent_name || p.student_name || '—'}</p>
+                      <p className="font-label-lg text-on-surface font-bold">{p.parent_name || p.student_name || '—'}</p>
                       <p className="font-body-sm text-on-surface-variant">Req: BM-{p.request_id || p.id}</p>
                     </td>
                     <td className="px-sm py-md font-body-md text-on-surface font-semibold">
@@ -132,6 +152,24 @@ export default function StaffPayments() {
                     </td>
                     <td className="px-sm py-md font-mono text-body-sm text-on-surface-variant">
                       {p.reference || '—'}
+                    </td>
+                    <td className="px-sm py-md">
+                      {p.receipt_image_path ? (
+                        <div className="w-12 h-12 border border-outline-variant/30 rounded overflow-hidden cursor-pointer hover:border-primary transition-all bg-surface-container-low flex items-center justify-center">
+                          {p.receipt_image_path.toLowerCase().endsWith('.pdf') ? (
+                            <span className="material-symbols-outlined text-[32px] text-on-surface-variant h-full flex items-center justify-center">picture_as_pdf</span>
+                          ) : (
+                            <img
+                              src={`/${p.receipt_image_path}`}
+                              alt="Receipt Thumbnail"
+                              className="w-full h-full object-cover"
+                              onClick={() => window.open(`/${p.receipt_image_path}`, '_blank')}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-on-surface-variant">—</span>
+                      )}
                     </td>
                     <td className="px-sm py-md">
                       <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${STATUS_BADGE[p.payment_status] || STATUS_BADGE.pending}`}>

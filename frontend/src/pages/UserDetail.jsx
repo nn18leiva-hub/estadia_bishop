@@ -59,7 +59,7 @@ export default function UserDetail() {
     setSaving(false);
   };
 
-  const initials = (user?.name || '??').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const initials = (user?.full_name || user?.name || '??').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">

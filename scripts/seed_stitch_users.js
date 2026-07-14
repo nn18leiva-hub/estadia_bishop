@@ -11,16 +11,16 @@ const bcrypt = require('bcrypt');
     console.log('Cleared existing database tables.');
 
     // Seed Staff
-    // 1. admin@bishopmartin.edu (super_admin, System Administrator)
+    // 1. admin@bishopmartin.edu (admin, System Administrator)
     await db.query(
       "INSERT INTO staff (full_name, email, password_hash, role, last_activity) VALUES ($1, $2, $3, $4, NOW())",
-      ['System Administrator', 'admin@bishopmartin.edu', hash, 'super_admin']
+      ['System Administrator', 'admin@bishopmartin.edu', hash, 'admin']
     );
 
-    // 2. Dr. Elena Sterling (admin, Head of Registrar) - Active 42m ago
+    // 2. Dr. Elena Sterling (staff, Head of Registrar) - Active 42m ago
     await db.query(
       "INSERT INTO staff (full_name, email, password_hash, role, last_activity) VALUES ($1, $2, $3, $4, NOW() - INTERVAL '42 minutes')",
-      ['Dr. Elena Sterling', 'e.sterling@bishopmartin.edu', hash, 'admin']
+      ['Dr. Elena Sterling', 'e.sterling@bishopmartin.edu', hash, 'staff']
     );
 
     // 3. Arthur Vance (viewer, Facilities Manager) - Last active Oct 12, 2023
@@ -29,11 +29,11 @@ const bcrypt = require('bcrypt');
       ['Arthur Vance', 'a.vance@bishopmartin.edu', hash, 'viewer']
     );
 
-    // 4. Sarah Miller (admin, Department Head) - Last active Yesterday 14:20
+    // 4. Sarah Miller (staff, Department Head) - Last active Yesterday 14:20
     // Yesterday 14:20 can be represented as 1 day and some hours ago
     await db.query(
       "INSERT INTO staff (full_name, email, password_hash, role, last_activity) VALUES ($1, $2, $3, $4, NOW() - INTERVAL '1 day' - INTERVAL '2 hours')",
-      ['Sarah Miller', 's.miller@bishopmartin.edu', hash, 'admin']
+      ['Sarah Miller', 's.miller@bishopmartin.edu', hash, 'staff']
     );
 
     console.log('Seeded staff users matching Stitch template.');

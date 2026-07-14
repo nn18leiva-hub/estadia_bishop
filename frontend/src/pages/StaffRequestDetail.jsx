@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import StaffSidebar from '../components/StaffSidebar';
 import StaffHeader from '../components/StaffHeader';
 import BottomNav from '../components/BottomNav';
@@ -8,10 +8,14 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const STATUS_STYLES = {
   pending: 'bg-surface-container-high text-on-surface-variant',
+  pending_verification: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container',
   ready: 'bg-tertiary-fixed text-on-tertiary-fixed',
+  ready_for_pickup: 'bg-tertiary-fixed text-on-tertiary-fixed',
   issued: 'bg-secondary-container/60 text-on-secondary-container',
+  completed: 'bg-secondary-container/60 text-on-secondary-container',
   cancelled: 'bg-error-container text-on-error-container',
+  denied: 'bg-error-container text-on-error-container',
   action: 'bg-error-container text-on-error-container',
 };
 
@@ -25,6 +29,7 @@ export default function StaffRequestDetail() {
   const [selectedStatus, setSelectedStatus] = useState('pending');
   const [processing, setProcessing] = useState(false);
   const [toast, setToast] = useState('');
+  const [showStaffLockModal, setShowStaffLockModal] = useState(false);
 
   const [selectedDocFile, setSelectedDocFile] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -83,7 +88,11 @@ export default function StaffRequestDetail() {
         const data = await apiFetch(`/staff/requests/${id}`);
         setReq(data);
         setNotes(data.staff_notes || '');
-        setSelectedStatus(data.status || 'pending');
+        let initialStatus = data.status || 'pending';
+        if (initialStatus === 'ready_for_pickup') initialStatus = 'ready';
+        if (initialStatus === 'completed') initialStatus = 'issued';
+        if (initialStatus === 'denied') initialStatus = 'action';
+        setSelectedStatus(initialStatus);
       } catch (_) {}
       setLoading(false);
     };
@@ -113,7 +122,13 @@ export default function StaffRequestDetail() {
         method: 'PATCH',
         body: JSON.stringify({ status, staff_notes: notes }),
       });
+      let nextStatus = status;
+      if (nextStatus === 'ready') nextStatus = 'ready_for_pickup';
+      if (nextStatus === 'issued') nextStatus = 'completed';
+      if (nextStatus === 'cancelled') nextStatus = 'denied';
+
       setSelectedStatus(status);
+      setReq(prev => ({ ...prev, status: nextStatus, staff_notes: notes }));
       setToast(action === 'approve' 
         ? t('toast.approved') 
         : action === 'flag' 
@@ -123,6 +138,26 @@ export default function StaffRequestDetail() {
       setTimeout(() => { setToast(''); if (action === 'approve' || action === 'flag') navigate('/staff/requests'); }, 2200);
     } catch (_) {}
     setProcessing(false);
+  };
+  const handleVerifyId = async (status) => {
+    setProcessing(true);
+    try {
+      await apiFetch(`/staff/verifications/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+      setReq(prev => ({
+        ...prev,
+        parent_verified: status === 'approved',
+        status: status === 'approved' ? (prev.requires_payment && !prev.payment_verified ? 'pending' : 'processing') : 'denied'
+      }));
+      setToast(status === 'approved' ? 'Request ID verified successfully.' : 'Request ID verification rejected.');
+      setTimeout(() => setToast(''), 3000);
+    } catch (err) {
+      alert(err.message || 'Error updating ID verification status.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (loading) return (
@@ -156,7 +191,7 @@ export default function StaffRequestDetail() {
                 </div>
                 <div className="relative z-10">
                   <h2 className="font-headline-sm text-headline-sm">{req.student_name || '—'}</h2>
-                  <p className="font-body-sm opacity-80">{req.grade || '—'} · ID: {req.student_id || '—'}</p>
+                  <p className="font-body-sm opacity-80">{req.grade || '—'}</p>
                   <p className="font-body-sm opacity-70">{t(req.relationship || 'parents').slice(0, -1)}</p>
                 </div>
               </div>
@@ -182,6 +217,77 @@ export default function StaffRequestDetail() {
                   ))}
                 </div>
               </div>
+
+              {/* Identity Verification Card */}
+              {req.ssn_card_image_path && (
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
+                    {t('identity.verification') || 'Identity Verification'}
+                  </h3>
+                  <div className="flex flex-col gap-xs">
+                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                      <p className="font-body-sm text-on-surface-variant">{t('status') || 'Status'}</p>
+                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${
+                        req.parent_verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {req.parent_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Review'}
+                      </span>
+                    </div>
+
+                    {!req.parent_verified && (
+                      <div className="flex gap-sm mt-sm">
+                        <button
+                          onClick={() => handleVerifyId('approved')}
+                          disabled={processing}
+                          className="flex-1 bg-primary text-on-primary py-xs rounded-lg font-label-md hover:bg-primary-container shadow-sm transition-colors flex items-center justify-center gap-xs"
+                        >
+                          <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                          Approve ID
+                        </button>
+                        <button
+                          onClick={() => handleVerifyId('rejected')}
+                          disabled={processing}
+                          className="flex-1 border border-error text-error py-xs rounded-lg font-label-md hover:bg-error-container transition-colors flex items-center justify-center gap-xs"
+                        >
+                          <span className="material-symbols-outlined text-sm">close</span>
+                          Reject ID
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="mt-md flex flex-col gap-sm">
+                      <a
+                        href={`/${req.ssn_card_image_path}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 flex items-center justify-center gap-sm transition-all"
+                      >
+                        <span className="material-symbols-outlined">visibility</span>
+                        {t('view.id.doc') || 'View Full ID Document'}
+                      </a>
+                      
+                      {/* Inline ID Preview */}
+                      <div className="w-full h-40 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                        {req.ssn_card_image_path.toLowerCase().endsWith('.pdf') ? (
+                          <iframe
+                            src={`/${req.ssn_card_image_path}#toolbar=0`}
+                            title="ID Preview"
+                            className="w-full h-full border-none"
+                          />
+                        ) : (
+                          <img
+                            src={`/${req.ssn_card_image_path}`}
+                            alt="ID Preview"
+                            className="w-full h-full object-contain cursor-pointer"
+                            onClick={() => window.open(`/${req.ssn_card_image_path}`, '_blank')}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {req.requires_payment && (
                 <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
@@ -219,21 +325,53 @@ export default function StaffRequestDetail() {
                           <span className="material-symbols-outlined">receipt_long</span>
                           {t('view.receipt') || 'View Receipt'}
                         </a>
+                        {/* Inline Receipt Preview */}
+                        <div className="w-full h-40 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                          {req.receipt_image_path.toLowerCase().endsWith('.pdf') ? (
+                            <iframe
+                              src={`/${req.receipt_image_path}#toolbar=0`}
+                              title="Receipt Preview"
+                              className="w-full h-full border-none"
+                            />
+                          ) : (
+                            <img
+                              src={`/${req.receipt_image_path}`}
+                              alt="Receipt Preview"
+                              className="w-full h-full object-contain cursor-pointer"
+                              onClick={() => window.open(`/${req.receipt_image_path}`, '_blank')}
+                            />
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Document Preview */}
-              <div className="bg-tertiary-container rounded-xl p-md flex flex-col items-center justify-center gap-sm min-h-[180px] relative overflow-hidden">
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%)' }} />
-                <div className="relative z-10 flex flex-col items-center gap-sm text-on-tertiary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '48px', opacity: 0.6 }}>description</span>
-                  <p className="font-label-lg text-label-lg opacity-70 text-center">{t('preview.not.available')}</p>
-                  <p className="font-body-sm opacity-50 text-center">{translateDocType(req.document_type)}</p>
+              {/* Document Preview (Only shown when a document is uploaded) */}
+              {req.generated_file_path && (
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm">
+                  <h3 className="font-headline-sm text-headline-sm text-primary flex items-center gap-xs">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>preview</span>
+                    {t('document.preview') || 'Document Preview'}
+                  </h3>
+                  <div className="w-full h-80 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                    {req.generated_file_path.toLowerCase().endsWith('.pdf') ? (
+                      <iframe
+                        src={`/${req.generated_file_path}#toolbar=0`}
+                        title="Document Preview"
+                        className="w-full h-full border-none"
+                      />
+                    ) : (
+                      <img
+                        src={`/${req.generated_file_path}`}
+                        alt="Document Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Notes */}
               {req.notes && (
@@ -263,12 +401,21 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Status Update */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative ${
+                req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
+              }`}>
+                {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
+                  <div 
+                    className="absolute inset-0 z-10 cursor-not-allowed" 
+                    onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
+                  />
+                )}
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-sm">{t('update.status')}</h3>
                 <select
+                  disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                   value={selectedStatus}
                   onChange={e => setSelectedStatus(e.target.value)}
-                  className="w-full border border-outline px-sm py-sm font-body-md bg-surface rounded-lg mb-md"
+                  className="w-full border border-outline px-sm py-sm font-body-md bg-surface rounded-lg mb-md disabled:opacity-50 disabled:bg-surface-container-low disabled:cursor-not-allowed"
                 >
                   {[
                     { v: 'pending', l: t('pending') },
@@ -279,7 +426,7 @@ export default function StaffRequestDetail() {
                   ].map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
                 <button
-                  disabled={processing || selectedStatus === req.status}
+                  disabled={processing || selectedStatus === req.status || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                   onClick={() => updateStatus(selectedStatus, 'update')}
                   className="w-full mb-sm bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-sm transition-all"
                 >
@@ -289,7 +436,7 @@ export default function StaffRequestDetail() {
 
                 <div className="flex flex-col gap-sm">
                   <button
-                    disabled={processing}
+                    disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                     onClick={() => updateStatus('issued', 'approve')}
                     className="w-full bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all"
                   >
@@ -301,7 +448,7 @@ export default function StaffRequestDetail() {
                   </button>
 
                   <button
-                    disabled={processing}
+                    disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                     onClick={() => updateStatus('action', 'flag')}
                     className="w-full border border-error text-error py-sm rounded-lg font-label-lg hover:bg-error-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all"
                   >
@@ -312,7 +459,15 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Document Upload Zone */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative ${
+                req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
+              }`}>
+                {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
+                  <div 
+                    className="absolute inset-0 z-10 cursor-not-allowed" 
+                    onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
+                  />
+                )}
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
                   {t('upload.document') || 'Upload Final Document'}
@@ -358,12 +513,15 @@ export default function StaffRequestDetail() {
                     type="file"
                     id="staff-doc-upload"
                     accept=".pdf,image/*"
+                    disabled={req && (!req.parent_verified || (req.requires_payment && !req.payment_verified))}
                     onChange={handleDocFileChange}
                     className="hidden"
                   />
                   <label
-                    htmlFor="staff-doc-upload"
-                    className="flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-lg p-md cursor-pointer transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50"
+                    htmlFor={req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? undefined : "staff-doc-upload"}
+                    className={`flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-lg p-md transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50 ${
+                      req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                    }`}
                   >
                     <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '32px' }}>
                       cloud_upload
@@ -384,7 +542,7 @@ export default function StaffRequestDetail() {
                 {selectedDocFile && (
                   <button
                     onClick={handleDocUpload}
-                    disabled={uploadingDoc}
+                    disabled={uploadingDoc || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                     className="w-full mt-md bg-primary text-on-primary py-xs rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all disabled:opacity-50"
                   >
                     {uploadingDoc ? (
@@ -416,8 +574,46 @@ export default function StaffRequestDetail() {
       </main>
 
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-tertiary-container text-white px-lg py-sm rounded-full font-label-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-tertiary-container text-on-tertiary-container px-lg py-sm rounded-full font-label-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom duration-300">
           {toast}
+        </div>
+      )}
+
+      {showStaffLockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowStaffLockModal(false)}>
+          <div className="bg-surface border border-outline-variant/30 rounded-xl p-lg max-w-sm w-full mx-sm shadow-2xl flex flex-col items-center text-center gap-md" onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center">
+              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>lock</span>
+            </div>
+            <div>
+              <h3 className="font-headline-sm text-headline-sm text-primary font-bold">{t('request.locked') || 'Processing Locked'}</h3>
+              <p className="font-body-md text-on-surface-variant mt-xs">
+                {!req?.parent_verified && !req?.payment_verified && req?.requires_payment
+                  ? 'This request is locked because both the parent\'s identity and payment require verification.'
+                  : !req?.parent_verified
+                  ? 'This request is locked because the parent\'s identity has not been verified yet.'
+                  : 'This request is locked because payment verification is pending.'
+                }
+              </p>
+            </div>
+            <div className="flex flex-col gap-xs w-full mt-xs">
+              {req?.requires_payment && !req?.payment_verified && (
+                <button
+                  onClick={() => { setShowStaffLockModal(false); navigate('/staff/payments'); }}
+                  className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-md hover:opacity-90 border border-outline-variant/20 transition-colors flex items-center justify-center gap-xs"
+                >
+                  <span className="material-symbols-outlined text-sm">payments</span>
+                  Verify Payment
+                </button>
+              )}
+              <button
+                onClick={() => setShowStaffLockModal(false)}
+                className="w-full border border-outline-variant hover:bg-surface-container py-xs rounded-lg font-label-md transition-colors mt-xs"
+              >
+                {t('close') || 'Close'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

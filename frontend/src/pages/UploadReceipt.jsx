@@ -188,7 +188,7 @@ export default function UploadReceipt() {
                 <span className="material-symbols-outlined mb-sm" style={{ fontSize: '28px', opacity: 0.8 }}>account_balance</span>
                 <p className="font-label-lg text-label-lg opacity-80 mb-xs">{t('payment.sent.to')}</p>
                 <p className="font-headline-sm text-headline-sm">Belize Bank Limited</p>
-                <p className="font-body-sm opacity-80 mt-xs">Bishop Martin Academy – Registrar</p>
+                <p className="font-body-sm opacity-80 mt-xs">Bishop Martin High School – Registrar</p>
                 <p className="font-mono font-semibold mt-xs tracking-wider">1234-5678-9012</p>
               </div>
             </div>

@@ -19,15 +19,7 @@ uploadDirs.forEach(dir => {
     }
 });
 
-const ssnStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/ssn_cards');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
-    }
-});
+
 
 const receiptStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -69,11 +61,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const uploadSSN = multer({
-    storage: ssnStorage,
-    limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
-    fileFilter
-});
+
 
 const uploadReceipt = multer({
     storage: receiptStorage,
@@ -104,4 +92,4 @@ const uploadDocument = multer({
     fileFilter
 });
 
-module.exports = { uploadSSN, uploadReceipt, uploadProfilePicture, uploadDocument };
+module.exports = { uploadReceipt, uploadProfilePicture, uploadDocument };

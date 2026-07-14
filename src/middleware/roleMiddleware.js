@@ -5,11 +5,13 @@ const requireRole = (requiredRole) => {
         }
 
         const type = req.user.type; // 'parent' or 'staff'
-        const role = req.user.role; // 'viewer', 'admin', 'super_admin' or undefined
+        const role = req.user.role; // 'viewer', 'staff', 'admin' or undefined
         
-        // 1. Parent endpoints only for parents and past students
-        if (requiredRole === 'parent') {
-            if (type !== 'parent' && type !== 'past_student') return res.status(403).json({ message: 'Access denied. Parents and Past Students only.' });
+        // 1. Parent/User endpoints
+        if (requiredRole === 'parent' || requiredRole === 'user') {
+            if (type !== 'parent' && type !== 'past_student') {
+                return res.status(403).json({ message: 'Access denied. Basic users only.' });
+            }
             return next();
         }
 
@@ -27,10 +29,10 @@ const requireRole = (requiredRole) => {
             return next();
         }
 
-        // 3. Super Admin strict lock (for creation and deletion mechanics)
-        if (requiredRole === 'super_admin') {
-            if (role !== 'super_admin') {
-                return res.status(403).json({ message: 'Access denied. Super Admin tier authorization required.' });
+        // 3. Admin tier (manages all users and staff on the site)
+        if (requiredRole === 'admin' || requiredRole === 'super_admin') {
+            if (role !== 'admin' && role !== 'super_admin') {
+                return res.status(403).json({ message: 'Access denied. Admin tier authorization required.' });
             }
             return next();
         }

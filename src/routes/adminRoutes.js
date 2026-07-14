@@ -4,8 +4,8 @@ const adminController = require('../controllers/adminController');
 const authenticate = require('../middleware/authMiddleware');
 const requireRole = require('../middleware/roleMiddleware');
 
-// Secure all admin routes to require super_admin role
-router.use(authenticate, requireRole('super_admin'));
+// Secure all admin routes to require admin role
+router.use(authenticate, requireRole('admin'));
 
 router.get('/users', adminController.getUsers);
 router.get('/users/stats', adminController.getUserStats);

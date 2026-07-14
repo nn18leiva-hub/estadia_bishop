@@ -4,14 +4,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 const PARENT_TABS = [
   { icon: 'dashboard', label: 'Dashboard', to: '/dashboard/parents' },
   { icon: 'description', label: 'Requests', to: '/dashboard/parents/history' },
-  { icon: 'verified_user', label: 'Verify', to: '/dashboard/parents/upload-ssn' },
   { icon: 'person', label: 'Profile', to: '/profile' },
 ];
 
 const STAFF_TABS = [
   { icon: 'grid_view', label: 'Hub', to: '/staff' },
   { icon: 'pending_actions', label: 'Requests', to: '/staff/requests' },
-  { icon: 'verified_user', label: 'Verification', to: '/staff/verification' },
   { icon: 'payments', label: 'Payments', to: '/staff/payments' },
   { icon: 'history', label: 'History', to: '/staff/history' },
 ];

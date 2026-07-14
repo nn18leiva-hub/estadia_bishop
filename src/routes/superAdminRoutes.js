@@ -4,7 +4,7 @@ const superAdminController = require('../controllers/superAdminController');
 const authenticate = require('../middleware/authMiddleware');
 const requireRole = require('../middleware/roleMiddleware');
 
-router.use(authenticate, requireRole('super_admin'));
+router.use(authenticate, requireRole('admin'));
 
 router.post('/staff', superAdminController.createStaffUser);
 router.get('/staff', superAdminController.getAllStaffUsers);

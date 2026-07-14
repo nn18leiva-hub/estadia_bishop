@@ -20,9 +20,6 @@ import DigitalSignature from './pages/DigitalSignature';
 import RequestSuccess from './pages/RequestSuccess';
 import BankDetails from './pages/BankDetails';
 import UploadReceipt from './pages/UploadReceipt';
-import UploadSSN from './pages/UploadSSN';
-import ProcessSSN from './pages/ProcessSSN';
-import VerificationSubmitted from './pages/VerificationSubmitted';
 import RequestHistory from './pages/RequestHistory';
 import RequestDetail from './pages/RequestDetail';
 
@@ -30,7 +27,6 @@ import RequestDetail from './pages/RequestDetail';
 import StaffDashboard from './pages/StaffDashboard';
 import Requests from './pages/Requests';
 import StaffRequestDetail from './pages/StaffRequestDetail';
-import StaffVerification from './pages/StaffVerification';
 import StaffPayments from './pages/StaffPayments';
 
 // Admin Portal
@@ -157,9 +153,6 @@ function App() {
                 <Route path="/dashboard/parents/success" element={<RequestSuccess />} />
                 <Route path="/dashboard/parents/bank-details" element={<BankDetails />} />
                 <Route path="/dashboard/parents/upload-receipt" element={<UploadReceipt />} />
-                <Route path="/dashboard/parents/upload-ssn" element={<UploadSSN />} />
-                <Route path="/dashboard/parents/verify-ssn" element={<ProcessSSN />} />
-                <Route path="/dashboard/parents/verification-submitted" element={<VerificationSubmitted />} />
               </Route>
 
               {/* ── Staff Portal ─────────────────────────── */}
@@ -167,7 +160,6 @@ function App() {
                 <Route path="/staff" element={<StaffDashboard />} />
                 <Route path="/staff/requests" element={<Requests />} />
                 <Route path="/staff/requests/:id" element={<StaffRequestDetail />} />
-                <Route path="/staff/verification" element={<StaffVerification />} />
                 <Route path="/staff/payments" element={<StaffPayments />} />
                 <Route path="/staff/history" element={<ComingSoon />} />
               </Route>

@@ -292,7 +292,7 @@ export default function Register() {
           <div className="absolute inset-0 bento-texture" style={{ opacity: 0.08 }} />
           <div className="relative z-10 flex flex-col items-center text-center px-lg gap-lg text-on-primary">
             <span className="material-symbols-outlined text-on-primary/80" style={{ fontSize: '80px' }}>school</span>
-            <h2 className="font-headline-lg text-headline-lg text-on-primary">Bishop Martin Academy</h2>
+            <h2 className="font-headline-lg text-headline-lg text-on-primary">Bishop Martin High School</h2>
             <p className="font-body-md text-body-md text-on-primary/70 max-w-xs">
               {t('login.subtitle')}
             </p>

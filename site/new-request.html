@@ -95,17 +95,23 @@ tailwind.config = {
           <input type="hidden" id="requires-signature">
         </div>
 
+        <!-- Identity Verification -->
+        <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-md space-y-md">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Identity Verification</h3>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Please upload a clear image or scan of your Government-issued Photo ID (e.g., Passport, Social Security Card, Driver's License) to verify your identity for this request.</p>
+          <div class="space-y-base">
+            <label class="font-label-lg text-label-lg text-on-surface-variant block">Parent/Guardian Photo ID Image *</label>
+            <input id="id-file" type="file" accept="image/*,application/pdf" class="w-full font-body-sm text-on-surface file:mr-md file:py-sm file:px-md file:rounded file:border-0 file:bg-primary file:text-on-primary file:font-label-lg file:text-label-lg hover:file:opacity-90 cursor-pointer" required>
+          </div>
+        </div>
+
         <!-- Student Info -->
         <div class="bg-surface-container-lowest border border-outline-variant/20 rounded p-md space-y-md">
           <h3 class="font-headline-sm text-headline-sm text-on-surface">Student Information</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-            <div class="space-y-base">
+            <div class="space-y-base md:col-span-2">
               <label class="font-label-lg text-label-lg text-on-surface-variant block">Student Full Name *</label>
               <input id="student-name" type="text" placeholder="As it appears on school records" class="w-full px-md py-sm bg-surface border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
-            </div>
-            <div class="space-y-base">
-              <label class="font-label-lg text-label-lg text-on-surface-variant block">Student BEMIS ID *</label>
-              <input id="student-bemis" type="text" placeholder="e.g. 12345678" class="w-full px-md py-sm bg-surface border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
             </div>
             <div class="space-y-base md:col-span-2">
               <label class="font-label-lg text-label-lg text-on-surface-variant block">Graduation Year / Years Attended *</label>
@@ -259,9 +265,9 @@ tailwind.config = {
     const formData = new FormData();
     formData.append('document_type_id', docTypeId);
     formData.append('student_full_name', document.getElementById('student-name').value);
-    formData.append('student_bemis_id', document.getElementById('student-bemis').value);
     formData.append('student_graduation_year_or_years_attended', document.getElementById('student-year').value);
     formData.append('delivery_method', delivery);
+    formData.append('id_image', document.getElementById('id-file').files[0]);
     if (requiresSig) formData.append('signature_image', document.getElementById('signature-file').files[0]);
 
     try {

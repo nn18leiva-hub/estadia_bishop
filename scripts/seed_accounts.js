@@ -29,7 +29,7 @@ const bcrypt = require('bcrypt');
       'Staff User',
       'nn15leiva@gmail.com',
       hash,
-      'admin',
+      'staff',
       JSON.stringify({ admin_access: false, manage_requests: true, view_financials: false, verify_credentials: true }),
     ]);
     console.log('✅ Staff account created: nn15leiva@gmail.com');
@@ -42,10 +42,10 @@ const bcrypt = require('bcrypt');
       'Admin User',
       'nn18leiva@gmail.com',
       hash,
-      'super_admin',
+      'admin',
       JSON.stringify({ admin_access: true, manage_requests: true, view_financials: true, verify_credentials: true }),
     ]);
-    console.log('✅ Super Admin account created: nn18leiva@gmail.com');
+    console.log('✅ Admin account created: nn18leiva@gmail.com');
 
     // ── Insert parent/user: nn13leiva@gmail.com ────────────────────────
     // Check parents table columns first

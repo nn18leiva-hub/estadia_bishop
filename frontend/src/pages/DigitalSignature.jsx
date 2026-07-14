@@ -26,7 +26,7 @@ export default function DigitalSignature() {
   const { user } = useAuth();
 
   // Form data passed from NewRequest
-  const { requestData, fee, docLabel } = location.state || {};
+  const { requestData, fee, docLabel, idFile } = location.state || {};
   const isForm = requestData?.document_type_name === 'lateness_form' || requestData?.document_type_name === 'absence_form';
 
   // Pre-fill typed name from the parent account name so the parent doesn't have to retype
@@ -159,6 +159,11 @@ export default function DigitalSignature() {
             resolve();
           }, 'image/png');
         });
+      }
+
+      // Attach ID image file
+      if (idFile) {
+        formData.append('id_image', idFile);
       }
 
       const data = await apiFetch('/requests/create', {

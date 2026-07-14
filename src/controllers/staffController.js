@@ -55,7 +55,8 @@ const mapRequestKeys = (row) => {
         grade: row.student_graduation_year_or_years_attended,
         document_type: row.document_type_name,
         created_at: row.request_date,
-        student_id: row.student_bemis_id
+        parent_verified: row.id_verified,
+        student_id: null
     };
 };
 
@@ -103,8 +104,8 @@ const getAllRequests = async (req, res) => {
             `SELECT dr.*, 
                     p.full_name as parent_name, 
                     p.email as parent_email, 
-                    p.verified as parent_verified, 
-                    p.ssn_card_image_path,
+                    dr.id_verified as parent_verified, 
+                    dr.id_image_path as ssn_card_image_path,
                     dt.name as document_type_name,
                     dt.requires_payment,
                     pmt.payment_id,
@@ -135,8 +136,8 @@ const getRequestById = async (req, res) => {
                 p.full_name as parent_name, 
                 p.email as parent_email, 
                 p.phone as parent_phone,
-                p.verified as parent_verified, 
-                p.ssn_card_image_path,
+                dr.id_verified as parent_verified, 
+                dr.id_image_path as ssn_card_image_path,
                 dt.name as document_type_name,
                 dt.requires_payment,
                 pmt.payment_id,
@@ -200,6 +201,29 @@ const updateRequestStatus = async (req, res) => {
             return res.status(400).json({ message: 'Invalid status.' });
         }
 
+        const reqResult = await db.query(
+            `SELECT dr.*, dr.id_verified AS parent_verified, dt.requires_payment,
+             COALESCE(pay.verified, FALSE) AS payment_verified
+             FROM document_requests dr
+             JOIN parents p ON dr.parent_id = p.parent_id
+             JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+             LEFT JOIN payments pay ON dr.request_id = pay.request_id
+             WHERE dr.request_id = $1`,
+            [request_id]
+        );
+        if (reqResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+        const requestDetails = reqResult.rows[0];
+
+        if (!requestDetails.parent_verified) {
+            return res.status(403).json({ message: "Cannot modify request. The request's ID verification has not been approved yet." });
+        }
+
+        if (requestDetails.requires_payment && !requestDetails.payment_verified) {
+            return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
+        }
+
         const updated = await db.query(
             'UPDATE document_requests SET status = $1 WHERE request_id = $2 RETURNING *',
             [status, request_id]
@@ -217,17 +241,45 @@ const updateRequestStatus = async (req, res) => {
 };
 
 // PATCH /staff/requests/:id/status  — used by the React frontend
-const VALID_STATUSES = ['pending', 'processing', 'ready', 'issued', 'action', 'cancelled'];
+const VALID_STATUSES = ['pending', 'processing', 'ready', 'ready_for_pickup', 'issued', 'completed', 'action', 'cancelled', 'denied', 'pending_verification'];
 
 const updateRequestStatusById = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, staff_notes } = req.body;
+        let { status, staff_notes } = req.body;
 
         if (!status) return res.status(400).json({ message: 'status is required.' });
 
         if (!VALID_STATUSES.includes(status)) {
             return res.status(400).json({ message: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}.` });
+        }
+
+        // Normalize status for database consistency
+        if (status === 'ready') status = 'ready_for_pickup';
+        if (status === 'issued') status = 'completed';
+        if (status === 'cancelled') status = 'denied';
+
+        const reqResult = await db.query(
+            `SELECT dr.*, dr.id_verified AS parent_verified, dt.requires_payment,
+             COALESCE(pay.verified, FALSE) AS payment_verified
+             FROM document_requests dr
+             JOIN parents p ON dr.parent_id = p.parent_id
+             JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+             LEFT JOIN payments pay ON dr.request_id = pay.request_id
+             WHERE dr.request_id = $1`,
+            [id]
+        );
+        if (reqResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Request not found.' });
+        }
+        const requestDetails = reqResult.rows[0];
+
+        if (!requestDetails.parent_verified) {
+            return res.status(403).json({ message: "Cannot modify request. The request's ID verification has not been approved yet." });
+        }
+
+        if (requestDetails.requires_payment && !requestDetails.payment_verified) {
+            return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
         }
 
         const fields = ['status = $1'];
@@ -278,7 +330,7 @@ const getUrgentQueue = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 5;
         const result = await db.query(`
-            SELECT dr.*, dt.name as document_type_name, p.full_name as student_name
+            SELECT dr.*, dt.name as document_type_name, dr.student_full_name as student_name
             FROM document_requests dr
             JOIN document_types dt ON dr.document_type_id = dt.document_type_id
             JOIN parents p ON dr.parent_id = p.parent_id
@@ -350,17 +402,31 @@ const uploadDocument = async (req, res) => {
 
         const docPath = `uploads/documents/${req.file.filename}`;
 
-        // Fetch request info first to check delivery_method
         const reqResult = await db.query(
-            'SELECT delivery_method FROM document_requests WHERE request_id = $1',
+            `SELECT dr.*, dr.id_verified AS parent_verified, dt.requires_payment,
+             COALESCE(pay.verified, FALSE) AS payment_verified
+             FROM document_requests dr
+             JOIN parents p ON dr.parent_id = p.parent_id
+             JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+             LEFT JOIN payments pay ON dr.request_id = pay.request_id
+             WHERE dr.request_id = $1`,
             [id]
         );
 
         if (reqResult.rows.length === 0) {
             return res.status(404).json({ message: 'Request not found.' });
         }
+        const requestDetails = reqResult.rows[0];
 
-        const { delivery_method } = reqResult.rows[0];
+        if (!requestDetails.parent_verified) {
+            return res.status(403).json({ message: "Cannot modify request. The parent's ID has not been verified yet." });
+        }
+
+        if (requestDetails.requires_payment && !requestDetails.payment_verified) {
+            return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
+        }
+
+        const { delivery_method } = requestDetails;
 
         // Determine if we should update status to 'issued'
         let updatedStatusQuery = '';
@@ -393,15 +459,18 @@ const getVerifications = async (req, res) => {
     try {
         const result = await db.query(`
             SELECT 
-                parent_id as id,
-                full_name as name,
-                email,
-                created_at,
-                ssn_card_image_path,
-                CASE WHEN verified = TRUE THEN 'approved' ELSE 'pending' END as status
-            FROM parents
-            WHERE ssn_card_image_path IS NOT NULL
-            ORDER BY created_at DESC
+                dr.request_id as id,
+                p.full_name as name,
+                p.email,
+                dr.request_date as created_at,
+                dr.id_image_path as ssn_card_image_path,
+                CASE WHEN dr.id_verified = TRUE THEN 'approved' ELSE 'pending' END as status,
+                dt.name as doc_type
+            FROM document_requests dr
+            JOIN parents p ON dr.parent_id = p.parent_id
+            JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+            WHERE dr.id_image_path IS NOT NULL
+            ORDER BY dr.request_date DESC
         `);
         res.json(result.rows);
     } catch (err) {
@@ -420,23 +489,49 @@ const updateVerification = async (req, res) => {
         }
 
         if (status === 'approved') {
-            await db.query('UPDATE parents SET verified = TRUE WHERE parent_id = $1', [id]);
-            // Progress any suspended requests
-            await db.query(`UPDATE document_requests SET status = 'pending' WHERE parent_id = $1 AND status = 'pending_verification'`, [id]);
-            
-            // Add a notification for the parent
+            const reqRes = await db.query(
+                `SELECT dr.*, dt.requires_payment, p.parent_id
+                 FROM document_requests dr
+                 JOIN document_types dt ON dr.document_type_id = dt.document_type_id
+                 JOIN parents p ON dr.parent_id = p.parent_id
+                 WHERE dr.request_id = $1`,
+                [id]
+            );
+            if (reqRes.rows.length === 0) return res.status(404).json({ message: 'Request not found.' });
+            const requestDetails = reqRes.rows[0];
+
+            let newStatus = 'pending';
+            if (requestDetails.requires_payment) {
+                const payRes = await db.query('SELECT verified FROM payments WHERE request_id = $1', [id]);
+                if (payRes.rows.length > 0 && payRes.rows[0].verified) {
+                    newStatus = 'processing';
+                }
+            } else {
+                newStatus = 'processing';
+            }
+
+            await db.query(
+                'UPDATE document_requests SET id_verified = TRUE, status = $1 WHERE request_id = $2',
+                [newStatus, id]
+            );
+
             await db.query(
                 `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
-                [id, 'Identity Verified', 'Your identity verification request has been approved. You can now request academic documents.']
+                [requestDetails.parent_id, 'Request ID Verified', `Your ID verification for request BM-${id} has been approved.`]
             );
         } else {
-            // Rejection: reset verified to false and clear ssn_card_image_path
-            await db.query('UPDATE parents SET verified = FALSE, ssn_card_image_path = NULL WHERE parent_id = $1', [id]);
-            
-            // Add a notification for the parent
+            const reqRes = await db.query('SELECT parent_id FROM document_requests WHERE request_id = $1', [id]);
+            if (reqRes.rows.length === 0) return res.status(404).json({ message: 'Request not found.' });
+            const parentId = reqRes.rows[0].parent_id;
+
+            await db.query(
+                "UPDATE document_requests SET id_verified = FALSE, status = 'denied' WHERE request_id = $1",
+                [id]
+            );
+
             await db.query(
                 `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
-                [id, 'Identity Verification Rejected', 'Your identity verification request was rejected. Please re-upload a clear copy of your government ID/SSN.']
+                [parentId, 'Request ID Verification Rejected', `Your ID verification for request BM-${id} was rejected.`]
             );
         }
 

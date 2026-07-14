@@ -6,15 +6,30 @@ import BottomNav from '../components/BottomNav';
 import { apiFetch } from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const STATUS_OPTS = ['pending', 'processing', 'ready', 'issued', 'action', 'cancelled'];
-const STATUS_LABELS = { pending: 'Pending', processing: 'Processing', ready: 'Ready for Pickup', issued: 'Issued', action: 'Action Required', cancelled: 'Cancelled' };
+const STATUS_OPTS = ['pending', 'pending_verification', 'processing', 'ready_for_pickup', 'completed', 'action', 'denied'];
+const STATUS_LABELS = {
+  pending: 'Pending',
+  pending_verification: 'Pending ID Verification',
+  processing: 'Processing',
+  ready: 'Ready for Pickup',
+  ready_for_pickup: 'Ready for Pickup',
+  issued: 'Completed/Issued',
+  completed: 'Completed/Issued',
+  action: 'Action Required',
+  cancelled: 'Cancelled/Denied',
+  denied: 'Cancelled/Denied',
+};
 const STATUS_COLORS = {
   pending: 'bg-surface-container text-on-surface-variant border-outline-variant/50',
+  pending_verification: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-500/20',
   processing: 'bg-secondary-container text-on-secondary-container border-secondary/30',
   ready: 'bg-tertiary-fixed/50 text-on-tertiary-fixed border-tertiary/30',
+  ready_for_pickup: 'bg-tertiary-fixed/50 text-on-tertiary-fixed border-tertiary/30',
   issued: 'bg-primary-fixed/30 text-primary border-primary/30',
+  completed: 'bg-primary-fixed/30 text-primary border-primary/30',
   action: 'bg-error-container text-on-error-container border-error/30',
   cancelled: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/50',
+  denied: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/50',
 };
 
 export default function Requests() {
@@ -62,15 +77,19 @@ export default function Requests() {
   const [updatingId, setUpdatingId] = useState(null);
 
   const updateStatus = async (id, status) => {
+    const prevRequests = [...requests];
+    // Optimistic update
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     setUpdatingId(id);
     try {
       await apiFetch(`/staff/requests/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
-      setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     } catch (err) {
       console.error('Status update failed:', err);
+      setRequests(prevRequests);
+      alert('Failed to update status. Please try again.');
     } finally {
       setUpdatingId(null);
     }
@@ -126,7 +145,7 @@ export default function Requests() {
                 a.download = `requests-export-${Date.now()}.csv`;
                 a.click();
               }}
-              className="bg-primary hover:bg-primary-container text-white px-md py-sm rounded transition-all flex items-center gap-xs font-label-lg shadow-sm self-start"
+              className="bg-primary hover:bg-primary-container text-on-primary px-md py-sm rounded transition-all flex items-center gap-xs font-label-lg shadow-sm self-start"
             >
               <span className="material-symbols-outlined">download</span>
               {t('export.queue')}
@@ -134,8 +153,8 @@ export default function Requests() {
           </section>
 
           {/* Filter Bar */}
-          <div className="bg-surface-container-lowest border border-outline-variant p-sm mb-md flex flex-wrap items-center gap-md w-full overflow-hidden rounded">
-            <div className="relative flex-grow min-w-[240px]">
+          <div className="bg-surface-container-lowest border border-outline-variant p-sm mb-md flex flex-col gap-sm w-full overflow-hidden rounded">
+            <div className="relative w-full">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
               <input
                 type="text"
@@ -149,7 +168,7 @@ export default function Requests() {
               <select
                 value={docFilter}
                 onChange={e => { setDocFilter(e.target.value); setPage(1); }}
-                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded"
+                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded flex-1 min-w-0"
               >
                 <option value="">{t('all.doc.types')}</option>
                 <option value="Official Transcript">{t('official.transcript')}</option>
@@ -160,7 +179,7 @@ export default function Requests() {
               <select
                 value={statusFilter}
                 onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded"
+                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded flex-1 min-w-0"
               >
                 <option value="">{t('status.all')}</option>
                 {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
@@ -209,7 +228,7 @@ export default function Requests() {
                             </div>
                             <div>
                               <p className="font-label-lg text-on-surface">{req.student_name || '—'}</p>
-                              <p className="font-body-sm text-on-surface-variant">{req.grade || '—'} | ID: {req.student_id || '—'}</p>
+                              <p className="font-body-sm text-on-surface-variant">{req.grade || '—'}</p>
                             </div>
                           </div>
                         </td>
@@ -218,20 +237,31 @@ export default function Requests() {
                         </td>
                         <td className="px-sm py-md block md:table-cell" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-xs relative">
-                            {updatingId === req.id ? (
-                              <div className="flex items-center gap-xs">
-                                <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '16px' }}>sync</span>
-                                <span className="font-label-md text-on-surface-variant text-xs">Saving…</span>
+                            {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
+                              <div 
+                                className="flex items-center gap-xxs px-sm py-0.5 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-xs cursor-not-allowed select-none" 
+                                title="Locked: Requester ID or Payment verification pending"
+                              >
+                                <span className="material-symbols-outlined text-[14px] text-on-surface-variant">lock</span>
+                                <span>{getStatusLabel(req.status)}</span>
                               </div>
                             ) : (
-                              <select
-                                value={req.status || 'pending'}
-                                onChange={e => { e.stopPropagation(); updateStatus(req.id, e.target.value); }}
-                                onClick={e => e.stopPropagation()}
-                                className={`border font-label-md text-xs px-xs py-0.5 rounded-full cursor-pointer outline-none focus:ring-2 focus:ring-primary/40 transition-all ${STATUS_COLORS[req.status] || STATUS_COLORS.pending}`}
-                              >
-                                {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
-                              </select>
+                              <>
+                                <select
+                                  value={req.status || 'pending'}
+                                  disabled={updatingId === req.id}
+                                  onChange={e => { e.stopPropagation(); updateStatus(req.id, e.target.value); }}
+                                  onClick={e => e.stopPropagation()}
+                                  className={`border font-label-md text-xs px-xs py-0.5 rounded-full cursor-pointer outline-none focus:ring-2 focus:ring-primary/40 transition-all ${
+                                    STATUS_COLORS[req.status] || STATUS_COLORS.pending
+                                  } ${updatingId === req.id ? 'opacity-60 cursor-wait' : ''}`}
+                                >
+                                  {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
+                                </select>
+                                {updatingId === req.id && (
+                                  <span className="material-symbols-outlined animate-spin text-primary absolute -right-6 top-1/2 -translate-y-1/2" style={{ fontSize: '14px' }}>sync</span>
+                                )}
+                              </>
                             )}
                           </div>
                         </td>

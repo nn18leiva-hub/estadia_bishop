@@ -73,10 +73,10 @@ export default function RequestSuccess() {
               <p className="font-headline-md text-headline-md text-primary font-mono">{refId}</p>
               <button
                 onClick={copyRef}
-                className="material-symbols-outlined text-primary p-2 hover:bg-primary-fixed/30 rounded transition-colors"
+                className="p-2 hover:bg-primary-fixed/30 rounded transition-colors"
                 title="Copy reference"
               >
-                content_copy
+                <span className="material-symbols-outlined text-primary">content_copy</span>
               </button>
             </div>
             <p className="font-body-sm text-on-surface-variant mt-xs">

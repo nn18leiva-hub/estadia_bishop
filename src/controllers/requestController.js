@@ -21,7 +21,6 @@ const createRequest = async (req, res) => {
             document_type_name,   // string key e.g. 'transcript', 'enrollment', 'graduation'
             document_type_id,     // OR numeric ID (direct)
             student_full_name,
-            student_bemis_id,
             student_graduation_year_or_years_attended,
             delivery_method,      // frontend sends 'digital' | 'physical' | 'pickup' | 'mailed' | 'emailed'
             processing_speed,
@@ -31,8 +30,17 @@ const createRequest = async (req, res) => {
             form_data,
         } = req.body;
 
+        const idFile = req.files?.['id_image']?.[0];
+        if (!idFile) {
+            return res.status(400).json({ message: 'An ID card image upload is required for every request or submission.' });
+        }
+
         const parentResult = await db.query('SELECT * FROM parents WHERE parent_id = $1', [parentId]);
         const parent = parentResult.rows[0];
+
+        if (!parent) {
+            return res.status(404).json({ message: 'Parent account not found.' });
+        }
 
         // Resolve document type — by numeric ID or by name key
         let documentType;
@@ -68,32 +76,29 @@ const createRequest = async (req, res) => {
             return res.status(403).json({ message: 'Past students are only authorized to request transcripts.' });
         }
 
-        let initialStatus = 'pending';
-        let alertMessage = 'Document request created successfully.';
-
-        if (!parent.verified) {
-            initialStatus = 'pending_verification';
-            alertMessage = 'Request submitted. It is currently pending identity verification.';
-        }
+        const initialStatus = 'pending_verification';
+        const alertMessage = 'Request submitted. It is currently pending identity verification.';
 
         let generated_file_path = null;
 
         if (documentType.is_auto_generated) {
-            if (!req.file) {
+            const signatureFile = req.files?.['signature_image']?.[0];
+            if (!signatureFile) {
                 return res.status(400).json({ message: 'A digital signature image upload is required for this form.' });
             }
-            generated_file_path = await generateDocument(documentType, parent, req.body, req.file);
+            generated_file_path = await generateDocument(documentType, parent, req.body, signatureFile);
         }
 
         const newReq = await db.query(
             `INSERT INTO document_requests
-             (parent_id, student_bemis_id, student_full_name, student_graduation_year_or_years_attended,
+             (parent_id, id_image_path, id_verified, student_full_name, student_graduation_year_or_years_attended,
               document_type_id, form_data, generated_file_path, delivery_method,
               processing_speed, recipient_email, fee, notes, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
             [
                 parentId,
-                student_bemis_id || null,
+                idFile.path,
+                false,
                 student_full_name,
                 student_graduation_year_or_years_attended || null,
                 documentType.document_type_id,
@@ -124,7 +129,8 @@ const mapRequestKeys = (row) => {
         grade: row.student_graduation_year_or_years_attended,
         document_type: row.document_type_name,
         created_at: row.request_date,
-        student_id: row.student_bemis_id
+        parent_verified: row.id_verified,
+        student_id: null
     };
 };
 

@@ -6,7 +6,7 @@ const Sidebar = ({ className = "" }) => {
   const { user, logout } = useAuth();
 
   const getHomeLink = () => {
-    if (user?.role === 'super_admin') return '/superadmin';
+    if (user?.role === 'admin' || user?.role === 'super_admin') return '/superadmin';
     if (user?.type === 'staff') return '/staff';
     return '/dashboard/parents';
   };

@@ -5,6 +5,7 @@ import BottomNav from '../components/BottomNav';
 import Stepper from '../components/Stepper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 /* ── Document Types ─────────────────────────────── */
 const DOCUMENT_TYPES = [
@@ -35,6 +36,7 @@ const PROCESSING_SPEEDS = [
 export default function NewRequest() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [savedStudents, setSavedStudents] = useState([]);
@@ -51,9 +53,8 @@ export default function NewRequest() {
           const key = req.student_full_name?.toLowerCase();
           if (key && !seen.has(key)) {
             seen.set(key, {
-              // All fields needed to pre-fill step 2
+              // All fields needed to pre-fill step 3
               name:         req.student_full_name || '',
-              studentId:    req.student_bemis_id || '',
               grade:        req.student_graduation_year_or_years_attended || '',
               dob:          req.form_data?.dob || '',
               relationship: req.form_data?.relationship || 'Parent',
@@ -70,11 +71,25 @@ export default function NewRequest() {
   // Form state
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [studentForm, setStudentForm] = useState({ fullName: '', studentId: '', dob: '', grade: '', relationship: 'Parent' });
+  const [studentForm, setStudentForm] = useState({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
   const [delivery, setDelivery] = useState('digital');
   const [processing, setProcessing] = useState('standard');
   const [notes, setNotes] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [idFile, setIdFile] = useState(null);
+  const [idPreview, setIdPreview] = useState('');
+
+  const handleIdFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIdFile(file);
+      if (file.type.startsWith('image/')) {
+        setIdPreview(URL.createObjectURL(file));
+      } else {
+        setIdPreview('');
+      }
+    }
+  };
 
   // Absence/Lateness Form state
   const [dateOfReturn, setDateOfReturn] = useState('');
@@ -97,11 +112,15 @@ export default function NewRequest() {
   // Handle class level/number updates
   const handleClassLevelChange = (level) => {
     setClassLevel(level);
-    setClassGrade(level ? level + classNumber : '');
+    const newGrade = level && classNumber ? level + classNumber : '';
+    setClassGrade(newGrade);
+    setStudentForm(f => ({ ...f, grade: newGrade }));
   };
   const handleClassNumberChange = (num) => {
     setClassNumber(num);
-    setClassGrade(classLevel ? classLevel + num : '');
+    const newGrade = classLevel && num ? classLevel + num : '';
+    setClassGrade(newGrade);
+    setStudentForm(f => ({ ...f, grade: newGrade }));
   };
 
   // Prefill Class / Grade in sub-form if available in studentForm
@@ -169,12 +188,11 @@ export default function NewRequest() {
     if (selectedStudent?.name === s.name) {
       // Deselect — clear the form
       setSelectedStudent(null);
-      setStudentForm({ fullName: '', studentId: '', dob: '', grade: '', relationship: 'Parent' });
+      setStudentForm({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
     } else {
       setSelectedStudent(s);
       setStudentForm({
         fullName:     s.name,
-        studentId:    s.studentId,
         dob:          s.dob,
         grade:        s.grade,
         relationship: s.relationship,
@@ -191,35 +209,36 @@ export default function NewRequest() {
 
   const canProceed = () => {
     if (step === 1) return !!selectedDoc;
-    if (step === 2) {
-      const studentOk = selectedStudent !== null || (studentForm.fullName && studentForm.studentId);
+    if (step === 2) return !!idFile;
+    if (step === 3) {
+      const studentOk = selectedStudent !== null || (studentForm.fullName && studentForm.grade);
       if (!studentOk) return false;
 
       if (selectedDoc === 'lateness_form') {
-        return !!dateOfReturn && !!classGrade && !!datesOfAbsenceOrLateness && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+        return !!dateOfReturn && !!studentForm.grade && !!datesOfAbsenceOrLateness && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
       }
       if (selectedDoc === 'absence_form') {
-        return !!dateOfReturn && !!classGrade && !!datesOfAbsenceOrLateness && !!numberOfDaysAbsent && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+        return !!dateOfReturn && !!studentForm.grade && !!datesOfAbsenceOrLateness && !!numberOfDaysAbsent && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
       }
       return true;
     }
-    if (step === 3) return !!delivery && !!processing;
+    if (step === 4) return !!delivery && !!processing;
     return true;
   };
 
   const isForm = selectedDoc === 'lateness_form' || selectedDoc === 'absence_form';
 
   const handleNext = () => {
-    if (isForm && step === 2) {
-      setStep(4); // Skip Step 3 and go straight to Step 4 (Review)
-    } else if (step < 4) {
+    if (isForm && step === 3) {
+      setStep(5); // Skip Step 4 and go straight to Step 5 (Review)
+    } else if (step < 5) {
       setStep(s => s + 1);
     }
   };
 
   const handleBack = () => {
-    if (isForm && step === 4) {
-      setStep(2); // Skip Step 3 when going back
+    if (isForm && step === 5) {
+      setStep(3); // Skip Step 4 when going back
     } else if (step > 1) {
       setStep(s => s - 1);
     } else {
@@ -248,7 +267,6 @@ export default function NewRequest() {
     const body = {
       document_type_name: selectedDoc,
       student_full_name: studentForm.fullName,
-      student_bemis_id: studentForm.studentId || '',
       student_graduation_year_or_years_attended: studentForm.grade,
       delivery_method: delivery,
       processing_speed: processing,
@@ -258,7 +276,7 @@ export default function NewRequest() {
       form_data: JSON.stringify(customFormData),
     };
     navigate('/dashboard/parents/sign', {
-      state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey) }
+      state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey), idFile }
     });
   };
 
@@ -278,14 +296,16 @@ export default function NewRequest() {
         <div className="mb-lg px-xs">
           <Stepper steps={isForm ? [
             { label: 'Document', icon: 'description' },
+            { label: 'Identity', icon: 'badge' },
             { label: 'Form Details', icon: 'assignment' },
             { label: 'Review', icon: 'fact_check' }
           ] : [
             { label: 'Document', icon: 'description' },
+            { label: 'Identity', icon: 'badge' },
             { label: 'Student', icon: 'person' },
             { label: 'Delivery', icon: 'local_shipping' },
             { label: 'Review', icon: 'fact_check' }
-          ]} currentStep={isForm ? (step === 4 ? 3 : step) : step} />
+          ]} currentStep={isForm ? (step === 5 ? 4 : step) : step} />
         </div>
 
         {/* Error */}
@@ -304,10 +324,17 @@ export default function NewRequest() {
               <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
-              {DOCUMENT_TYPES.map(d => (
+              {DOCUMENT_TYPES.filter(d => {
+                // Past students may only request transcripts
+                const userType = user?.type || user?.user_type;
+                if (userType === 'past_student') return d.id === 'transcript';
+                return true;
+              }).map(d => (
                 <button
                    key={d.id}
-                  onClick={() => setSelectedDoc(d.id)}
+                  onClick={() => {
+                    setSelectedDoc(d.id);
+                  }}
                   className={`text-left p-md rounded-xl border-2 transition-all flex flex-col gap-sm relative
                     ${selectedDoc === d.id
                       ? 'border-primary bg-primary-fixed/30 shadow-md'
@@ -336,8 +363,82 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* ── Step 2: Student Info ── */}
+        {/* ── Step 2: Identity Verification ── */}
         {step === 2 && (
+          <section className="max-w-2xl mx-auto">
+            <div className="mb-md text-center">
+              <h2 className="font-headline-lg text-headline-lg text-primary">{t('identity.verification') || 'Identity Verification'}</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
+                {t('id.required.desc') || 'Please upload a clear copy of your government-issued ID or SSN card. This is required to process this specific document request.'}
+              </p>
+            </div>
+
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-lg flex flex-col items-center gap-md shadow-sm relative overflow-hidden">
+              <div className="absolute inset-0 bento-texture opacity-[0.02]" />
+              
+              <div className="w-16 h-16 rounded-full bg-primary-container text-primary flex items-center justify-center relative z-10 mb-xs">
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>badge</span>
+              </div>
+
+              {/* Drag and Drop Zone */}
+              <label className="w-full flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/50 hover:border-primary/50 bg-surface-container-low/40 hover:bg-surface-container-low/80 rounded-xl p-lg cursor-pointer transition-all gap-sm relative z-10">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleIdFileChange}
+                  className="hidden"
+                />
+                <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_upload</span>
+                <div className="text-center">
+                  <p className="font-label-lg text-on-surface font-semibold">
+                    {idFile ? t('change.file') || 'Replace Uploaded ID' : t('upload.id.doc') || 'Click or drag file to upload'}
+                  </p>
+                  <p className="font-body-sm text-on-surface-variant mt-xs">
+                    {t('supported.formats') || 'Supported formats: PNG, JPG, PDF (max 10MB)'}
+                  </p>
+                </div>
+              </label>
+
+              {/* Preview Zone */}
+              {idFile && (
+                <div className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm relative z-10 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-primary">task</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-label-lg text-on-surface font-semibold truncate">{idFile.name}</p>
+                      <p className="font-body-xs text-on-surface-variant">{(idFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                    <button
+                      onClick={() => { setIdFile(null); setIdPreview(''); }}
+                      className="p-1 rounded-full text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
+                    >
+                      <span className="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+
+                  {idPreview && (
+                    <div className="w-full h-48 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-white">
+                      <img
+                        src={idPreview}
+                        alt="ID Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  {idFile.type === 'application/pdf' && (
+                    <div className="p-sm bg-surface-container border border-outline-variant/20 rounded-lg flex items-center gap-sm">
+                      <span className="material-symbols-outlined text-error">picture_as_pdf</span>
+                      <span className="font-label-md text-on-surface-variant">{t('pdf.uploaded') || 'PDF Document Uploaded'}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ── Step 3: Student Info ── */}
+        {step === 3 && (
           <section className="max-w-2xl">
             <div className="mb-md">
               <h2 className="font-headline-lg text-headline-lg text-primary">{t('student.info')}</h2>
@@ -386,12 +487,6 @@ export default function NewRequest() {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-xs pt-xs border-t border-outline-variant/10">
-                          {s.studentId && (
-                            <div>
-                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>STUDENT ID</p>
-                              <p className="font-body-sm text-on-surface text-xs truncate">{s.studentId}</p>
-                            </div>
-                          )}
                           {s.grade && (
                             <div>
                               <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>GRADE / YEAR</p>
@@ -437,24 +532,34 @@ export default function NewRequest() {
                   />
                 </div>
                 <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.studentId')}</label>
-                  <input
-                    type="text"
-                    value={studentForm.studentId}
-                    onChange={setStudentField('studentId')}
-                    placeholder="e.g. BM-2024-0021"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                  />
-                </div>
-                <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade')}</label>
-                  <input
-                    type="text"
-                    value={studentForm.grade}
-                    onChange={setStudentField('grade')}
-                    placeholder="e.g. Year 11 or Class of 2022"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                  />
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade') || 'Class / Grade'} *</label>
+                  <div className="grid grid-cols-2 gap-xs">
+                    <select
+                      required
+                      value={classLevel}
+                      onChange={e => handleClassLevelChange(e.target.value)}
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
+                    >
+                      <option value="">{t('select.level') || 'Level'}</option>
+                      <option value="F">F (Freshman)</option>
+                      <option value="S">S (Sophomore)</option>
+                      <option value="J">J (Junior)</option>
+                      <option value="Sr">Sr (Senior)</option>
+                    </select>
+                    <select
+                      required
+                      value={classNumber}
+                      onChange={e => handleClassNumberChange(e.target.value)}
+                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
+                    >
+                      <option value="">{t('select.number') || 'Number'}</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -493,36 +598,7 @@ export default function NewRequest() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-xs">
-                    <label className="font-label-lg text-label-lg text-on-surface">{t('class.grade')} *</label>
-                    <div className="grid grid-cols-2 gap-xs">
-                      <select
-                        required
-                        value={classLevel}
-                        onChange={e => handleClassLevelChange(e.target.value)}
-                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
-                      >
-                        <option value="">{t('select.level') || 'Level'}</option>
-                        <option value="F">F (Freshman)</option>
-                        <option value="S">S (Sophomore)</option>
-                        <option value="J">J (Junior)</option>
-                        <option value="Sr">Sr (Senior)</option>
-                      </select>
-                      <select
-                        required
-                        value={classNumber}
-                        onChange={e => handleClassNumberChange(e.target.value)}
-                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
-                      >
-                        <option value="">{t('select.number') || 'Number'}</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                      </select>
-                    </div>
-                  </div>
+                  {/* Class / Grade is unified in the Student Details section above */}
 
                   {selectedDoc === 'absence_form' ? (
                     <>
@@ -645,8 +721,8 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* ── Step 3: Delivery & Speed ── */}
-        {step === 3 && (
+        {/* ── Step 4: Delivery & Speed ── */}
+        {step === 4 && (
           <section className="max-w-3xl">
             {(selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') ? (
               <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-lg flex flex-col gap-md max-w-2xl mx-auto text-center items-center shadow-sm">
@@ -781,8 +857,8 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* ── Step 4: Review ── */}
-        {step === 4 && (
+        {/* ── Step 5: Review ── */}
+        {step === 5 && (
           <section className="max-w-2xl">
             <div className="mb-md">
               <h2 className="font-headline-lg text-headline-lg text-primary">{t('review.submit')}</h2>
@@ -881,7 +957,7 @@ export default function NewRequest() {
             {step === 1 ? t('cancel') : t('back')}
           </button>
 
-          {step < 4 ? (
+          {step < 5 ? (
             <button
               onClick={handleNext}
               disabled={!canProceed()}
