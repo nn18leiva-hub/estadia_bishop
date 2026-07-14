@@ -134,25 +134,28 @@ export default function StaffPayments() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center mt-base">
-                    <span className="font-body-sm text-on-surface-variant">
+                  <div className="flex justify-between items-center border-t border-outline-variant/10 pt-xs mt-xs">
+                    <span className="font-body-sm text-on-surface-variant font-medium">
                       {p.created_at ? new Date(p.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                     </span>
-                    <div className="flex gap-sm">
-                      <button
-                        onClick={() => verifyPayment(p.id)}
-                        disabled={p.payment_status === 'verified'}
-                        className="flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary-container disabled:opacity-40 transition-all font-semibold active:scale-95"
-                      >
-                        <span className="material-symbols-outlined text-sm">check_circle</span> {t('verify')}
-                      </button>
-                      <button
-                        onClick={() => handleViewReceipt(p)}
-                        className="flex items-center gap-xs px-md py-sm bg-surface-container-high text-primary font-label-md rounded-xl border border-outline-variant/30 hover:bg-surface-container-highest active:scale-95 transition-all font-semibold"
-                      >
-                        <span className="material-symbols-outlined text-sm">visibility</span> {t('view.receipt')}
-                      </button>
-                    </div>
+                  </div>
+
+                  <div className="flex gap-sm mt-sm">
+                    <button
+                      onClick={() => verifyPayment(p.id)}
+                      disabled={p.payment_status === 'verified'}
+                      className="flex-1 flex items-center justify-center gap-xs py-2 bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary-container disabled:opacity-40 transition-all font-semibold active:scale-95 text-xs text-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                      {t('verify')}
+                    </button>
+                    <button
+                      onClick={() => handleViewReceipt(p)}
+                      className="flex-1 flex items-center justify-center gap-xs py-2 bg-surface-container-high text-primary font-label-md rounded-xl border border-outline-variant/30 hover:bg-surface-container-highest active:scale-95 transition-all font-semibold text-xs text-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">visibility</span>
+                      {t('view') || 'View'}
+                    </button>
                   </div>
                 </div>
               ))}

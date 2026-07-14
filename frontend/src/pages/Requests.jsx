@@ -187,10 +187,81 @@ export default function Requests() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-surface-container-lowest border border-outline-variant/20 overflow-x-auto rounded-xl shadow-sm">
-            <table className="w-full text-left border-collapse">
-              <thead className="hidden md:table-header-group">
+          {/* Table / List Container */}
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm overflow-hidden">
+            {/* Mobile View: Compact Cards */}
+            <div className="block md:hidden divide-y divide-outline-variant/10">
+              {loading ? (
+                <div className="flex items-center justify-center py-lg">
+                  <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '32px' }}>sync</span>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-xl text-on-surface-variant font-body-md">
+                  {t('no.matching.requests')}
+                </div>
+              ) : (
+                filtered.map((req, i) => {
+                  const initials = (req.student_name || 'XX').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                  return (
+                    <div
+                      key={req.id || i}
+                      className="p-md flex flex-col gap-xs hover:bg-surface-container-low transition-colors cursor-pointer"
+                      onClick={() => navigate(`/staff/requests/${req.id}`)}
+                    >
+                      <div className="flex justify-between items-start gap-xs">
+                        <div className="flex items-center gap-sm min-w-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-label-md flex-shrink-0 ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-label-lg text-on-surface font-bold truncate">{req.student_name || '—'}</p>
+                            <p className="font-body-xs text-on-surface-variant truncate">{req.grade || '—'}</p>
+                          </div>
+                        </div>
+                        <span className="font-body-xs text-on-surface-variant flex-shrink-0">
+                          {req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric' }) : '—'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mt-xs">
+                        <div className="min-w-0 pr-xs">
+                          <p className="font-body-sm text-on-surface font-semibold truncate">{translateDocType(req.document_type)}</p>
+                          <p className="text-[10px] text-on-surface-variant">Ref: BM-{req.id}</p>
+                        </div>
+                        
+                        <div onClick={e => e.stopPropagation()} className="flex-shrink-0">
+                          {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
+                            <div 
+                              className="flex items-center gap-xxs px-sm py-0.5 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-[10px] cursor-not-allowed select-none" 
+                              title="Locked"
+                            >
+                              <span className="material-symbols-outlined text-[12px] text-on-surface-variant">lock</span>
+                              <span>{getStatusLabel(req.status)}</span>
+                            </div>
+                          ) : (
+                            <select
+                              value={req.status || 'pending'}
+                              disabled={updatingId === req.id}
+                              onChange={e => { e.stopPropagation(); updateStatus(req.id, e.target.value); }}
+                              onClick={e => e.stopPropagation()}
+                              className={`border font-label-md text-[10px] px-sm py-0.5 rounded-full cursor-pointer outline-none focus:ring-1 focus:ring-primary/20 transition-all ${
+                                STATUS_COLORS[req.status] || STATUS_COLORS.pending
+                              } ${updatingId === req.id ? 'opacity-60 cursor-wait' : ''}`}
+                            >
+                              {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop View: Table */}
+            <table className="hidden md:table w-full text-left border-collapse">
+              <thead>
                 <tr className="bg-surface-container text-on-surface border-b border-outline-variant">
                   <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('date.received')}</th>
                   <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('student.details')}</th>
@@ -214,14 +285,14 @@ export default function Requests() {
                     return (
                       <tr
                         key={req.id || i}
-                        className="hover:bg-surface-container-low transition-colors group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 cursor-pointer"
+                        className="hover:bg-surface-container-low transition-colors group cursor-pointer"
                         onClick={() => navigate(`/staff/requests/${req.id}`)}
                       >
-                        <td className="px-md py-md block md:table-cell">
+                        <td className="px-md py-md">
                           <p className="font-body-md text-on-surface font-semibold">{req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
                           <p className="font-body-sm text-on-surface-variant">Ref: BM-{req.id}</p>
                         </td>
-                        <td className="px-md py-md block md:table-cell">
+                        <td className="px-md py-md">
                           <div className="flex items-center gap-sm">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-label-md ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
                               {initials}
@@ -232,10 +303,10 @@ export default function Requests() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-md py-md block md:table-cell">
+                        <td className="px-md py-md">
                           <span className="font-body-md text-on-surface font-semibold">{translateDocType(req.document_type)}</span>
                         </td>
-                        <td className="px-md py-md block md:table-cell" onClick={e => e.stopPropagation()}>
+                        <td className="px-md py-md" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-xs relative">
                             {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
                               <div 
@@ -265,7 +336,7 @@ export default function Requests() {
                             )}
                           </div>
                         </td>
-                        <td className="px-md py-md text-right block md:table-cell" onClick={e => e.stopPropagation()}>
+                        <td className="px-md py-md text-right" onClick={e => e.stopPropagation()}>
                           <div className="flex justify-end gap-xs">
                             <button
                               onClick={e => { e.stopPropagation(); navigate(`/staff/requests/${req.id}`); }}
