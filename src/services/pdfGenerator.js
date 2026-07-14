@@ -95,7 +95,8 @@ const generateDocument = (documentType, parent, requestData, signatureFile) => {
                 }
                 doc.moveDown();
 
-                doc.font('Helvetica').text('Date Received: _____________________________________');
+                const currentDate = new Date().toLocaleDateString('en-BZ', { year: 'numeric', month: 'long', day: 'numeric' });
+                doc.font('Helvetica').text('Date Received: ', { continued: true }).font('Helvetica-Bold').text(currentDate);
                 doc.moveDown();
 
                 doc.text('Absence Excused _______      Absence Unexcused _______');
