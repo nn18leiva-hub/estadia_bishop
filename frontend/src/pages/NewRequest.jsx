@@ -292,7 +292,7 @@ export default function NewRequest() {
     <div className="min-h-screen bg-background text-on-surface">
       <TopAppBar showBack backTo="/dashboard/parents" />
 
-      <main className="pt-16 pb-48 md:pb-32 px-sm md:px-gutter max-w-container-max mx-auto">
+      <main className="pt-16 pb-28 md:pb-16 px-sm md:px-gutter max-w-container-max mx-auto">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant py-md">
           <span>{t('dashboard')}</span>
@@ -955,35 +955,37 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* Fixed Floating Navigation Buttons Bar */}
-        <div className="fixed bottom-20 md:bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 py-md px-md shadow-lg">
-          <div className="flex items-center justify-between w-full max-w-3xl mx-auto">
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-xs text-primary hover:opacity-80 font-label-lg text-label-lg px-md py-sm rounded-lg hover:bg-surface-container-high transition-all"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-              {step === 1 ? t('cancel') : t('back')}
-            </button>
+        {/* Floating Action Navigation Buttons */}
+        <div className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-40 flex flex-col gap-xs items-end">
+          {/* Back button */}
+          <button
+            onClick={handleBack}
+            className={`flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-primary w-10 h-10 rounded-full shadow-md transition-all active:scale-95 border border-outline-variant/30 cursor-pointer transform duration-300 ${
+              step > 1
+                ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+            }`}
+            title={t('back')}
+            aria-label="Go back"
+          >
+            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+          </button>
 
-            {step < 5 ? (
-              <button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-40 transition-all font-semibold"
-              >
-                {t('continue')}
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </button>
-            ) : (
-              <button
-                onClick={safeNavigateToSign}
-                className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all font-semibold"
-              >
-                {t('submit.request')} <span className="material-symbols-outlined">draw</span>
-              </button>
-            )}
-          </div>
+          {/* Continue / Submit button */}
+          <button
+            onClick={step < 5 ? handleNext : safeNavigateToSign}
+            className={`flex items-center gap-xs bg-primary text-on-primary h-12 px-5 rounded-full font-label-lg shadow-lg hover:bg-primary-container active:scale-95 font-semibold transition-all duration-300 transform ${
+              canProceed() 
+                ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
+                : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+            }`}
+            title={step < 5 ? t('continue') : t('submit.request')}
+          >
+            <span>{step < 5 ? t('continue') : t('submit.request')}</span>
+            <span className="material-symbols-outlined text-[18px]">
+              {step < 5 ? 'arrow_forward' : 'draw'}
+            </span>
+          </button>
         </div>
       </main>
 
