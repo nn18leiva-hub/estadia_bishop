@@ -20,16 +20,16 @@ const STATUS_LABELS = {
   denied: 'Cancelled/Denied',
 };
 const STATUS_COLORS = {
-  pending: 'bg-surface-container text-on-surface-variant border-outline-variant/50',
+  pending: 'bg-surface-container-high text-on-surface-variant border border-outline-variant/20',
   pending_verification: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-500/20',
-  processing: 'bg-secondary-container text-on-secondary-container border-secondary/30',
-  ready: 'bg-tertiary-fixed/50 text-on-tertiary-fixed border-tertiary/30',
-  ready_for_pickup: 'bg-tertiary-fixed/50 text-on-tertiary-fixed border-tertiary/30',
-  issued: 'bg-primary-fixed/30 text-primary border-primary/30',
-  completed: 'bg-primary-fixed/30 text-primary border-primary/30',
-  action: 'bg-error-container text-on-error-container border-error/30',
-  cancelled: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/50',
-  denied: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/50',
+  processing: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-500/20',
+  ready: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-500/20',
+  ready_for_pickup: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-500/20',
+  issued: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-500/20',
+  completed: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-500/20',
+  action: 'bg-error-container text-on-error-container border border-error/20',
+  cancelled: 'bg-surface-container-highest text-on-surface-variant border border-outline-variant/20',
+  denied: 'bg-surface-container-highest text-on-surface-variant border border-outline-variant/20',
 };
 
 export default function Requests() {
@@ -119,7 +119,7 @@ export default function Requests() {
 
         <div className="max-w-full overflow-x-hidden p-sm md:p-gutter">
           {/* Page Header */}
-          <section className="flex flex-col md:flex-row md:items-end justify-between mb-lg gap-md">
+          <section className="flex flex-col md:flex-row md:items-end justify-between mb-lg gap-md px-sm md:px-0">
             <div>
               <h2 className="font-headline-lg text-headline-lg text-primary mb-xs">{t('request.management')}</h2>
               <p className="text-on-surface-variant font-body-md max-w-2xl">
@@ -145,7 +145,7 @@ export default function Requests() {
                 a.download = `requests-export-${Date.now()}.csv`;
                 a.click();
               }}
-              className="bg-primary hover:bg-primary-container text-on-primary px-md py-sm rounded transition-all flex items-center gap-xs font-label-lg shadow-sm self-start"
+              className="bg-primary hover:bg-primary-container text-on-primary px-md py-sm rounded-xl transition-all flex items-center gap-xs font-label-lg shadow-sm self-start font-semibold active:scale-95"
             >
               <span className="material-symbols-outlined">download</span>
               {t('export.queue')}
@@ -153,14 +153,14 @@ export default function Requests() {
           </section>
 
           {/* Filter Bar */}
-          <div className="bg-surface-container-lowest border border-outline-variant p-sm mb-md flex flex-col gap-sm w-full overflow-hidden rounded">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 p-md mb-md flex flex-col gap-sm w-full overflow-hidden rounded-xl shadow-sm">
             <div className="relative w-full">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
               <input
                 type="text"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
-                className="w-full pl-10 pr-4 py-2 border border-outline bg-transparent focus:border-primary text-body-md outline-none transition-colors rounded"
+                className="w-full pl-10 pr-4 py-sm border border-outline-variant/40 bg-surface-container/50 focus:border-primary text-body-md outline-none transition-colors rounded-xl focus:ring-1 focus:ring-primary/20"
                 placeholder={t('search.placeholder')}
               />
             </div>
@@ -168,7 +168,7 @@ export default function Requests() {
               <select
                 value={docFilter}
                 onChange={e => { setDocFilter(e.target.value); setPage(1); }}
-                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded flex-1 min-w-0"
+                className="bg-surface border border-outline-variant/40 px-md py-sm font-label-md focus:border-primary outline-none rounded-xl flex-1 min-w-0 text-on-surface focus:ring-1 focus:ring-primary/20"
               >
                 <option value="">{t('all.doc.types')}</option>
                 <option value="Official Transcript">{t('official.transcript')}</option>
@@ -179,7 +179,7 @@ export default function Requests() {
               <select
                 value={statusFilter}
                 onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                className="bg-transparent border border-outline px-md py-2 font-label-md focus:border-primary outline-none rounded flex-1 min-w-0"
+                className="bg-surface border border-outline-variant/40 px-md py-sm font-label-md focus:border-primary outline-none rounded-xl flex-1 min-w-0 text-on-surface focus:ring-1 focus:ring-primary/20"
               >
                 <option value="">{t('status.all')}</option>
                 {STATUS_OPTS.map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
@@ -188,18 +188,18 @@ export default function Requests() {
           </div>
 
           {/* Table */}
-          <div className="bg-surface-container-lowest border border-outline-variant overflow-x-auto rounded">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 overflow-x-auto rounded-xl shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead className="hidden md:table-header-group">
                 <tr className="bg-surface-container text-on-surface border-b border-outline-variant">
-                  <th className="px-sm py-md font-label-lg text-label-lg uppercase tracking-wider">{t('date.received')}</th>
-                  <th className="px-sm py-md font-label-lg text-label-lg uppercase tracking-wider">{t('student.details')}</th>
-                  <th className="px-sm py-md font-label-lg text-label-lg uppercase tracking-wider">{t('document.type')}</th>
-                  <th className="px-sm py-md font-label-lg text-label-lg uppercase tracking-wider">{t('status')}</th>
-                  <th className="px-sm py-md font-label-lg text-label-lg uppercase tracking-wider text-right">{t('actions')}</th>
+                  <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('date.received')}</th>
+                  <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('student.details')}</th>
+                  <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('document.type')}</th>
+                  <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider">{t('status')}</th>
+                  <th className="px-md py-md font-label-lg text-label-lg uppercase tracking-wider text-right">{t('actions')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/30">
+              <tbody className="divide-y divide-outline-variant/20">
                 {loading ? (
                   <tr><td colSpan={5} className="text-center py-xl">
                     <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '32px' }}>sync</span>
@@ -217,29 +217,29 @@ export default function Requests() {
                         className="hover:bg-surface-container-low transition-colors group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 cursor-pointer"
                         onClick={() => navigate(`/staff/requests/${req.id}`)}
                       >
-                        <td className="px-0 md:px-sm py-1 md:py-md block md:table-cell">
-                          <p className="font-body-md text-on-surface">{req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+                        <td className="px-md py-md block md:table-cell">
+                          <p className="font-body-md text-on-surface font-semibold">{req.created_at ? new Date(req.created_at).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
                           <p className="font-body-sm text-on-surface-variant">Ref: BM-{req.id}</p>
                         </td>
-                        <td className="px-sm py-md block md:table-cell">
+                        <td className="px-md py-md block md:table-cell">
                           <div className="flex items-center gap-sm">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-label-md ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
                               {initials}
                             </div>
                             <div>
-                              <p className="font-label-lg text-on-surface">{req.student_name || '—'}</p>
+                              <p className="font-label-lg text-on-surface font-bold">{req.student_name || '—'}</p>
                               <p className="font-body-sm text-on-surface-variant">{req.grade || '—'}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-sm py-md block md:table-cell">
-                          <span className="font-body-md text-on-surface">{translateDocType(req.document_type)}</span>
+                        <td className="px-md py-md block md:table-cell">
+                          <span className="font-body-md text-on-surface font-semibold">{translateDocType(req.document_type)}</span>
                         </td>
-                        <td className="px-sm py-md block md:table-cell" onClick={e => e.stopPropagation()}>
+                        <td className="px-md py-md block md:table-cell" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-xs relative">
                             {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
                               <div 
-                                className="flex items-center gap-xxs px-sm py-0.5 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-xs cursor-not-allowed select-none" 
+                                className="flex items-center gap-xxs px-sm py-1 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-xs cursor-not-allowed select-none" 
                                 title="Locked: Requester ID or Payment verification pending"
                               >
                                 <span className="material-symbols-outlined text-[14px] text-on-surface-variant">lock</span>
@@ -252,7 +252,7 @@ export default function Requests() {
                                   disabled={updatingId === req.id}
                                   onChange={e => { e.stopPropagation(); updateStatus(req.id, e.target.value); }}
                                   onClick={e => e.stopPropagation()}
-                                  className={`border font-label-md text-xs px-xs py-0.5 rounded-full cursor-pointer outline-none focus:ring-2 focus:ring-primary/40 transition-all ${
+                                  className={`border font-label-md text-xs px-sm py-1 rounded-full cursor-pointer outline-none focus:ring-1 focus:ring-primary/20 transition-all ${
                                     STATUS_COLORS[req.status] || STATUS_COLORS.pending
                                   } ${updatingId === req.id ? 'opacity-60 cursor-wait' : ''}`}
                                 >
@@ -265,38 +265,15 @@ export default function Requests() {
                             )}
                           </div>
                         </td>
-                        <td className="px-sm py-md text-right block md:table-cell" onClick={e => e.stopPropagation()}>
-                          <div className="flex justify-end gap-xs opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <td className="px-md py-md text-right block md:table-cell" onClick={e => e.stopPropagation()}>
+                          <div className="flex justify-end gap-xs">
                             <button
                               onClick={e => { e.stopPropagation(); navigate(`/staff/requests/${req.id}`); }}
-                              className="p-2 hover:text-primary transition-colors rounded"
+                              className="flex items-center gap-xs px-sm py-1 bg-surface-container-high hover:bg-surface-container-highest text-primary border border-outline-variant/30 rounded-xl font-label-md transition-all active:scale-95 font-semibold"
                               title="Open detail"
                             >
-                              <span className="material-symbols-outlined">open_in_new</span>
-                            </button>
-                            <button
-                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'processing'); }}
-                              disabled={updatingId === req.id || req.status === 'processing'}
-                              className="p-2 hover:text-secondary transition-colors rounded disabled:opacity-30"
-                              title="Mark Processing"
-                            >
-                              <span className="material-symbols-outlined">pending</span>
-                            </button>
-                            <button
-                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'issued'); }}
-                              disabled={updatingId === req.id || req.status === 'issued'}
-                              className="p-2 hover:text-primary transition-colors rounded disabled:opacity-30"
-                              title="Mark Issued / Approve"
-                            >
-                              <span className="material-symbols-outlined">check_circle</span>
-                            </button>
-                            <button
-                              onClick={e => { e.stopPropagation(); updateStatus(req.id, 'action'); }}
-                              disabled={updatingId === req.id || req.status === 'action'}
-                              className="p-2 hover:text-error transition-colors rounded disabled:opacity-30"
-                              title="Flag — Action Required"
-                            >
-                              <span className="material-symbols-outlined">flag</span>
+                              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                              {t('view') || 'Details'}
                             </button>
                           </div>
                         </td>
@@ -311,23 +288,23 @@ export default function Requests() {
           {/* Pagination */}
           {total > PER_PAGE && (
             <div className="mt-md flex justify-between items-center px-sm flex-col gap-md md:flex-row">
-              <p className="text-on-surface-variant font-body-sm">
+              <p className="text-on-surface-variant font-body-sm font-medium">
                 Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} of {total} requests
               </p>
               <div className="flex gap-xs">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  className="p-2 border border-outline hover:bg-surface-container-high transition-colors disabled:opacity-40 rounded">
+                  className="p-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 rounded-xl bg-surface-container-lowest">
                   <span className="material-symbols-outlined">chevron_left</span>
                 </button>
                 {[...Array(Math.ceil(total / PER_PAGE))].slice(0, 5).map((_, i) => (
                   <button key={i + 1} onClick={() => setPage(i + 1)}
-                    className={`px-4 py-2 border font-label-md rounded transition-colors
-                      ${page === i + 1 ? 'border-primary bg-primary text-on-primary' : 'border-outline hover:bg-surface-container-high'}`}>
+                    className={`px-4 py-2 border font-label-md rounded-xl transition-colors
+                      ${page === i + 1 ? 'border-primary bg-primary text-on-primary font-bold shadow-sm' : 'border-outline-variant/30 hover:bg-surface-container-high bg-surface-container-lowest'}`}>
                     {i + 1}
                   </button>
                 ))}
                 <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / PER_PAGE)}
-                  className="p-2 border border-outline hover:bg-surface-container-high transition-colors disabled:opacity-40 rounded">
+                  className="p-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 rounded-xl bg-surface-container-lowest">
                   <span className="material-symbols-outlined">chevron_right</span>
                 </button>
               </div>

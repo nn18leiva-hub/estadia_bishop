@@ -180,25 +180,25 @@ export default function StaffRequestDetail() {
             <p className="font-body-md text-on-surface-variant">{t('request.not.found')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
-            {/* Left: Request Info */}
-            <div className="flex flex-col gap-md">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+            {/* Left: Request Info (Spans 2 columns) */}
+            <div className="lg:col-span-2 flex flex-col gap-md">
               {/* Student Header */}
-              <div className="bg-primary text-on-primary rounded-xl p-md flex items-center gap-md relative overflow-hidden">
+              <div className="bg-primary text-on-primary rounded-xl p-md flex items-center gap-md relative overflow-hidden shadow-sm">
                 <div className="absolute inset-0 bento-texture" style={{ opacity: 0.1 }} />
                 <div className="w-16 h-16 rounded-full bg-on-primary/20 flex items-center justify-center font-bold text-headline-md relative z-10">
                   {initials}
                 </div>
                 <div className="relative z-10">
-                  <h2 className="font-headline-sm text-headline-sm">{req.student_name || '—'}</h2>
-                  <p className="font-body-sm opacity-80">{req.grade || '—'}</p>
-                  <p className="font-body-sm opacity-70">{t(req.relationship || 'parents').slice(0, -1)}</p>
+                  <h2 className="font-headline-sm text-headline-sm font-bold">{req.student_name || '—'}</h2>
+                  <p className="font-body-sm opacity-80 font-medium">{req.grade || '—'}</p>
+                  <p className="font-body-sm opacity-70 font-semibold">{t(req.relationship || 'parents').slice(0, -1)}</p>
                 </div>
               </div>
 
               {/* Details */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm">{t('request.details')}</h3>
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm font-bold">{t('request.details')}</h3>
                 <div className="grid grid-cols-2 gap-sm">
                   {[
                     { label: t('ref'), value: `BM-${req.id}` },
@@ -211,8 +211,8 @@ export default function StaffRequestDetail() {
                     { label: t('recipient'), value: req.recipient_email || t('physical.pickup') },
                   ].map(item => (
                     <div key={item.label}>
-                      <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">{item.label}</p>
-                      <p className="font-body-md text-on-surface capitalize">{item.value || '—'}</p>
+                      <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">{item.label}</p>
+                      <p className="font-body-md text-on-surface capitalize font-semibold">{item.value || '—'}</p>
                     </div>
                   ))}
                 </div>
@@ -220,16 +220,16 @@ export default function StaffRequestDetail() {
 
               {/* Identity Verification Card */}
               {req.id_image_path && (
-                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs font-bold">
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
                     {t('identity.verification') || 'Identity Verification'}
                   </h3>
                   <div className="flex flex-col gap-xs">
                     <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
-                      <p className="font-body-sm text-on-surface-variant">{t('status') || 'Status'}</p>
+                      <p className="font-body-sm text-on-surface-variant font-medium">{t('status') || 'Status'}</p>
                       <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${
-                        req.parent_verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-amber-100 text-amber-800'
+                        req.parent_verified ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-500/20' : 'bg-amber-100 text-amber-800'
                       }`}>
                         {req.parent_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Review'}
                       </span>
@@ -240,7 +240,7 @@ export default function StaffRequestDetail() {
                         <button
                           onClick={() => handleVerifyId('approved')}
                           disabled={processing}
-                          className="flex-1 bg-primary text-on-primary py-xs rounded-lg font-label-md hover:bg-primary-container shadow-sm transition-colors flex items-center justify-center gap-xs"
+                          className="flex-1 bg-primary text-on-primary py-sm rounded-xl font-label-md hover:bg-primary-container shadow-sm transition-colors flex items-center justify-center gap-xs font-semibold active:scale-95"
                         >
                           <span className="material-symbols-outlined text-sm">how_to_reg</span>
                           Approve ID
@@ -248,7 +248,7 @@ export default function StaffRequestDetail() {
                         <button
                           onClick={() => handleVerifyId('rejected')}
                           disabled={processing}
-                          className="flex-1 border border-error text-error py-xs rounded-lg font-label-md hover:bg-error-container transition-colors flex items-center justify-center gap-xs"
+                          className="flex-1 border border-error text-error py-sm rounded-xl font-label-md hover:bg-error-container transition-colors flex items-center justify-center gap-xs font-semibold active:scale-95"
                         >
                           <span className="material-symbols-outlined text-sm">close</span>
                           Reject ID
@@ -261,14 +261,14 @@ export default function StaffRequestDetail() {
                         href={`/${req.id_image_path}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 flex items-center justify-center gap-sm transition-all"
+                        className="w-full bg-surface-container-high text-primary py-sm rounded-xl font-label-lg border border-outline-variant/20 hover:bg-surface-container-highest flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                       >
                         <span className="material-symbols-outlined">visibility</span>
                         {t('view.id.doc') || 'View Full ID Document'}
                       </a>
                       
                       {/* Inline ID Preview */}
-                      <div className="w-full h-40 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                      <div className="w-full h-40 border border-outline-variant/20 rounded-xl overflow-hidden relative bg-surface-container-low">
                         {req.id_image_path.toLowerCase().endsWith('.pdf') ? (
                           <iframe
                             src={`/${req.id_image_path}#toolbar=0`}
@@ -289,28 +289,31 @@ export default function StaffRequestDetail() {
                 </div>
               )}
 
+              {/* Payment Summary Card */}
               {req.requires_payment && (
-                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                  <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs font-bold">
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
                     {t('payment.summary') || 'Payment Summary'}
                   </h3>
                   <div className="flex flex-col gap-xs">
                     <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
-                      <p className="font-body-sm text-on-surface-variant">{t('status') || 'Status'}</p>
-                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${
-                        req.payment_verified ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-high text-on-surface-variant'
+                      <p className="font-body-sm text-on-surface-variant font-medium">{t('status') || 'Status'}</p>
+                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize border ${
+                        req.payment_verified 
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-500/20' 
+                          : 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-500/20'
                       }`}>
                         {req.payment_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Verification'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
-                      <p className="font-body-sm text-on-surface-variant">{t('ref') || 'Reference'}</p>
-                      <p className="font-mono text-body-sm text-on-surface">{req.transfer_reference || '—'}</p>
+                      <p className="font-body-sm text-on-surface-variant font-medium">{t('ref') || 'Reference'}</p>
+                      <p className="font-mono text-body-sm text-on-surface font-semibold">{req.transfer_reference || '—'}</p>
                     </div>
                     <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
-                      <p className="font-body-sm text-on-surface-variant">{t('date') || 'Date'}</p>
-                      <p className="font-body-md text-on-surface">
+                      <p className="font-body-sm text-on-surface-variant font-medium">{t('date') || 'Date'}</p>
+                      <p className="font-body-md text-on-surface font-semibold">
                         {req.payment_date ? new Date(req.payment_date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
                       </p>
                     </div>
@@ -320,13 +323,13 @@ export default function StaffRequestDetail() {
                           href={`/${req.receipt_image_path}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 flex items-center justify-center gap-sm transition-all"
+                          className="w-full bg-surface-container-high text-primary py-sm rounded-xl font-label-lg border border-outline-variant/20 hover:bg-surface-container-highest flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                         >
                           <span className="material-symbols-outlined">receipt_long</span>
                           {t('view.receipt') || 'View Receipt'}
                         </a>
                         {/* Inline Receipt Preview */}
-                        <div className="w-full h-40 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                        <div className="w-full h-40 border border-outline-variant/20 rounded-xl overflow-hidden relative bg-surface-container-low">
                           {req.receipt_image_path.toLowerCase().endsWith('.pdf') ? (
                             <iframe
                               src={`/${req.receipt_image_path}#toolbar=0`}
@@ -350,12 +353,12 @@ export default function StaffRequestDetail() {
 
               {/* Document Preview (Only shown when a document is uploaded) */}
               {req.generated_file_path && (
-                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm">
-                  <h3 className="font-headline-sm text-headline-sm text-primary flex items-center gap-xs">
+                <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm shadow-sm">
+                  <h3 className="font-headline-sm text-headline-sm text-primary flex items-center gap-xs font-bold">
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>preview</span>
                     {t('document.preview') || 'Document Preview'}
                   </h3>
-                  <div className="w-full h-80 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
+                  <div className="w-full h-80 border border-outline-variant/20 rounded-xl overflow-hidden relative bg-surface-container-low">
                     {req.generated_file_path.toLowerCase().endsWith('.pdf') ? (
                       <iframe
                         src={`/${req.generated_file_path}#toolbar=0`}
@@ -375,18 +378,18 @@ export default function StaffRequestDetail() {
 
               {/* Notes */}
               {req.notes && (
-                <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-md">
-                  <h3 className="font-label-lg text-label-lg text-on-surface-variant uppercase mb-xs">{t('requester.notes')}</h3>
-                  <p className="font-body-md text-on-surface">{req.notes}</p>
+                <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                  <h3 className="font-label-lg text-label-lg text-on-surface-variant uppercase mb-xs font-semibold">{t('requester.notes')}</h3>
+                  <p className="font-body-md text-on-surface font-medium">{req.notes}</p>
                 </div>
               )}
             </div>
 
-            {/* Right: Staff Actions */}
-            <div className="flex flex-col gap-md">
+            {/* Right: Staff Actions (Sticky sidebar) */}
+            <div className="flex flex-col gap-md lg:sticky lg:top-24 h-fit">
               {/* Audit Notes */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs font-bold">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>rate_review</span>
                   {t('reg.audit.notes')}
                 </h3>
@@ -395,13 +398,13 @@ export default function StaffRequestDetail() {
                   onChange={e => setNotes(e.target.value)}
                   rows={6}
                   placeholder={t('audit.notes.placeholder')}
-                  className="w-full border border-outline-variant/50 rounded-lg p-sm font-body-md bg-surface resize-none"
+                  className="w-full border border-outline-variant/40 bg-surface-container/50 focus:border-primary rounded-xl p-sm font-body-md resize-none outline-none focus:ring-1 focus:ring-primary/20"
                 />
-                <p className="font-body-sm text-on-surface-variant mt-xs">{t('visible.staff.only')}</p>
+                <p className="font-body-sm text-on-surface-variant mt-xs font-medium">{t('visible.staff.only')}</p>
               </div>
 
               {/* Status Update */}
-              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative ${
+              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative shadow-sm ${
                 req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
               }`}>
                 {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
@@ -410,12 +413,12 @@ export default function StaffRequestDetail() {
                     onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
                   />
                 )}
-                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm">{t('update.status')}</h3>
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm font-bold">{t('update.status')}</h3>
                 <select
                   disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                   value={selectedStatus}
                   onChange={e => setSelectedStatus(e.target.value)}
-                  className="w-full border border-outline px-sm py-sm font-body-md bg-surface rounded-lg mb-md disabled:opacity-50 disabled:bg-surface-container-low disabled:cursor-not-allowed"
+                  className="w-full border border-outline-variant/40 px-sm py-sm font-body-md bg-surface-container/50 rounded-xl mb-md disabled:opacity-50 disabled:bg-surface-container-low disabled:cursor-not-allowed outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                 >
                   {[
                     { v: 'pending', l: t('pending') },
@@ -428,7 +431,7 @@ export default function StaffRequestDetail() {
                 <button
                   disabled={processing || selectedStatus === req.status || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                   onClick={() => updateStatus(selectedStatus, 'update')}
-                  className="w-full mb-sm bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-sm transition-all"
+                  className="w-full mb-sm bg-surface-container-high text-primary py-sm rounded-xl font-label-lg hover:bg-surface-container-highest disabled:opacity-40 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                 >
                   <span className="material-symbols-outlined text-sm">save</span>
                   {t('save.status.change')}
@@ -438,7 +441,7 @@ export default function StaffRequestDetail() {
                   <button
                     disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                     onClick={() => updateStatus('issued', 'approve')}
-                    className="w-full bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all"
+                    className="w-full bg-primary text-on-primary py-sm rounded-xl font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                   >
                     {processing ? (
                       <><span className="material-symbols-outlined animate-spin">sync</span> {t('submitting')}</>
@@ -450,7 +453,7 @@ export default function StaffRequestDetail() {
                   <button
                     disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
                     onClick={() => updateStatus('action', 'flag')}
-                    className="w-full border border-error text-error py-sm rounded-lg font-label-lg hover:bg-error-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all"
+                    className="w-full border border-error text-error py-sm rounded-xl font-label-lg hover:bg-error-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                   >
                     <span className="material-symbols-outlined">flag</span>
                     {t('flag.correction')}
@@ -459,7 +462,7 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Document Upload Zone */}
-              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative ${
+              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative shadow-sm ${
                 req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
               }`}>
                 {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
@@ -468,20 +471,20 @@ export default function StaffRequestDetail() {
                     onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
                   />
                 )}
-                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
+                <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs font-bold">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
                   {t('upload.document') || 'Upload Final Document'}
                 </h3>
                 
                 {req.generated_file_path ? (
                   <div className="flex flex-col gap-sm">
-                    <div className="p-sm bg-secondary-container/20 border border-secondary/20 rounded-lg flex items-center gap-sm">
+                    <div className="p-sm bg-secondary-container/20 border border-secondary/20 rounded-xl flex items-center gap-sm">
                       <span className="material-symbols-outlined text-secondary" style={{ fontSize: '32px' }}>task</span>
                       <div className="flex-1 min-w-0">
                         <p className="font-label-lg text-on-surface font-semibold truncate">
                           {req.generated_file_path.split('/').pop()}
                         </p>
-                        <p className="font-body-xs text-on-surface-variant">
+                        <p className="font-body-xs text-on-surface-variant font-medium">
                           {t('document.issued') || 'Document Issued'}
                         </p>
                       </div>
@@ -496,12 +499,12 @@ export default function StaffRequestDetail() {
                       </a>
                     </div>
                     
-                    <p className="font-body-xs text-on-surface-variant">
+                    <p className="font-body-xs text-on-surface-variant font-medium">
                       {t('upload.new.doc.desc') || 'You can upload a new version to replace the existing document.'}
                     </p>
                   </div>
                 ) : (
-                  <p className="font-body-sm text-on-surface-variant mb-sm">
+                  <p className="font-body-sm text-on-surface-variant mb-sm font-medium">
                     {req.delivery_method === 'emailed' 
                       ? t('upload.doc.desc') || 'Upload the finalized PDF or document to automatically issue it to the parent for digital download.'
                       : t('upload.archive.desc') || 'Upload a scanned copy of the document for digital archiving (optional).'}
@@ -519,14 +522,14 @@ export default function StaffRequestDetail() {
                   />
                   <label
                     htmlFor={req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? undefined : "staff-doc-upload"}
-                    className={`flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-lg p-md transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50 ${
+                    className={`flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-xl p-md transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50 ${
                       req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                     }`}
                   >
                     <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '32px' }}>
                       cloud_upload
                     </span>
-                    <span className="font-label-md text-on-surface mt-xs text-center">
+                    <span className="font-label-md text-on-surface mt-xs text-center font-bold">
                       {selectedDocFile ? selectedDocFile.name : (t('select.file') || 'Select Document File')}
                     </span>
                     <span className="font-body-xs text-on-surface-variant mt-xxs">
@@ -536,14 +539,14 @@ export default function StaffRequestDetail() {
                 </div>
 
                 {uploadError && (
-                  <p className="font-body-sm text-error mt-xs">{uploadError}</p>
+                  <p className="font-body-sm text-error mt-xs font-semibold">{uploadError}</p>
                 )}
 
                 {selectedDocFile && (
                   <button
                     onClick={handleDocUpload}
                     disabled={uploadingDoc || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
-                    className="w-full mt-md bg-primary text-on-primary py-xs rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all disabled:opacity-50"
+                    className="w-full mt-md bg-primary text-on-primary py-sm rounded-xl font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all disabled:opacity-50 font-bold active:scale-95"
                   >
                     {uploadingDoc ? (
                       <><span className="material-symbols-outlined animate-spin text-sm">sync</span> {t('uploading') || 'Uploading...'}</>
@@ -559,11 +562,11 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Quick Info */}
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                <h3 className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm">{t('sla.compliance')}</h3>
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+                <h3 className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm font-bold">{t('sla.compliance')}</h3>
                 <div className="flex items-center gap-sm">
                   <div className="w-3 h-3 rounded-full bg-secondary animate-pulse" />
-                  <p className="font-body-md text-on-surface">
+                  <p className="font-body-md text-on-surface font-semibold">
                     {req.processing_speed === 'urgent' ? t('next.bus.day') : req.processing_speed === 'expedited' ? t('days.2_3') : t('days.5_7')}
                   </p>
                 </div>

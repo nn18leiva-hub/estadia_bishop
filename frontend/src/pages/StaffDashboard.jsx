@@ -62,15 +62,22 @@ export default function StaffDashboard() {
         {/* Metric Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-gutter mb-xl">
           {METRICS.map((m, i) => (
-            <div key={m.label} className={`bg-surface-container-lowest p-sm border border-outline-variant/20 rounded-xl shadow-sm ${m.urgent ? 'border-l-4 border-l-error' : ''}`}>
-              <div className="flex justify-between items-start mb-xs">
-                <span className={`material-symbols-outlined ${m.color}`}>{m.icon}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${m.badgeClass}`}>{t(m.badge)}</span>
+            <div 
+              key={m.label} 
+              className={`bg-surface-container-lowest p-md border border-outline-variant/20 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between ${
+                m.urgent ? 'border-l-4 border-l-error' : ''
+              }`}
+            >
+              <div className="flex justify-between items-start mb-sm">
+                <span className={`material-symbols-outlined ${m.color}`} style={{ fontSize: '28px' }}>{m.icon}</span>
+                <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${m.badgeClass}`}>{t(m.badge)}</span>
               </div>
-              <p className="text-label-md text-on-surface-variant font-medium">{t(m.label)}</p>
-              <p className={`text-headline-md font-headline-md ${m.urgent ? 'text-error' : 'text-on-surface'}`}>
-                {loading ? '...' : metricValues[i]}
-              </p>
+              <div>
+                <p className="text-label-md text-on-surface-variant font-semibold tracking-wide mb-xs">{t(m.label)}</p>
+                <p className={`text-headline-lg font-headline-lg font-bold tracking-tight ${m.urgent ? 'text-error' : 'text-primary'}`}>
+                  {loading ? '...' : metricValues[i]}
+                </p>
+              </div>
             </div>
           ))}
         </div>
@@ -92,7 +99,7 @@ export default function StaffDashboard() {
               </button>
             </div>
 
-            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm">
               {/* Mobile View: Cards */}
               <div className="block md:hidden divide-y divide-outline-variant/10">
                 {loading ? (
@@ -101,42 +108,42 @@ export default function StaffDashboard() {
                   </div>
                 ) : urgentQueue.length === 0 ? (
                   [
-                    { ref: 'BM-77291', type: t('official.transcript'), requester: 'Global Alumni Assoc.', note: 'LITIGATION PRIORITY', sla: 'EXPIRED', slaClass: 'bg-error-container text-on-error-container' },
-                    { ref: 'BM-88120', type: t('degree.verification'), requester: 'Standard Chartered', note: 'EMPLOYMENT CHECK', sla: '2H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container' },
-                    { ref: 'BM-91223', type: t('enrollment.letter'), requester: 'Home Office (UK)', note: 'VISA EXPEDITE', sla: '4H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container' },
+                    { ref: 'BM-77291', type: t('official.transcript'), requester: 'Global Alumni Assoc.', note: 'LITIGATION PRIORITY', sla: 'EXPIRED', slaClass: 'bg-error-container text-on-error-container border border-error/20' },
+                    { ref: 'BM-88120', type: t('degree.verification'), requester: 'Standard Chartered', note: 'EMPLOYMENT CHECK', sla: '2H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container border border-secondary/20' },
+                    { ref: 'BM-91223', type: t('enrollment.letter'), requester: 'Home Office (UK)', note: 'VISA EXPEDITE', sla: '4H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container border border-secondary/20' },
                   ].map((row) => (
                     <div 
                       key={row.ref} 
-                      className="p-sm flex flex-col gap-xs hover:bg-secondary-container/10 cursor-pointer"
+                      className="p-md flex flex-col gap-xs hover:bg-surface-container-high transition-colors cursor-pointer"
                       onClick={() => navigate('/staff/requests')}
                     >
                       <div className="flex justify-between items-start">
                         <span className="font-semibold text-primary font-body-md text-nowrap truncate max-w-[180px]">{row.type}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${row.slaClass}`}>{t(row.sla)}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${row.slaClass}`}>{t(row.sla)}</span>
                       </div>
                       <div className="flex justify-between items-center text-label-md text-on-surface-variant">
                         <span className="truncate max-w-[150px]">{row.requester}</span>
                         <span>Ref: {row.ref}</span>
                       </div>
-                      <p className="text-[10px] text-error font-medium">{t(row.note)}</p>
+                      <p className="text-[10px] text-error font-semibold">{t(row.note)}</p>
                     </div>
                   ))
                 ) : (
                   urgentQueue.map((req, i) => (
                     <div 
                       key={req.id || i} 
-                      className="p-sm flex flex-col gap-xs hover:bg-secondary-container/10 cursor-pointer"
+                      className="p-md flex flex-col gap-xs hover:bg-surface-container-high transition-colors cursor-pointer"
                       onClick={() => navigate(`/staff/requests/${req.id}`)}
                     >
                       <div className="flex justify-between items-start">
                         <span className="font-semibold text-primary font-body-md text-nowrap truncate max-w-[180px]">{req.document_type}</span>
-                        <span className="bg-error-container text-on-error-container text-[10px] px-2 py-0.5 rounded font-bold">{t(req.status)}</span>
+                        <span className="bg-error-container text-on-error-container text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-error/20">{t(req.status)}</span>
                       </div>
                       <div className="flex justify-between items-center text-label-md text-on-surface-variant">
                         <span className="truncate max-w-[150px]">{req.student_name}</span>
                         <span>Ref: BM-{req.id}</span>
                       </div>
-                      <p className="text-[10px] text-on-surface-variant uppercase">{t(req.processing_speed)}</p>
+                      <p className="text-[10px] text-on-surface-variant uppercase font-semibold">{t(req.processing_speed)}</p>
                     </div>
                   ))
                 )}
@@ -145,7 +152,7 @@ export default function StaffDashboard() {
               {/* Desktop View: Grid Table */}
               <div className="hidden md:block">
                 {/* Header */}
-                <div className="grid grid-cols-6 bg-surface-container-high px-sm py-base text-label-md text-on-surface-variant font-bold border-b border-outline-variant">
+                <div className="grid grid-cols-6 bg-surface-container px-md py-sm text-label-md text-on-surface-variant font-bold border-b border-outline-variant">
                   <div className="col-span-2">{t('document.type').toUpperCase()}</div>
                   <div className="col-span-2">{t('requester').toUpperCase()}</div>
                   <div>{t('sla.status').toUpperCase()}</div>
@@ -159,32 +166,30 @@ export default function StaffDashboard() {
                 ) : urgentQueue.length === 0 ? (
                   /* Placeholder rows when no API data */
                   [
-                    { ref: 'BM-77291', type: t('official.transcript'), requester: 'Global Alumni Assoc.', note: 'LITIGATION PRIORITY', sla: 'EXPIRED', slaClass: 'bg-error-container text-on-error-container' },
-                    { ref: 'BM-88120', type: t('degree.verification'), requester: 'Standard Chartered', note: 'EMPLOYMENT CHECK', sla: '2H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container' },
-                    { ref: 'BM-91223', type: t('enrollment.letter'), requester: 'Home Office (UK)', note: 'VISA EXPEDITE', sla: '4H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container' },
-                  ].map((row, i) => (
+                    { ref: 'BM-77291', type: t('official.transcript'), requester: 'Global Alumni Assoc.', note: 'LITIGATION PRIORITY', sla: 'EXPIRED', slaClass: 'bg-error-container text-on-error-container border border-error/20' },
+                    { ref: 'BM-88120', type: t('degree.verification'), requester: 'Standard Chartered', note: 'EMPLOYMENT CHECK', sla: '2H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container border border-secondary/20' },
+                    { ref: 'BM-91223', type: t('enrollment.letter'), requester: 'Home Office (UK)', note: 'VISA EXPEDITE', sla: '4H LEFT', slaClass: 'bg-secondary-container text-on-secondary-container border border-secondary/20' },
+                  ].map((row) => (
                     <div
                       key={row.ref}
-                      className="grid grid-cols-6 px-sm py-sm content-stripe items-center transition-colors hover:bg-secondary-container/10 cursor-pointer"
-                      onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
-                      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                      className="grid grid-cols-6 px-md py-md border-b border-outline-variant/10 items-center transition-all hover:bg-surface-container-high hover:translate-x-1 cursor-pointer duration-300 relative group before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:opacity-0 hover:before:opacity-100 before:transition-opacity"
                       onClick={() => navigate('/staff/requests')}
                     >
                       <div className="col-span-2 flex flex-col">
-                        <span className="font-body-md font-semibold">{row.type}</span>
+                        <span className="font-body-md font-semibold text-on-surface">{row.type}</span>
                         <span className="text-label-md text-on-surface-variant">{t('ref')}: {row.ref}</span>
                       </div>
                       <div className="col-span-2">
-                        <p className="font-body-sm">{row.requester}</p>
-                        <p className="text-[10px] text-on-surface-variant">{t(row.note)}</p>
+                        <p className="font-body-sm text-on-surface">{row.requester}</p>
+                        <p className="text-[10px] text-error font-semibold uppercase">{t(row.note)}</p>
                       </div>
                       <div>
-                        <span className={`text-label-md px-2 py-0.5 rounded font-bold ${row.slaClass}`}>{t(row.sla)}</span>
+                        <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${row.slaClass}`}>{t(row.sla)}</span>
                       </div>
                       <div className="text-right">
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate('/staff/requests'); }}
-                          className="material-symbols-outlined text-primary hover:bg-primary/10 rounded-full p-1"
+                          className="material-symbols-outlined text-primary hover:bg-primary/10 rounded-full p-2 active:scale-95 transition-all"
                         >
                           visibility
                         </button>
@@ -192,29 +197,32 @@ export default function StaffDashboard() {
                     </div>
                   ))
                 ) : (
-                  urgentQueue.map((req, i) => (
+                  urgentQueue.map((req) => (
                     <div
-                      key={req.id || i}
-                      className="grid grid-cols-6 px-sm py-sm content-stripe items-center hover:bg-secondary-container/10 cursor-pointer"
+                      key={req.id}
+                      className="grid grid-cols-6 px-md py-md border-b border-outline-variant/10 items-center transition-all hover:bg-surface-container-high hover:translate-x-1 cursor-pointer duration-300 relative group before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary before:opacity-0 hover:before:opacity-100 before:transition-opacity"
                       onClick={() => navigate(`/staff/requests/${req.id}`)}
-                      onMouseEnter={e => e.currentTarget.style.boxShadow = 'inset 4px 0 0 var(--color-primary)'}
-                      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                     >
                       <div className="col-span-2 flex flex-col">
-                        <span className="font-body-md font-semibold">{req.document_type}</span>
+                        <span className="font-body-md font-semibold text-on-surface">{req.document_type}</span>
                         <span className="text-label-md text-on-surface-variant">{t('ref')}: BM-{req.id}</span>
                       </div>
                       <div className="col-span-2">
-                        <p className="font-body-sm">{req.student_name}</p>
-                        <p className="text-[10px] text-on-surface-variant uppercase">{t(req.processing_speed)}</p>
+                        <p className="font-body-sm text-on-surface">{req.student_name}</p>
+                        <p className="text-[10px] text-on-surface-variant uppercase font-semibold">{t(req.processing_speed)}</p>
                       </div>
                       <div>
-                        <span className="bg-error-container text-on-error-container text-label-md px-2 py-0.5 rounded font-bold">
+                        <span className="bg-error-container text-on-error-container text-[11px] px-sm py-1 rounded-full font-semibold border border-error/20">
                           {t(req.status)}
                         </span>
                       </div>
                       <div className="text-right">
-                        <button className="material-symbols-outlined text-primary hover:bg-primary/10 rounded-full p-1">visibility</button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); navigate(`/staff/requests/${req.id}`); }}
+                          className="material-symbols-outlined text-primary hover:bg-primary/10 rounded-full p-2 active:scale-95 transition-all"
+                        >
+                          visibility
+                        </button>
                       </div>
                     </div>
                   ))
@@ -225,11 +233,11 @@ export default function StaffDashboard() {
 
           {/* Right: Insights */}
           <div className="flex flex-col gap-md">
-            <div className="bg-primary text-on-primary rounded-xl p-md relative overflow-hidden">
+            <div className="bg-primary text-on-primary rounded-xl p-md relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <div className="absolute inset-0 bento-texture" style={{ opacity: 0.1 }} />
               <div className="relative z-10">
                 <span className="material-symbols-outlined mb-sm" style={{ fontSize: '32px', opacity: 0.8 }}>analytics</span>
-                <h3 className="font-headline-sm text-headline-sm">{t('quick.actions')}</h3>
+                <h3 className="font-headline-sm text-headline-sm font-bold">{t('quick.actions')}</h3>
                 <div className="flex flex-col gap-sm mt-md">
                   {[
                     { label: t('process.next.queue'), icon: 'arrow_forward', to: '/staff/requests' },
@@ -238,7 +246,7 @@ export default function StaffDashboard() {
                     <button
                       key={action.label}
                       onClick={() => navigate(action.to)}
-                      className="flex items-center justify-between gap-sm bg-on-primary/10 hover:bg-on-primary/20 px-sm py-xs rounded-lg font-label-lg transition-all text-left"
+                      className="flex items-center justify-between gap-sm bg-on-primary/10 hover:bg-on-primary/20 px-md py-sm rounded-xl font-label-lg transition-all text-left font-semibold active:scale-98"
                     >
                       <span>{action.label}</span>
                       <span className="material-symbols-outlined text-sm">{action.icon}</span>
@@ -249,15 +257,15 @@ export default function StaffDashboard() {
             </div>
 
             {/* System Status */}
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-              <h3 className="font-headline-sm text-headline-sm text-primary mb-sm">{t('system.status')}</h3>
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
+              <h3 className="font-headline-sm text-headline-sm text-primary mb-sm font-bold">{t('system.status')}</h3>
               {[
                 { label: t('document.portal'), status: t('online'), ok: true },
                 { label: t('payment.gateway'), status: t('online'), ok: true },
                 { label: t('email.notifications'), status: t('online'), ok: true },
               ].map(s => (
                 <div key={s.label} className="flex justify-between items-center py-xs border-b border-outline-variant/10 last:border-none">
-                  <span className="font-body-sm text-on-surface-variant">{s.label}</span>
+                  <span className="font-body-sm text-on-surface-variant font-medium">{s.label}</span>
                   <span className={`flex items-center gap-xs font-label-md text-label-md ${s.ok ? 'text-secondary' : 'text-error'}`}>
                     <span className={`w-2 h-2 rounded-full ${s.ok ? 'bg-secondary' : 'bg-error'}`} />
                     {s.status}

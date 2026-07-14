@@ -35,18 +35,22 @@ export default function StaffPayments() {
   };
 
   const STATUS_BADGE = {
-    pending: 'bg-surface-container-high text-on-surface-variant',
-    verified: 'bg-secondary-container text-on-secondary-container',
-    rejected: 'bg-error-container text-on-error-container',
+    pending: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-500/20',
+    verified: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-500/20',
+    rejected: 'bg-error-container text-on-error-container border border-error/20',
   };
+
+  const pendingCount = payments.filter(p => p.payment_status !== 'verified').length;
+  const verifiedCount = payments.filter(p => p.payment_status === 'verified').length;
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
       <StaffSidebar variant="staff" />
 
-      <StaffHeader />
+      <StaffHeader title="pending.payments.queue" />
 
       <main className="md:ml-80 pt-24 pb-24 px-sm md:px-gutter max-w-container-max">
+        {/* Title Header */}
         <div className="mb-lg">
           <h2 className="font-headline-lg text-headline-lg text-primary">{t('pending.payments.queue')}</h2>
           <p className="font-body-md text-on-surface-variant mt-xs">
@@ -54,17 +58,43 @@ export default function StaffPayments() {
           </p>
         </div>
 
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-md mb-lg max-w-3xl">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex items-center gap-md shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[28px]">pending</span>
+            </div>
+            <div>
+              <p className="text-label-md text-on-surface-variant font-medium">{t('pending.verification') || 'Pending Verification'}</p>
+              <p className="text-headline-md font-headline-md text-on-surface font-bold">
+                {loading ? '...' : pendingCount}
+              </p>
+            </div>
+          </div>
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex items-center gap-md shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[28px]">check_circle</span>
+            </div>
+            <div>
+              <p className="text-label-md text-on-surface-variant font-medium">{t('verified') || 'Verified Payments'}</p>
+              <p className="text-headline-md font-headline-md text-on-surface font-bold">
+                {loading ? '...' : verifiedCount}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-xl">
             <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '40px' }}>sync</span>
           </div>
         ) : payments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-xl gap-md text-on-surface-variant">
+          <div className="flex flex-col items-center justify-center py-xl gap-md text-on-surface-variant bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm">
             <span className="material-symbols-outlined" style={{ fontSize: '64px', opacity: 0.3 }}>payments</span>
-            <p className="font-body-lg text-body-lg">{t('no.pending.payments')}</p>
+            <p className="font-body-lg text-body-lg font-semibold">{t('no.pending.payments')}</p>
           </div>
         ) : (
-          <div className="bg-surface-container-lowest border border-outline-variant/30 overflow-hidden rounded-xl shadow-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 overflow-hidden rounded-xl shadow-sm">
             {/* Mobile View: Card List */}
             <div className="block md:hidden divide-y divide-outline-variant/10">
               {payments.map((p, i) => (
@@ -74,7 +104,7 @@ export default function StaffPayments() {
                       <p className="font-label-lg text-on-surface font-bold">{p.parent_name || p.student_name || '—'}</p>
                       <p className="font-body-sm text-on-surface-variant">Req: BM-{p.request_id || p.id}</p>
                     </div>
-                    <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${STATUS_BADGE[p.payment_status] || STATUS_BADGE.pending}`}>
+                    <span className={`text-[11px] px-sm py-1 rounded-full font-semibold capitalize border ${STATUS_BADGE[p.payment_status] || STATUS_BADGE.pending}`}>
                       {t(p.payment_status || 'pending')}
                     </span>
                   </div>
@@ -112,13 +142,13 @@ export default function StaffPayments() {
                       <button
                         onClick={() => verifyPayment(p.id)}
                         disabled={p.payment_status === 'verified'}
-                        className="inline-flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-lg rounded hover:opacity-90 disabled:opacity-30"
+                        className="flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary-container disabled:opacity-40 transition-all font-semibold active:scale-95"
                       >
                         <span className="material-symbols-outlined text-sm">check_circle</span> {t('verify')}
                       </button>
                       <button
                         onClick={() => handleViewReceipt(p)}
-                        className="inline-flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container font-label-lg rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all"
+                        className="flex items-center gap-xs px-md py-sm bg-surface-container-high text-primary font-label-md rounded-xl border border-outline-variant/30 hover:bg-surface-container-highest active:scale-95 transition-all font-semibold"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span> {t('view.receipt')}
                       </button>
@@ -133,29 +163,29 @@ export default function StaffPayments() {
               <thead>
                 <tr className="bg-surface-container border-b border-outline-variant">
                   {[t('submitted'), t('requester'), t('amount'), t('ref'), t('receipt') || 'Receipt', t('status'), t('actions')].map((h, i) => (
-                    <th key={h} className={`px-sm py-md font-label-lg text-label-lg uppercase tracking-wider ${i === 6 ? 'text-right' : ''}`}>{h}</th>
+                    <th key={h} className={`px-md py-md font-label-lg text-label-lg uppercase tracking-wider ${i === 6 ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
                 {payments.map((p, i) => (
                   <tr key={p.id || i} className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-sm py-md font-body-sm text-on-surface-variant">
+                    <td className="px-md py-md font-body-sm text-on-surface-variant">
                       {p.created_at ? new Date(p.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                     </td>
-                    <td className="px-sm py-md">
+                    <td className="px-md py-md">
                       <p className="font-label-lg text-on-surface font-bold">{p.parent_name || p.student_name || '—'}</p>
                       <p className="font-body-sm text-on-surface-variant">Req: BM-{p.request_id || p.id}</p>
                     </td>
-                    <td className="px-sm py-md font-body-md text-on-surface font-semibold">
+                    <td className="px-md py-md font-body-md text-on-surface font-semibold">
                       {p.amount ? `BZD $${Number(p.amount).toFixed(2)}` : '—'}
                     </td>
-                    <td className="px-sm py-md font-mono text-body-sm text-on-surface-variant">
+                    <td className="px-md py-md font-mono text-body-sm text-on-surface-variant">
                       {p.reference || '—'}
                     </td>
-                    <td className="px-sm py-md">
+                    <td className="px-md py-md">
                       {p.receipt_image_path ? (
-                        <div className="w-12 h-12 border border-outline-variant/30 rounded overflow-hidden cursor-pointer hover:border-primary transition-all bg-surface-container-low flex items-center justify-center">
+                        <div className="w-12 h-12 border border-outline-variant/30 rounded-lg overflow-hidden cursor-pointer hover:border-primary transition-all bg-surface-container-low flex items-center justify-center">
                           {p.receipt_image_path.toLowerCase().endsWith('.pdf') ? (
                             <span className="material-symbols-outlined text-[32px] text-on-surface-variant h-full flex items-center justify-center">picture_as_pdf</span>
                           ) : (
@@ -171,27 +201,29 @@ export default function StaffPayments() {
                         <span className="text-on-surface-variant">—</span>
                       )}
                     </td>
-                    <td className="px-sm py-md">
-                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${STATUS_BADGE[p.payment_status] || STATUS_BADGE.pending}`}>
+                    <td className="px-md py-md">
+                      <span className={`text-[11px] px-sm py-1 rounded-full font-semibold capitalize border ${STATUS_BADGE[p.payment_status] || STATUS_BADGE.pending}`}>
                         {t(p.payment_status || 'pending')}
                       </span>
                     </td>
-                    <td className="px-sm py-md text-right">
-                      <div className="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-md py-md text-right">
+                      <div className="flex justify-end gap-xs">
                         <button
                           onClick={() => verifyPayment(p.id)}
                           disabled={p.payment_status === 'verified'}
-                          className="p-2 hover:text-primary transition-colors disabled:opacity-30"
+                          className="flex items-center gap-xs px-sm py-1.5 bg-primary text-on-primary rounded-xl font-label-md shadow-sm hover:bg-primary-container disabled:opacity-40 transition-all font-semibold active:scale-95 disabled:pointer-events-none"
                           title={t('verify.payment')}
                         >
-                          <span className="material-symbols-outlined">check_circle</span>
+                          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                          {t('verify')}
                         </button>
                         <button 
                           onClick={() => handleViewReceipt(p)}
-                          className="p-2 hover:text-primary transition-colors" 
+                          className="flex items-center gap-xs px-sm py-1.5 bg-surface-container-high text-primary rounded-xl font-label-md border border-outline-variant/30 hover:bg-surface-container-highest transition-all font-semibold active:scale-95" 
                           title={t('view.receipt')}
                         >
-                          <span className="material-symbols-outlined">visibility</span>
+                          <span className="material-symbols-outlined text-[16px]">visibility</span>
+                          {t('view')}
                         </button>
                       </div>
                     </td>
