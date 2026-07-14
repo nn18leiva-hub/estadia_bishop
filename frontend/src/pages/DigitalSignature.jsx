@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import { getIdFile, clearIdFile } from '../services/fileStore';
 
 export default function DigitalSignature() {
   const navigate = useNavigate();
@@ -25,8 +26,10 @@ export default function DigitalSignature() {
 
   const { user } = useAuth();
 
-  // Form data passed from NewRequest
-  const { requestData, fee, docLabel, idFile } = location.state || {};
+  // Form data passed from NewRequest via location state + the idFile via fileStore
+  // (File objects cannot be serialized through React Router's History API)
+  const { requestData, fee, docLabel } = location.state || {};
+  const idFile = getIdFile();
   const isForm = requestData?.document_type_name === 'lateness_form' || requestData?.document_type_name === 'absence_form';
 
   // Pre-fill typed name from the parent account name so the parent doesn't have to retype
@@ -161,9 +164,10 @@ export default function DigitalSignature() {
         });
       }
 
-      // Attach ID image file
+      // Attach ID image file from fileStore (cleared immediately after attaching)
       if (idFile) {
         formData.append('id_image', idFile);
+        clearIdFile();
       }
 
       const data = await apiFetch('/requests/create', {

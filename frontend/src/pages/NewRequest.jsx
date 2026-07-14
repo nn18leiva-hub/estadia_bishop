@@ -6,6 +6,7 @@ import Stepper from '../components/Stepper';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { setIdFile as storeIdFile } from '../services/fileStore';
 
 /* ── Document Types ─────────────────────────────── */
 const DOCUMENT_TYPES = [
@@ -276,8 +277,15 @@ export default function NewRequest() {
       form_data: JSON.stringify(customFormData),
     };
     navigate('/dashboard/parents/sign', {
-      state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey), idFile }
+      state: { requestData: body, fee: totalFee, docLabel: t(doc?.labelKey) }
     });
+  };
+
+  // Store idFile in the module-level store before navigating (File objects cannot
+  // survive serialization through React Router's History API state).
+  const safeNavigateToSign = () => {
+    storeIdFile(idFile);
+    handleNavigateToSign();
   };
 
   return (
@@ -968,7 +976,7 @@ export default function NewRequest() {
             </button>
           ) : (
             <button
-              onClick={handleNavigateToSign}
+              onClick={safeNavigateToSign}
               className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all font-semibold"
             >
               {t('submit.request')} <span className="material-symbols-outlined">draw</span>

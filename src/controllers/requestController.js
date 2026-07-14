@@ -94,7 +94,7 @@ const createRequest = async (req, res) => {
              (parent_id, id_image_path, id_verified, student_full_name, student_graduation_year_or_years_attended,
               document_type_id, form_data, generated_file_path, delivery_method,
               processing_speed, recipient_email, fee, notes, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
             [
                 parentId,
                 idFile.path,
@@ -102,7 +102,7 @@ const createRequest = async (req, res) => {
                 student_full_name,
                 student_graduation_year_or_years_attended || null,
                 documentType.document_type_id,
-                form_data ? JSON.stringify(form_data) : null,
+                form_data ? (typeof form_data === 'string' ? JSON.parse(form_data) : form_data) : null,
                 generated_file_path,
                 normalizedDelivery,
                 processing_speed || 'standard',
