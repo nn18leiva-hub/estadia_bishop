@@ -955,33 +955,35 @@ export default function NewRequest() {
           </section>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="flex items-center justify-between mt-lg max-w-3xl">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-xs text-primary hover:opacity-80 font-label-lg text-label-lg px-md py-sm rounded-lg hover:bg-surface-container-high transition-all"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-            {step === 1 ? t('cancel') : t('back')}
-          </button>
+        {/* Sticky/Floating Navigation Buttons Bar */}
+        <div className="sticky bottom-20 md:bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/90 backdrop-blur-md border-t border-outline-variant/20 py-md px-md shadow-lg -mx-sm md:-mx-gutter mt-xl">
+          <div className="flex items-center justify-between w-full max-w-3xl mx-auto">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-xs text-primary hover:opacity-80 font-label-lg text-label-lg px-md py-sm rounded-lg hover:bg-surface-container-high transition-all"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+              {step === 1 ? t('cancel') : t('back')}
+            </button>
 
-          {step < 5 ? (
-            <button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-40 transition-all font-semibold"
-            >
-              {t('continue')}
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </button>
-          ) : (
-            <button
-              onClick={safeNavigateToSign}
-              className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all font-semibold"
-            >
-              {t('submit.request')} <span className="material-symbols-outlined">draw</span>
-            </button>
-          )}
+            {step < 5 ? (
+              <button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-40 transition-all font-semibold"
+              >
+                {t('continue')}
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            ) : (
+              <button
+                onClick={safeNavigateToSign}
+                className="flex items-center gap-xs bg-primary text-on-primary px-lg py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container transition-all font-semibold"
+              >
+                {t('submit.request')} <span className="material-symbols-outlined">draw</span>
+              </button>
+            )}
+          </div>
         </div>
       </main>
 
