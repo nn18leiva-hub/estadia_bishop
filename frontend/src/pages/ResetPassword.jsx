@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { apiFetch } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
+  const [email, setEmail] = useState(location.state?.email || '');
+  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,12 +22,11 @@ export default function ResetPassword() {
     setLoading(true);
     setError('');
     try {
-      const token = new URLSearchParams(window.location.search).get('token');
       await apiFetch('/auth/reset-password', {
         method: 'POST',
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ email, token: code, newPassword: password }),
       });
-      navigate('/login', { state: { message: t('permissions.success.msg') } });
+      navigate('/login', { state: { message: t('permissions.success.msg') || 'Password reset successfully!' } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -92,6 +94,25 @@ export default function ResetPassword() {
                 </div>
               )}
               <form onSubmit={handleSubmit} className="w-full flex flex-col gap-md text-left">
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('email.address') || 'Email Address'}</label>
+                  <input
+                    type="email" required
+                    value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="guardian@example.com"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md w-full disabled:opacity-60"
+                    disabled={!!location.state?.email}
+                  />
+                </div>
+                <div className="flex flex-col gap-xs">
+                  <label className="font-label-lg text-label-lg text-on-surface">{t('verification.code') || 'Verification Code (6 Digits)'}</label>
+                  <input
+                    type="text" required maxLength={6} pattern="\d{6}"
+                    value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md w-full tracking-widest text-center text-lg font-bold"
+                  />
+                </div>
                 <div className="flex flex-col gap-xs">
                   <label className="font-label-lg text-label-lg text-on-surface">{t('new.password')}</label>
                   <input

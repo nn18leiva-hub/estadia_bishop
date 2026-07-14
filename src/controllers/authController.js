@@ -118,29 +118,31 @@ const forgotPassword = async (req, res) => {
 
         // Always return success even if email doesn't exist to prevent email scraping
         if (userCheck.rows.length === 0) {
-            return res.json({ message: 'If that email exists in our system, a password reset link has been sent.' });
+            return res.json({ message: 'If that email exists in our system, a verification code has been sent.' });
         }
 
-        // Generate 64-char token (hex is 2 chars per byte, so 32 bytes = 64 chars)
-        const resetToken = crypto.randomBytes(32).toString('hex');
+        // Generate a 6-digit random number as a string securely
+        const min = 100000;
+        const max = 999999;
+        const resetCode = crypto.randomInt(min, max + 1).toString();
         
-        // Expiration: 1 hour from now
+        // Expiration: 15 minutes from now
         const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 1);
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
         // Store in DB
         await db.query(
             'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
-            [email, resetToken, expiresAt]
+            [email, resetCode, expiresAt]
         );
 
         // Send Email
-        const emailSent = await sendPasswordResetEmail(email, resetToken);
+        const emailSent = await sendPasswordResetEmail(email, resetCode);
         if (!emailSent) {
             return res.status(500).json({ message: 'Failed to dispatch email service.' });
         }
 
-        res.json({ message: 'If that email exists in our system, a password reset link has been sent.' });
+        res.json({ message: 'If that email exists in our system, a verification code has been sent.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error processing password reset request.' });
@@ -149,20 +151,21 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
-        if (!token || !newPassword) return res.status(400).json({ message: 'Token and new password required.' });
+        const { email, token, newPassword } = req.body;
+        if (!email || !token || !newPassword) {
+            return res.status(400).json({ message: 'Email, code, and new password are required.' });
+        }
 
-        // Retrieve valid token
+        // Retrieve valid token for this specific email
         const tokenRes = await db.query(
-            'SELECT email FROM password_resets WHERE token = $1 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
-            [token]
+            'SELECT email FROM password_resets WHERE email = $1 AND token = $2 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+            [email, token]
         );
 
         if (tokenRes.rows.length === 0) {
-            return res.status(400).json({ message: 'Invalid or expired password reset token.' });
+            return res.status(400).json({ message: 'Invalid or expired verification code.' });
         }
 
-        const email = tokenRes.rows[0].email;
         const password_hash = await bcrypt.hash(newPassword, 10);
 
         // Update the password in parents table OR staff table

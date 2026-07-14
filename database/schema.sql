@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS staff CASCADE;
 DROP TABLE IF EXISTS document_requests CASCADE;
 DROP TABLE IF EXISTS document_types CASCADE;
 DROP TABLE IF EXISTS parents CASCADE;
+DROP TABLE IF EXISTS password_resets CASCADE;
 
 CREATE TABLE parents (
     parent_id SERIAL PRIMARY KEY,
@@ -85,5 +86,13 @@ CREATE TABLE notifications (
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE password_resets (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

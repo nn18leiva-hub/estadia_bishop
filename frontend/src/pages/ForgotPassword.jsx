@@ -22,7 +22,7 @@ export default function ForgotPassword() {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
-      setSent(true);
+      navigate('/reset-password', { state: { email } });
     } catch (err) {
       setError(err.message);
     } finally {

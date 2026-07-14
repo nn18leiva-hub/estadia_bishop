@@ -64,7 +64,37 @@ async function checkAllWorkflows() {
             body: JSON.stringify({ email: parentEmail, password: 'password123' })
         });
         const loginData = await assertCondition(res, 200, "Parent Login");
-        const parentToken = loginData.token;
+        let parentToken = loginData.token;
+
+        // 2b. Parent requests password reset code
+        res = await fetch(`${baseURL}/api/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: parentEmail })
+        });
+        await assertCondition(res, 200, "Parent requests password reset code");
+
+        // Fetch the generated 6-digit code from database to simulate reading the email
+        const codeResult = await db.query('SELECT token FROM password_resets WHERE email = $1 ORDER BY created_at DESC LIMIT 1', [parentEmail]);
+        const resetCode = codeResult.rows[0]?.token;
+        if (!resetCode) throw new Error("Reset code was not saved in database.");
+
+        // 2c. Parent resets password with 6-digit code
+        res = await fetch(`${baseURL}/api/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: parentEmail, token: resetCode, newPassword: 'newpassword123' })
+        });
+        await assertCondition(res, 200, "Parent resets password with 6-digit code");
+
+        // 2d. Parent logs in with new password
+        res = await fetch(`${baseURL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: parentEmail, password: 'newpassword123' })
+        });
+        const newLoginData = await assertCondition(res, 200, "Parent logs in with new password");
+        parentToken = newLoginData.token;
 
         // 3. Parent Submits Enrolment Letter with ID image (Requires payment, no signature)
         let fd = new FormData();

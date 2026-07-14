@@ -27,26 +27,23 @@ const initEmailService = async () => {
 };
 
 /**
- * Sends a password reset email containing the secure token URL
+ * Sends a password reset email containing the 6-digit verification code
  */
-const sendPasswordResetEmail = async (userEmail, resetToken) => {
+const sendPasswordResetEmail = async (userEmail, resetCode) => {
     if (!transporter) await initEmailService();
-
-    // Link must point to frontend port
-    const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
 
     const mailOptions = {
         from: '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>',
         to: userEmail,
-        subject: "🔒 BMHS Portal Password Reset Request",
+        subject: "🔒 BMHS Portal Password Reset Verification Code",
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <h2 style="color: #4f46e5;">Password Reset Authorization</h2>
+                <h2 style="color: #4f46e5;">Password Reset Code</h2>
                 <p>Hello,</p>
-                <p>A password reset event was triggered for your Bishop Martin Parent Portal account.</p>
-                <p>Please click the secure link below to reset your credentials. This link will safely expire in 1 Hour.</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Secure Password Reset</a>
+                <p>We received a request to reset the password for your Bishop Martin Portal account.</p>
+                <p>To authorize this action, please enter the following 6-digit authorization code on your screen. This code will expire in 15 minutes.</p>
+                <div style="text-align: center; margin: 30px 0; background-color: #f1f5f9; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e293b;">${resetCode}</span>
                 </div>
                 <p style="color: #64748b; font-size: 14px;">If you did not request this, you may safely ignore this email.</p>
             </div>
@@ -56,7 +53,7 @@ const sendPasswordResetEmail = async (userEmail, resetToken) => {
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log("-----------------------------------------");
-        console.log("Message sent to: %s", info.messageId);
+        console.log("Password Reset Code sent to: %s", info.messageId);
         // This is crucial: ethereal provides a URL to visibly SEE the generated email in browser!
         console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
         console.log("-----------------------------------------");
