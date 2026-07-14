@@ -243,20 +243,12 @@ export default function RequestDetail() {
                   <div>
                     <h3 className="font-headline-sm text-headline-sm text-amber-800 dark:text-amber-300 font-semibold">{t('pending.verification') || 'Pending Identity Verification'}</h3>
                     <p className="font-body-sm text-on-surface-variant mt-xs">
-                      {user?.ssn_card_image_path
+                      {req.id_image_path
                         ? t('ver.submitted.desc') || 'Your identity document has been received and is pending review. Once verified, this request will automatically proceed to processing.'
-                        : t('id.ver.desc') || 'This request is paused because your identity has not been verified yet. Please upload your SSN or ID document to proceed.'}
+                        : t('id.ver.desc') || 'This request is paused because your identity document has not been verified yet. Please contact the registrar.'}
                     </p>
                   </div>
                 </div>
-                {!user?.ssn_card_image_path && (
-                  <button
-                    onClick={() => navigate('/dashboard/parents/upload-ssn')}
-                    className="bg-primary text-on-primary hover:brightness-110 px-md py-xs rounded-lg font-label-lg w-fit font-bold"
-                  >
-                    {t('upload.id.doc') || 'Upload ID Document'}
-                  </button>
-                )}
               </div>
             )}
 

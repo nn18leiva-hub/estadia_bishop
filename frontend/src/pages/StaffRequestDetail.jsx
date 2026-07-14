@@ -219,7 +219,7 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Identity Verification Card */}
-              {req.ssn_card_image_path && (
+              {req.id_image_path && (
                 <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
                   <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs">
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
@@ -258,7 +258,7 @@ export default function StaffRequestDetail() {
 
                     <div className="mt-md flex flex-col gap-sm">
                       <a
-                        href={`/${req.ssn_card_image_path}`}
+                        href={`/${req.id_image_path}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full bg-secondary-container text-on-secondary-container py-xs rounded-lg font-label-lg hover:opacity-90 flex items-center justify-center gap-sm transition-all"
@@ -269,18 +269,18 @@ export default function StaffRequestDetail() {
                       
                       {/* Inline ID Preview */}
                       <div className="w-full h-40 border border-outline-variant/20 rounded-lg overflow-hidden relative bg-surface-container-low">
-                        {req.ssn_card_image_path.toLowerCase().endsWith('.pdf') ? (
+                        {req.id_image_path.toLowerCase().endsWith('.pdf') ? (
                           <iframe
-                            src={`/${req.ssn_card_image_path}#toolbar=0`}
+                            src={`/${req.id_image_path}#toolbar=0`}
                             title="ID Preview"
                             className="w-full h-full border-none"
                           />
                         ) : (
                           <img
-                            src={`/${req.ssn_card_image_path}`}
+                            src={`/${req.id_image_path}`}
                             alt="ID Preview"
                             className="w-full h-full object-contain cursor-pointer"
-                            onClick={() => window.open(`/${req.ssn_card_image_path}`, '_blank')}
+                            onClick={() => window.open(`/${req.id_image_path}`, '_blank')}
                           />
                         )}
                       </div>

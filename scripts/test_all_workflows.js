@@ -66,27 +66,18 @@ async function checkAllWorkflows() {
         const loginData = await assertCondition(res, 200, "Parent Login");
         const parentToken = loginData.token;
 
-        // 3. Parent Uploads SSN
+        // 3. Parent Submits Enrolment Letter with ID image (Requires payment, no signature)
         let fd = new FormData();
-        fd.append('ssn_image', imageBlob, 'ssn.png');
-        res = await fetch(`${baseURL}/api/parent/upload-ssn-card`, {
+        fd.append('document_type_id', 4); // enrolment_letter
+        fd.append('student_full_name', 'Child One');
+        fd.append('delivery_method', 'pickup');
+        fd.append('id_image', imageBlob, 'id_card.png');
+        res = await fetch(`${baseURL}/api/requests/create`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${parentToken}` },
             body: fd
         });
-        let uploadSsnData = await assertCondition(res, 200, "Parent Uploads SSN Card");
-
-        // 5. Parent Submits Enrolment Letter (Requires payment, no signature)
-        res = await fetch(`${baseURL}/api/requests/create`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${parentToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                document_type_id: 4, // enrolment_letter
-                student_full_name: 'Child One',
-                delivery_method: 'pickup'
-            })
-        });
-        const enrolmentData = await assertCondition(res, [200, 201], "Parent creates Enrolment Letter");
+        const enrolmentData = await assertCondition(res, [200, 201], "Parent creates Enrolment Letter with ID");
         const absenceReqId = enrolmentData?.request?.request_id || enrolmentData?.request_id;
         
         console.log("\n--- PHASE 3: STAFF & ADMIN PROCESSING ---");

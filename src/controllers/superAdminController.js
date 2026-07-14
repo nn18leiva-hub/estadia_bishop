@@ -108,7 +108,7 @@ const deleteStaffUser = async (req, res) => {
 const getAllPublicUsers = async (req, res) => {
     try {
         const result = await db.query(`
-            SELECT parent_id as id, full_name, email, phone, user_type, verified, ssn_card_image_path, dob, created_at 
+            SELECT parent_id as id, full_name, email, phone, user_type, verified, dob, created_at 
             FROM parents
             ORDER BY created_at DESC
         `);

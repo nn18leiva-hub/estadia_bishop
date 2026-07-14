@@ -1,11 +1,11 @@
 const db = require('../src/config/db');
 
 async function checkDb() {
-  const parents = await db.query('SELECT parent_id, email, verified, ssn_card_image_path FROM parents ORDER BY created_at DESC LIMIT 10');
+  const parents = await db.query('SELECT parent_id, email, verified, user_type FROM parents ORDER BY created_at DESC LIMIT 10');
   console.log('=== Recent Parents ===');
   console.log(JSON.stringify(parents.rows, null, 2));
 
-  const requests = await db.query('SELECT r.request_id, r.status, r.document_type_id, r.parent_id, p.email, r.student_full_name FROM document_requests r JOIN parents p ON p.parent_id = r.parent_id ORDER BY r.request_date DESC LIMIT 10');
+  const requests = await db.query('SELECT r.request_id, r.status, r.id_verified, r.id_image_path, r.document_type_id, r.parent_id, p.email, r.student_full_name FROM document_requests r JOIN parents p ON p.parent_id = r.parent_id ORDER BY r.request_date DESC LIMIT 10');
   console.log('\n=== Recent Requests ===');
   console.log(JSON.stringify(requests.rows, null, 2));
 

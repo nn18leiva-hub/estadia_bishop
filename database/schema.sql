@@ -14,7 +14,6 @@ CREATE TABLE parents (
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(50),
     password_hash VARCHAR(255) NOT NULL,
-    ssn_card_image_path TEXT,
     profile_picture_path TEXT,
     verified BOOLEAN DEFAULT FALSE,
     user_type VARCHAR(50) DEFAULT 'parent' CHECK (user_type IN ('parent', 'past_student')),

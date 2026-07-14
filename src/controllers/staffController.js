@@ -105,7 +105,7 @@ const getAllRequests = async (req, res) => {
                     p.full_name as parent_name, 
                     p.email as parent_email, 
                     dr.id_verified as parent_verified, 
-                    dr.id_image_path as ssn_card_image_path,
+                    dr.id_image_path,
                     dt.name as document_type_name,
                     dt.requires_payment,
                     pmt.payment_id,
@@ -137,7 +137,7 @@ const getRequestById = async (req, res) => {
                 p.email as parent_email, 
                 p.phone as parent_phone,
                 dr.id_verified as parent_verified, 
-                dr.id_image_path as ssn_card_image_path,
+                dr.id_image_path,
                 dt.name as document_type_name,
                 dt.requires_payment,
                 pmt.payment_id,
@@ -463,7 +463,7 @@ const getVerifications = async (req, res) => {
                 p.full_name as name,
                 p.email,
                 dr.request_date as created_at,
-                dr.id_image_path as ssn_card_image_path,
+                dr.id_image_path,
                 CASE WHEN dr.id_verified = TRUE THEN 'approved' ELSE 'pending' END as status,
                 dt.name as doc_type
             FROM document_requests dr

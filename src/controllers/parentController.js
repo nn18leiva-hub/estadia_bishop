@@ -41,7 +41,7 @@ const updateProfile = async (req, res) => {
 const getProfile = async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT parent_id, full_name, email, phone, ssn_card_image_path, profile_picture_path, verified, user_type, created_at FROM parents WHERE parent_id = $1',
+            'SELECT parent_id, full_name, email, phone, profile_picture_path, verified, user_type, created_at FROM parents WHERE parent_id = $1',
             [req.user.id]
         );
 
