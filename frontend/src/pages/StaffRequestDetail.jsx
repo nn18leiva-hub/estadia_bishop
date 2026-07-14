@@ -199,7 +199,7 @@ export default function StaffRequestDetail() {
               {/* Details */}
               <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-sm font-bold">{t('request.details')}</h3>
-                <div className="grid grid-cols-2 gap-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
                   {[
                     { label: t('ref'), value: `BM-${req.id}` },
                     { label: t('document.type'), value: translateDocType(req.document_type) },
@@ -210,9 +210,9 @@ export default function StaffRequestDetail() {
                     { label: t('status'), value: getStatusLabel(req.status) },
                     { label: t('recipient'), value: req.recipient_email || t('physical.pickup') },
                   ].map(item => (
-                    <div key={item.label}>
-                      <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">{item.label}</p>
-                      <p className="font-body-md text-on-surface capitalize font-semibold">{item.value || '—'}</p>
+                    <div key={item.label} className="min-w-0 break-words">
+                      <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">{item.label}</p>
+                      <p className="text-sm text-on-surface capitalize font-semibold text-wrap break-words">{item.value || '—'}</p>
                     </div>
                   ))}
                 </div>
@@ -226,10 +226,10 @@ export default function StaffRequestDetail() {
                     {t('identity.verification') || 'Identity Verification'}
                   </h3>
                   <div className="flex flex-col gap-xs">
-                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-xs border-b border-outline-variant/10 gap-1">
                       <p className="font-body-sm text-on-surface-variant font-medium">{t('status') || 'Status'}</p>
-                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize ${
-                        req.parent_verified ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-500/20' : 'bg-amber-100 text-amber-800'
+                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize border self-start sm:self-auto ${
+                        req.parent_verified ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-500/20' : 'bg-amber-100 text-amber-800 border-amber-500/20'
                       }`}>
                         {req.parent_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Review'}
                       </span>
@@ -297,9 +297,9 @@ export default function StaffRequestDetail() {
                     {t('payment.summary') || 'Payment Summary'}
                   </h3>
                   <div className="flex flex-col gap-xs">
-                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-xs border-b border-outline-variant/10 gap-1">
                       <p className="font-body-sm text-on-surface-variant font-medium">{t('status') || 'Status'}</p>
-                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize border ${
+                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize border self-start sm:self-auto ${
                         req.payment_verified 
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-500/20' 
                           : 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-500/20'
@@ -307,11 +307,11 @@ export default function StaffRequestDetail() {
                         {req.payment_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Verification'}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-xs border-b border-outline-variant/10 gap-1">
                       <p className="font-body-sm text-on-surface-variant font-medium">{t('ref') || 'Reference'}</p>
-                      <p className="font-mono text-body-sm text-on-surface font-semibold">{req.transfer_reference || '—'}</p>
+                      <p className="font-mono text-body-sm text-on-surface font-semibold break-all">{req.transfer_reference || '—'}</p>
                     </div>
-                    <div className="flex justify-between items-center py-xs border-b border-outline-variant/10">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-xs border-b border-outline-variant/10 gap-1">
                       <p className="font-body-sm text-on-surface-variant font-medium">{t('date') || 'Date'}</p>
                       <p className="font-body-md text-on-surface font-semibold">
                         {req.payment_date ? new Date(req.payment_date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-BZ', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
