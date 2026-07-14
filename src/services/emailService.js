@@ -8,19 +8,32 @@ let transporter;
  */
 const initEmailService = async () => {
     try {
-        // Generate a fake testing account
-        const testAccount = await nodemailer.createTestAccount();
+        if (process.env.SMTP_HOST) {
+            transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT || '587', 10),
+                secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS,
+                },
+            });
+            console.log('✅ Real SMTP Email Service initialized.');
+        } else {
+            // Generate a fake testing account
+            const testAccount = await nodemailer.createTestAccount();
 
-        transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: testAccount.user, // generated ethereal user
-                pass: testAccount.pass, // generated ethereal password
-            },
-        });
-        console.log('✅ Ethereal Email Service initialized for Development.');
+            transporter = nodemailer.createTransport({
+                host: "smtp.ethereal.email",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: testAccount.user, // generated ethereal user
+                    pass: testAccount.pass, // generated ethereal password
+                },
+            });
+            console.log('✅ Ethereal Email Service initialized for Development.');
+        }
     } catch (err) {
         console.error('❌ Failed to initialize Email Service:', err);
     }
@@ -32,8 +45,9 @@ const initEmailService = async () => {
 const sendPasswordResetEmail = async (userEmail, resetCode) => {
     if (!transporter) await initEmailService();
 
+    const fromAddress = process.env.SMTP_FROM || '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>';
     const mailOptions = {
-        from: '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>',
+        from: fromAddress,
         to: userEmail,
         subject: "🔒 BMHS Portal Password Reset Verification Code",
         html: `
@@ -54,8 +68,10 @@ const sendPasswordResetEmail = async (userEmail, resetCode) => {
         const info = await transporter.sendMail(mailOptions);
         console.log("-----------------------------------------");
         console.log("Password Reset Code sent to: %s", info.messageId);
-        // This is crucial: ethereal provides a URL to visibly SEE the generated email in browser!
-        console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
+        if (!process.env.SMTP_HOST) {
+            // Ethereal provides a URL to visibly SEE the generated email in browser
+            console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
+        }
         console.log("-----------------------------------------");
         return true;
     } catch (error) {
@@ -67,8 +83,9 @@ const sendPasswordResetEmail = async (userEmail, resetCode) => {
 const sendProfileVerificationCode = async (userEmail, sixDigitCode) => {
     if (!transporter) await initEmailService();
 
+    const fromAddress = process.env.SMTP_FROM || '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>';
     const mailOptions = {
-        from: '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>',
+        from: fromAddress,
         to: userEmail,
         subject: "🔑 BMHS Portal Profile Verification Code",
         html: `
@@ -89,7 +106,9 @@ const sendProfileVerificationCode = async (userEmail, sixDigitCode) => {
         const info = await transporter.sendMail(mailOptions);
         console.log("-----------------------------------------");
         console.log("Verification Code sent to: %s", info.messageId);
-        console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
+        if (!process.env.SMTP_HOST) {
+            console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
+        }
         console.log("-----------------------------------------");
         return true;
     } catch (error) {
