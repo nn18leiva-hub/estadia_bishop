@@ -1,4 +1,6 @@
 const db = require('../config/db');
+const { createNotification } = require('../services/notificationService');
+
 
 const getProfile = async (req, res) => {
     try {
@@ -301,6 +303,29 @@ const updateRequestStatusById = async (req, res) => {
             return res.status(404).json({ message: 'Request not found.' });
         }
 
+        // Send parent notification on status update
+        const parentId = updated.rows[0].parent_id;
+        const currentStatus = updated.rows[0].status;
+        
+        let statusTitle = 'Request Status Updated';
+        let statusMsg = `Your document request BM-${id} status has been updated to "${currentStatus}".`;
+
+        if (currentStatus === 'ready_for_pickup') {
+            statusTitle = 'Document Ready for Pickup';
+            statusMsg = `Your document request BM-${id} is now ready for pickup. Please visit the registrar's office to collect it.`;
+        } else if (currentStatus === 'completed') {
+            statusTitle = 'Document Request Completed';
+            statusMsg = `Your document request BM-${id} has been successfully completed.`;
+        } else if (currentStatus === 'denied') {
+            statusTitle = 'Document Request Denied';
+            statusMsg = `Your document request BM-${id} has been denied. Please check portal details or contact the registrar.`;
+        } else if (currentStatus === 'processing') {
+            statusTitle = 'Request In Progress';
+            statusMsg = `Your document request BM-${id} is now being processed by the administrative office.`;
+        }
+
+        await createNotification(parentId, statusTitle, statusMsg);
+
         res.json({ message: 'Status updated successfully.', request: updated.rows[0] });
     } catch (err) {
         console.error(err);
@@ -385,6 +410,12 @@ const verifyPaymentById = async (req, res) => {
                 const parentVerified = parentRes.rows[0]?.verified;
                 const newStatus = parentVerified ? 'processing' : 'pending_verification';
                 await db.query('UPDATE document_requests SET status = $1 WHERE request_id = $2', [newStatus, reqId]);
+                
+                const notificationMsg = parentVerified
+                    ? `Your payment for request BM-${reqId} has been verified. Your request is now in progress.`
+                    : `Your payment for request BM-${reqId} has been verified. ID verification is still pending.`;
+                
+                await createNotification(parentId, 'Payment Verified', notificationMsg);
             }
         }
         
@@ -441,6 +472,21 @@ const uploadDocument = async (req, res) => {
              RETURNING *`,
             [docPath, id]
         );
+
+        // Notify parent that the document is ready/issued
+        const parentId = requestDetails.parent_id;
+        let titleMsg = 'Document Generated';
+        let bodyMsg = `Your requested document for request BM-${id} has been generated. Please wait for further updates.`;
+
+        if (delivery_method === 'emailed') {
+            titleMsg = 'Document Issued (Emailed)';
+            bodyMsg = `Your requested document for request BM-${id} has been generated and issued. Since you chose Email delivery, the document is available in your portal under Request History, and a digital copy is ready.`;
+        } else {
+            titleMsg = 'Document Ready for Pickup';
+            bodyMsg = `Your requested document for request BM-${id} has been generated. Since you chose Pickup delivery, please visit the registrar's office to collect your document.`;
+        }
+
+        await createNotification(parentId, titleMsg, bodyMsg);
 
         res.json({
             message: delivery_method === 'emailed' 
@@ -515,9 +561,10 @@ const updateVerification = async (req, res) => {
                 [newStatus, id]
             );
 
-            await db.query(
-                `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
-                [requestDetails.parent_id, 'Request ID Verified', `Your ID verification for request BM-${id} has been approved.`]
+            await createNotification(
+                requestDetails.parent_id,
+                'Request ID Verified',
+                `Your ID verification for request BM-${id} has been approved.`
             );
         } else {
             const reqRes = await db.query('SELECT parent_id FROM document_requests WHERE request_id = $1', [id]);
@@ -529,9 +576,10 @@ const updateVerification = async (req, res) => {
                 [id]
             );
 
-            await db.query(
-                `INSERT INTO notifications (parent_id, title, message) VALUES ($1, $2, $3)`,
-                [parentId, 'Request ID Verification Rejected', `Your ID verification for request BM-${id} was rejected.`]
+            await createNotification(
+                parentId,
+                'Request ID Verification Rejected',
+                `Your ID verification for request BM-${id} was rejected.`
             );
         }
 

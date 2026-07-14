@@ -637,6 +637,11 @@ const translations = {
     "reference.copy.disclaimer": "This is a reference copy. Please collect the official physical document.",
     "reference.digital.copy": "Reference Digital Copy",
     "toast.doc.uploaded.physical": "Document uploaded successfully for archiving.",
+    "notifications": "Notifications",
+    "mark.all.read": "Mark All as Read",
+    "no.notifications": "No notifications yet",
+    "unread.notifications": "Unread Notifications",
+    "clear.all": "Clear All",
   },
   es: {
     // Auth & Common
@@ -1272,6 +1277,11 @@ const translations = {
     "reference.copy.disclaimer": "Esta es una copia de referencia. Por favor, recoja el documento físico oficial.",
     "reference.digital.copy": "Copia de Referencia Digital",
     "toast.doc.uploaded.physical": "Documento subido con éxito para archivo.",
+    "notifications": "Notificaciones",
+    "mark.all.read": "Marcar todo como leído",
+    "no.notifications": "No hay notificaciones aún",
+    "unread.notifications": "Notificaciones no leídas",
+    "clear.all": "Limpiar todo",
   }
 };
 

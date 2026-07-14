@@ -56,4 +56,54 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { uploadProfilePicture, updateProfile, getProfile };
+const getNotifications = async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT * FROM notifications WHERE parent_id = $1 ORDER BY created_at DESC',
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching notifications.' });
+    }
+};
+
+const markNotificationRead = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query(
+            'UPDATE notifications SET read = TRUE WHERE notification_id = $1 AND parent_id = $2 RETURNING *',
+            [id, req.user.id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Notification not found.' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error marking notification as read.' });
+    }
+};
+
+const markAllNotificationsRead = async (req, res) => {
+    try {
+        await db.query(
+            'UPDATE notifications SET read = TRUE WHERE parent_id = $1',
+            [req.user.id]
+        );
+        res.json({ message: 'All notifications marked as read.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error marking all notifications as read.' });
+    }
+};
+
+module.exports = { 
+    uploadProfilePicture, 
+    updateProfile, 
+    getProfile,
+    getNotifications,
+    markNotificationRead,
+    markAllNotificationsRead
+};

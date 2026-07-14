@@ -117,4 +117,58 @@ const sendProfileVerificationCode = async (userEmail, sixDigitCode) => {
     }
 };
 
-module.exports = { initEmailService, sendPasswordResetEmail, sendProfileVerificationCode };
+/**
+ * Sends a styled notification email to the parent.
+ */
+const sendNotificationEmail = async (userEmail, title, message) => {
+    if (!transporter) await initEmailService();
+
+    const fromAddress = process.env.SMTP_FROM || '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>';
+    const mailOptions = {
+        from: fromAddress,
+        to: userEmail,
+        subject: `🔔 BMHS Portal Notification: ${title}`,
+        html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+                    <h1 style="color: #800000; font-size: 24px; margin: 0; font-weight: 700;">Bishop Martin High School</h1>
+                    <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">Academic Document Request Portal</p>
+                </div>
+                
+                <h3 style="color: #1e293b; font-size: 18px; font-weight: 600; margin-top: 0; margin-bottom: 12px;">${title}</h3>
+                <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">${message}</p>
+                
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <a href="http://localhost:3000/login.html" style="background-color: #800000; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 15px; box-shadow: 0 2px 4px rgba(128,0,0,0.2);">
+                        Go to Portal
+                    </a>
+                </div>
+                
+                <p style="color: #94a3b8; font-size: 12px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin: 0;">
+                    This is an automated notification from Bishop Martin Administration. Please do not reply directly to this email.
+                </p>
+            </div>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("-----------------------------------------");
+        console.log("Notification Email sent to: %s", info.messageId);
+        if (!process.env.SMTP_HOST) {
+            console.log("🔗 PREVIEW EMAIL URL: %s", nodemailer.getTestMessageUrl(info));
+        }
+        console.log("-----------------------------------------");
+        return true;
+    } catch (error) {
+        console.error("Error sending notification email: ", error);
+        return false;
+    }
+};
+
+module.exports = { 
+    initEmailService, 
+    sendPasswordResetEmail, 
+    sendProfileVerificationCode,
+    sendNotificationEmail 
+};

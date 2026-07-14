@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const { generateDocument } = require('../services/pdfGenerator');
+const { createNotification } = require('../services/notificationService');
+
 
 // GET /api/requests/document-types — public, no auth needed
 const getDocumentTypes = async (req, res) => {
@@ -113,7 +115,16 @@ const createRequest = async (req, res) => {
             ]
         );
 
-        res.status(201).json({ message: alertMessage, request: newReq.rows[0] });
+        const createdRequest = newReq.rows[0];
+        const reqId = createdRequest.request_id;
+        
+        await createNotification(
+            parentId,
+            'Request Submitted Successfully',
+            `Your request BM-${reqId} for "${documentType.name}" has been received by the Bishop Martin High School administration.`
+        );
+
+        res.status(201).json({ message: alertMessage, request: createdRequest });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error during request creation.' });
