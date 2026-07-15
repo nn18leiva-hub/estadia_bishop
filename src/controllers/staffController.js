@@ -359,7 +359,7 @@ const getUrgentQueue = async (req, res) => {
             FROM document_requests dr
             JOIN document_types dt ON dr.document_type_id = dt.document_type_id
             JOIN parents p ON dr.parent_id = p.parent_id
-            WHERE dr.status IN ('pending', 'processing')
+            WHERE dr.status IN ('pending', 'pending_verification', 'processing')
             ORDER BY 
                 CASE WHEN dr.processing_speed = 'urgent' THEN 1
                      WHEN dr.processing_speed = 'expedited' THEN 2
