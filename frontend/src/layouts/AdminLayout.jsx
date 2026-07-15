@@ -27,6 +27,8 @@ const AdminLayout = () => {
 
   const navItems = isSuperAdmin ? [
     { label: 'Dashboard', icon: 'grid_view', path: '/superadmin' },
+    { label: 'Queue', icon: 'rule', path: '/staff/requests' },
+    { label: 'Payments', icon: 'payments', path: '/staff/payments' },
     { label: 'Users', icon: 'group', path: '/superadmin/users' },
     { label: 'Settings', icon: 'person', path: '/superadmin/settings' },
   ] : [

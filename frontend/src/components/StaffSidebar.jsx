@@ -12,6 +12,8 @@ const STAFF_NAV = [
 
 const ADMIN_NAV = [
   { icon: 'grid_view', label: 'Dashboard', to: '/superadmin' },
+  { icon: 'rule', label: 'Queue', to: '/staff/requests' },
+  { icon: 'payments', label: 'Payments', to: '/staff/payments' },
   { icon: 'group', label: 'Users', to: '/superadmin/users' },
   { icon: 'settings', label: 'Settings', to: '/superadmin/settings' },
 ];
