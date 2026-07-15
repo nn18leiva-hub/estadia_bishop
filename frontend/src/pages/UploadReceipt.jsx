@@ -53,7 +53,7 @@ export default function UploadReceipt() {
       await apiFetch('/payment/upload-receipt', { method: 'POST', body: formData });
       setSuccess(true);
       setTimeout(() => navigate('/dashboard/parents/success', {
-        state: { requestId, fee, docLabel }
+        state: { requestId, fee, docLabel, paymentUploaded: true }
       }), 1800);
     } catch (err) {
       setError(err.message);

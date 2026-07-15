@@ -7,7 +7,7 @@ export default function RequestSuccess() {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { requestId, fee, docLabel, docType } = location.state || {};
+  const { requestId, fee, docLabel, docType, paymentUploaded } = location.state || {};
   const refId = requestId ? `BM-${String(requestId).padStart(5, '0')}` : `BM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const isAbsence = docType === 'absence_form';
@@ -59,10 +59,26 @@ export default function RequestSuccess() {
           {/* Headline */}
           <div className="flex flex-col gap-xs">
             <h1 className="font-headline-lg text-headline-lg text-primary">
-              {isAbsence ? t('absence.form.submitted') : isLateness ? t('lateness.form.submitted') : isForm ? t('form.submitted') : t('request.submitted')}
+              {paymentUploaded 
+                ? (t('payment.receipt.submitted') || 'Payment Receipt Submitted')
+                : isAbsence 
+                ? t('absence.form.submitted') 
+                : isLateness 
+                ? t('lateness.form.submitted') 
+                : isForm 
+                ? t('form.submitted') 
+                : t('request.submitted')}
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant">
-              {isAbsence ? t('absence.form.submitted.desc') : isLateness ? t('lateness.form.submitted.desc') : isForm ? t('form.submitted.desc') : t('request.submitted.desc')}
+              {paymentUploaded
+                ? (t('payment.receipt.submitted.desc') || 'Your bank transfer receipt was successfully submitted. The administration will verify it shortly.')
+                : isAbsence 
+                ? t('absence.form.submitted.desc') 
+                : isLateness 
+                ? t('lateness.form.submitted.desc') 
+                : isForm 
+                ? t('form.submitted.desc') 
+                : t('request.submitted.desc')}
             </p>
           </div>
 
@@ -88,7 +104,11 @@ export default function RequestSuccess() {
           <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md w-full text-left">
             <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('what.next')}</h3>
             <div className="flex flex-col gap-md">
-              {(isAbsence ? [
+               {(paymentUploaded ? [
+                { icon: 'payments', label: t('timeline.payment.submitted') || 'Payment Receipt Submitted', desc: t('timeline.payment.submitted.desc') || 'Your proof of transfer is recorded.' },
+                { icon: 'manage_search', label: t('timeline.processing'), desc: t('timeline.processing.desc') },
+                { icon: 'mark_email_read', label: t('timeline.delivery'), desc: t('timeline.delivery.desc') },
+              ] : isAbsence ? [
                 { icon: 'task_alt', label: t('timeline.logged.absence'), desc: t('timeline.logged.absence.desc') },
                 { icon: 'notifications_active', label: t('timeline.notification.absence'), desc: t('timeline.notification.absence.desc') },
                 { icon: 'fact_check', label: t('timeline.status.update.absence'), desc: t('timeline.status.update.absence.desc') },
@@ -117,10 +137,10 @@ export default function RequestSuccess() {
               ))}
             </div>
           </div>
-
+ 
           {/* Actions */}
           <div className="flex flex-col gap-sm w-full">
-            {fee > 0 && !isForm && (
+            {fee > 0 && !isForm && !paymentUploaded && (
               <button
                 onClick={() => navigate('/dashboard/parents/bank-details', {
                   state: { requestId, fee, docLabel }
@@ -135,7 +155,7 @@ export default function RequestSuccess() {
               <Link
                 to="/dashboard/parents"
                 className={`flex-1 py-sm rounded-lg font-label-lg flex items-center justify-center gap-sm transition-all font-semibold
-                  ${(fee > 0 && !isForm)
+                  ${(fee > 0 && !isForm && !paymentUploaded)
                     ? 'border border-primary text-primary hover:bg-primary-fixed/30'
                     : 'bg-primary text-on-primary hover:bg-primary-container shadow-sm'
                   }`}

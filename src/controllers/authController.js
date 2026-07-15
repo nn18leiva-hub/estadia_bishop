@@ -13,6 +13,8 @@ const registerParent = async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields.' });
         }
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         const type = user_type || 'parent';
         if (!['parent', 'past_student'].includes(type)) {
             return res.status(400).json({ message: 'Invalid user_type. Must be parent or past_student.' });
@@ -36,7 +38,7 @@ const registerParent = async (req, res) => {
             }
         }
 
-        const emailCheck = await db.query('SELECT parent_id FROM parents WHERE email = $1', [email]);
+        const emailCheck = await db.query('SELECT parent_id FROM parents WHERE email = $1', [normalizedEmail]);
         if (emailCheck.rows.length > 0) {
             return res.status(400).json({ message: 'Email already registered.' });
         }
@@ -46,7 +48,7 @@ const registerParent = async (req, res) => {
 
         const newParent = await db.query(
             'INSERT INTO parents (full_name, email, phone, password_hash, user_type, dob) VALUES ($1, $2, $3, $4, $5, $6) RETURNING parent_id, full_name, email, user_type',
-            [full_name, email, phone, password_hash, type, type === 'past_student' ? dob : null]
+            [full_name, normalizedEmail, phone, password_hash, type, type === 'past_student' ? dob : null]
         );
 
         res.status(201).json({ message: 'User registered successfully.', user: newParent.rows[0] });
@@ -64,12 +66,14 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Email and password are required.' });
         }
 
-        let result = await db.query('SELECT * FROM staff WHERE email = $1', [email]);
+        const normalizedEmail = email.toLowerCase().trim();
+
+        let result = await db.query('SELECT * FROM staff WHERE email = $1', [normalizedEmail]);
         let user = result.rows[0];
         let userType = 'staff';
         
         if (!user) {
-            result = await db.query('SELECT * FROM parents WHERE email = $1', [email]);
+            result = await db.query('SELECT * FROM parents WHERE email = $1', [normalizedEmail]);
             user = result.rows[0];
             userType = 'parent';
         }
@@ -105,15 +109,18 @@ const login = async (req, res) => {
         res.status(500).json({ message: 'Server error during login.' });
     }
 };
+
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ message: 'Email is required.' });
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // Verify if email exists in either table
-        let userCheck = await db.query('SELECT email FROM parents WHERE email = $1', [email]);
+        let userCheck = await db.query('SELECT email FROM parents WHERE email = $1', [normalizedEmail]);
         if (userCheck.rows.length === 0) {
-            userCheck = await db.query('SELECT email FROM staff WHERE email = $1', [email]);
+            userCheck = await db.query('SELECT email FROM staff WHERE email = $1', [normalizedEmail]);
         }
 
         // Always return success even if email doesn't exist to prevent email scraping
@@ -133,11 +140,11 @@ const forgotPassword = async (req, res) => {
         // Store in DB
         await db.query(
             'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
-            [email, resetCode, expiresAt]
+            [normalizedEmail, resetCode, expiresAt]
         );
 
         // Send Email
-        const emailSent = await sendPasswordResetEmail(email, resetCode);
+        const emailSent = await sendPasswordResetEmail(normalizedEmail, resetCode);
         if (!emailSent) {
             return res.status(500).json({ message: 'Failed to dispatch email service.' });
         }
@@ -156,10 +163,12 @@ const resetPassword = async (req, res) => {
             return res.status(400).json({ message: 'Email, code, and new password are required.' });
         }
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // Retrieve valid token for this specific email
         const tokenRes = await db.query(
             'SELECT email FROM password_resets WHERE email = $1 AND token = $2 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
-            [email, token]
+            [normalizedEmail, token]
         );
 
         if (tokenRes.rows.length === 0) {
@@ -169,14 +178,14 @@ const resetPassword = async (req, res) => {
         const password_hash = await bcrypt.hash(newPassword, 10);
 
         // Update the password in parents table OR staff table
-        const parentUpdate = await db.query('UPDATE parents SET password_hash = $1 WHERE email = $2 RETURNING parent_id', [password_hash, email]);
+        const parentUpdate = await db.query('UPDATE parents SET password_hash = $1 WHERE email = $2 RETURNING parent_id', [password_hash, normalizedEmail]);
         
         if (parentUpdate.rows.length === 0) {
-            await db.query('UPDATE staff SET password_hash = $1 WHERE email = $2', [password_hash, email]);
+            await db.query('UPDATE staff SET password_hash = $1 WHERE email = $2', [password_hash, normalizedEmail]);
         }
 
         // Consume the token (flush all tokens for this email to prevent reuse)
-        await db.query('DELETE FROM password_resets WHERE email = $1', [email]);
+        await db.query('DELETE FROM password_resets WHERE email = $1', [normalizedEmail]);
 
         res.json({ message: 'Password has been successfully reset. You may now login.' });
     } catch (err) {

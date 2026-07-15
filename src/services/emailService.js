@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 let transporter;
 
@@ -123,6 +124,7 @@ const sendProfileVerificationCode = async (userEmail, sixDigitCode) => {
 const sendNotificationEmail = async (userEmail, title, message) => {
     if (!transporter) await initEmailService();
 
+    const portalUrl = process.env.PORTAL_URL || 'http://localhost';
     const fromAddress = process.env.SMTP_FROM || '"Bishop Martin IT Dept" <no-reply@bmhs.edu.bz>';
     const mailOptions = {
         from: fromAddress,
@@ -139,7 +141,7 @@ const sendNotificationEmail = async (userEmail, title, message) => {
                 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">${message}</p>
                 
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <a href="http://localhost:3000/login.html" style="background-color: #800000; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 15px; box-shadow: 0 2px 4px rgba(128,0,0,0.2);">
+                    <a href="${portalUrl}/login" style="background-color: #800000; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 15px; box-shadow: 0 2px 4px rgba(128,0,0,0.2);">
                         Go to Portal
                     </a>
                 </div>
