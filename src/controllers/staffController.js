@@ -218,12 +218,28 @@ const updateRequestStatus = async (req, res) => {
         }
         const requestDetails = reqResult.rows[0];
 
-        if (!requestDetails.parent_verified) {
-            return res.status(403).json({ message: "Cannot modify request. The request's ID verification has not been approved yet." });
+        // Determine if ID verification is satisfied (either already verified, or we are auto-approving it by setting status to pending/processing/ready_for_pickup/completed)
+        const isIdSatisfied = requestDetails.parent_verified || ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
+
+        // Determine if payment verification is satisfied (either not required, already verified, or we are auto-approving it by setting status to processing/ready_for_pickup/completed)
+        const isPaymentSatisfied = !requestDetails.requires_payment || requestDetails.payment_verified || ['processing', 'ready_for_pickup', 'completed'].includes(status);
+
+        // ID must be verified for any status other than pending_verification or denied
+        if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
+            return res.status(403).json({ message: "Cannot transition to this status. The request's ID verification has not been approved yet." });
         }
 
-        if (requestDetails.requires_payment && !requestDetails.payment_verified) {
-            return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
+        // Payment must be verified to transition to processing, ready_for_pickup, or completed
+        if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
+            return res.status(403).json({ message: "Cannot transition to this status. The payment has not been verified yet." });
+        }
+
+        // Apply database updates for auto-approvals
+        if (isIdSatisfied && !requestDetails.parent_verified) {
+            await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [request_id]);
+        }
+        if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
+            await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [req.user.id, request_id]);
         }
 
         const updated = await db.query(
@@ -276,12 +292,28 @@ const updateRequestStatusById = async (req, res) => {
         }
         const requestDetails = reqResult.rows[0];
 
-        if (!requestDetails.parent_verified) {
-            return res.status(403).json({ message: "Cannot modify request. The request's ID verification has not been approved yet." });
+        // Determine if ID verification is satisfied (either already verified, or we are auto-approving it by setting status to pending/processing/ready_for_pickup/completed)
+        const isIdSatisfied = requestDetails.parent_verified || ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
+
+        // Determine if payment verification is satisfied (either not required, already verified, or we are auto-approving it by setting status to processing/ready_for_pickup/completed)
+        const isPaymentSatisfied = !requestDetails.requires_payment || requestDetails.payment_verified || ['processing', 'ready_for_pickup', 'completed'].includes(status);
+
+        // ID must be verified for any status other than pending_verification or denied
+        if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
+            return res.status(403).json({ message: "Cannot transition to this status. The request's ID verification has not been approved yet." });
         }
 
-        if (requestDetails.requires_payment && !requestDetails.payment_verified) {
-            return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
+        // Payment must be verified to transition to processing, ready_for_pickup, or completed
+        if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
+            return res.status(403).json({ message: "Cannot transition to this status. The payment has not been verified yet." });
+        }
+
+        // Apply database updates for auto-approvals
+        if (isIdSatisfied && !requestDetails.parent_verified) {
+            await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [id]);
+        }
+        if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
+            await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [req.user.id, id]);
         }
 
         const fields = ['status = $1'];

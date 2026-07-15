@@ -404,18 +404,10 @@ export default function StaffRequestDetail() {
               </div>
 
               {/* Status Update */}
-              <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative shadow-sm ${
-                req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
-              }`}>
-                {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
-                  <div 
-                    className="absolute inset-0 z-10 cursor-not-allowed" 
-                    onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
-                  />
-                )}
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative shadow-sm">
                 <h3 className="font-headline-sm text-headline-sm text-primary mb-sm font-bold">{t('update.status')}</h3>
                 <select
-                  disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
+                  disabled={processing}
                   value={selectedStatus}
                   onChange={e => setSelectedStatus(e.target.value)}
                   className="w-full border border-outline-variant/40 px-sm py-sm font-body-md bg-surface-container/50 rounded-xl mb-md disabled:opacity-50 disabled:bg-surface-container-low disabled:cursor-not-allowed outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
@@ -429,7 +421,7 @@ export default function StaffRequestDetail() {
                   ].map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
                 <button
-                  disabled={processing || selectedStatus === req.status || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
+                  disabled={processing || selectedStatus === req.status}
                   onClick={() => updateStatus(selectedStatus, 'update')}
                   className="w-full mb-sm bg-surface-container-high text-primary py-sm rounded-xl font-label-lg hover:bg-surface-container-highest disabled:opacity-40 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                 >
@@ -439,7 +431,7 @@ export default function StaffRequestDetail() {
 
                 <div className="flex flex-col gap-sm">
                   <button
-                    disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
+                    disabled={processing}
                     onClick={() => updateStatus('issued', 'approve')}
                     className="w-full bg-primary text-on-primary py-sm rounded-xl font-label-lg shadow-sm hover:bg-primary-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                   >
@@ -451,7 +443,7 @@ export default function StaffRequestDetail() {
                   </button>
 
                   <button
-                    disabled={processing || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
+                    disabled={processing}
                     onClick={() => updateStatus('action', 'flag')}
                     className="w-full border border-error text-error py-sm rounded-xl font-label-lg hover:bg-error-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
                   >
