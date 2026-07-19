@@ -261,6 +261,11 @@ export default function NewRequest() {
   };
 
   const handleNavigateToSign = () => {
+    // Persist the uploaded ID file so DigitalSignature can attach it to the request
+    if (idFile) {
+      storeIdFile(idFile);
+    }
+
     const customFormData = {
       dob: studentForm.dob,
       relationship: studentForm.relationship

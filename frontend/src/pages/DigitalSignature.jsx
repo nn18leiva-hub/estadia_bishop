@@ -42,6 +42,13 @@ export default function DigitalSignature() {
     }
   }, [user]);
 
+  // Guard: if no requestData, user navigated here directly — redirect back
+  useEffect(() => {
+    if (!requestData) {
+      navigate('/dashboard/parents/new', { replace: true });
+    }
+  }, [requestData, navigate]);
+
   // ── Canvas helpers ────────────────────────────────────────────────────────
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -154,6 +161,11 @@ export default function DigitalSignature() {
         });
       }
 
+      // Attach typed name as part of form data
+      if (fullName.trim()) {
+        formData.append('signer_name', fullName.trim());
+      }
+
       // Attach signature image if drawn
       if (hasSignature && canvasRef.current) {
         await new Promise((resolve) => {
@@ -165,9 +177,19 @@ export default function DigitalSignature() {
       }
 
       // Attach ID image file from fileStore (cleared immediately after attaching)
-      if (idFile) {
-        formData.append('id_image', idFile);
+      const currentIdFile = getIdFile();
+      if (currentIdFile) {
+        formData.append('id_image', currentIdFile);
         clearIdFile();
+      } else if (idFile) {
+        // Fallback: use the idFile captured at render time
+        formData.append('id_image', idFile);
+      }
+
+      // Debug: log what is being sent
+      console.log('[DigitalSignature] Submitting request:', requestData?.document_type_name, '| ID file present:', !!(currentIdFile || idFile));
+      for (const [key] of formData.entries()) {
+        console.log(' formData key:', key);
       }
 
       const data = await apiFetch('/requests/create', {
@@ -182,6 +204,7 @@ export default function DigitalSignature() {
         });
       }, 900);
     } catch (err) {
+      console.error('[DigitalSignature] Submit error:', err);
       setSubmitError(err.message);
       setSubmitting(false);
     }
