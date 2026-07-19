@@ -63,9 +63,9 @@ const SuperAdminDashboard = () => {
     if (!searchQuery) return staffList;
     const lower = searchQuery.toLowerCase();
     return staffList.filter(s => 
-      s.full_name.toLowerCase().includes(lower) || 
-      s.email.toLowerCase().includes(lower) || 
-      s.role.toLowerCase().includes(lower)
+      s.full_name?.toLowerCase().includes(lower) || 
+      s.email?.toLowerCase().includes(lower) || 
+      s.role?.toLowerCase().includes(lower)
     );
   }, [staffList, searchQuery]);
 
@@ -73,10 +73,18 @@ const SuperAdminDashboard = () => {
     if (!searchQuery) return userList;
     const lower = searchQuery.toLowerCase();
     return userList.filter(u => 
-      u.full_name.toLowerCase().includes(lower) || 
-      u.email.toLowerCase().includes(lower)
+      u.full_name?.toLowerCase().includes(lower) || 
+      u.email?.toLowerCase().includes(lower)
     );
   }, [userList, searchQuery]);
+
+  const onlineParents = useMemo(() => {
+    return stats?.online?.parents?.reduce((acc, curr) => acc + parseInt(curr.count || 0), 0) || 0;
+  }, [stats]);
+
+  const onlineStaff = useMemo(() => {
+    return stats?.online?.staff?.reduce((acc, curr) => acc + parseInt(curr.count || 0), 0) || 0;
+  }, [stats]);
 
   if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return null;
 
