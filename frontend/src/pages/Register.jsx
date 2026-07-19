@@ -188,7 +188,7 @@ export default function Register() {
               </div>
 
               {/* Email & Date of Birth */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <div className={`grid grid-cols-1 gap-md ${form.userType === 'past_student' ? 'md:grid-cols-2' : ''}`}>
                 <div className="flex flex-col gap-xs">
                   <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">{t('email.address')}</label>
                   <div className="relative">
@@ -202,20 +202,22 @@ export default function Register() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-xs">
-                  <label htmlFor="dob" className="font-label-lg text-label-lg text-on-surface">
-                    {t('dob')} {form.userType === 'parent' && <span className="text-on-surface-variant opacity-60 font-label-md">({t('dob.required.note')})</span>}
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">cake</span>
-                    <input
-                      id="dob" type="date"
-                      required={form.userType === 'past_student'}
-                      value={form.dob} onChange={set('dob')}
-                      className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
-                    />
+                {form.userType === 'past_student' && (
+                  <div className="flex flex-col gap-xs">
+                    <label htmlFor="dob" className="font-label-lg text-label-lg text-on-surface">
+                      {t('dob')}
+                    </label>
+                    <div className="relative">
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">cake</span>
+                      <input
+                        id="dob" type="date"
+                        required
+                        value={form.dob} onChange={set('dob')}
+                        className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Password */}
