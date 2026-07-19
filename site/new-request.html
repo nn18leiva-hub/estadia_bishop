@@ -202,10 +202,7 @@ tailwind.config = {
       // Since there's no public doc types endpoint, we'll show known Bishop Martin types
       const types = [
         { document_type_id: 1, name: 'Transcript of Records', description: 'Official academic transcript with grades', requires_payment: true, is_auto_generated: false },
-        { document_type_id: 2, name: 'Diploma / Certificate', description: 'Copy of graduation diploma or certificate', requires_payment: true, is_auto_generated: false },
         { document_type_id: 3, name: 'Enrollment Verification', description: 'Proof of enrollment or attendance letter', requires_payment: false, is_auto_generated: true },
-        { document_type_id: 4, name: 'Good Moral Certificate', description: 'Certificate of good moral character', requires_payment: false, is_auto_generated: true },
-        { document_type_id: 5, name: 'Form 137 / SF10', description: 'Permanent student record (Form 137)', requires_payment: true, is_auto_generated: false },
       ];
       renderDocTypes(types);
     } catch(e) {

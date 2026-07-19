@@ -14,11 +14,6 @@ const DOCUMENT_TYPES = [
   { id: 'absence_form', labelKey: 'absence.form', price: 0, icon: 'event_busy', descKey: 'absence.form.desc' },
   { id: 'transcript', labelKey: 'official.transcript', price: 15, icon: 'description', descKey: 'official.transcript' },
   { id: 'enrollment', labelKey: 'enrollment.letter', price: 10, icon: 'history_edu', descKey: 'enrollment.letter' },
-  { id: 'graduation', labelKey: 'graduation.cert', price: 45, icon: 'workspace_premium', descKey: 'graduation.cert' },
-  { id: 'deans', labelKey: 'deans.letter', price: 10, icon: 'article', descKey: 'deans.letter' },
-  { id: 'diploma', labelKey: 'replacement.diploma', price: 75, icon: 'menu_book', descKey: 'replacement.diploma' },
-  { id: 'good_moral', labelKey: 'Good Moral Certificate', price: 10, icon: 'verified', descKey: 'Good Moral Certificate' },
-  { id: 'other', labelKey: 'other.special', price: 0, icon: 'help_outline', descKey: 'other.special' },
 ];
 
 // Past students are loaded dynamically from request history

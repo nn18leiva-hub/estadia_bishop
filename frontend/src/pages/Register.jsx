@@ -304,7 +304,7 @@ export default function Register() {
               {t('login.subtitle')}
             </p>
             <div className="flex flex-col gap-sm w-full mt-md">
-              {[t('official.transcript'), t('enrollment.letter'), t('graduation.cert'), t('replacement.diploma')].map(item => (
+              {[t('official.transcript'), t('enrollment.letter')].map(item => (
                 <div key={item} className="flex items-center gap-sm text-on-primary/90">
                   <span className="material-symbols-outlined text-secondary-container" style={{ fontSize: '20px' }}>check_circle</span>
                   <span className="font-body-sm text-body-sm">{item}</span>
