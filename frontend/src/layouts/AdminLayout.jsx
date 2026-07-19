@@ -158,7 +158,7 @@ const AdminLayout = () => {
             
             {/* Title / Portal Name */}
             <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm sm:font-headline-md sm:text-headline-md text-primary font-bold leading-tight truncate">
+              <span className="font-headline-sm text-sm sm:text-headline-sm sm:font-headline-md sm:text-headline-md text-primary font-bold leading-tight truncate">
                 {isSuperAdmin ? t('superadmin.console') : t('staff.portal')}
               </span>
             </div>
@@ -167,10 +167,10 @@ const AdminLayout = () => {
           {/* Right Header actions */}
           <div className="flex items-center gap-xs sm:gap-sm flex-shrink-0">
             
-            {/* Theme Toggle */}
+            {/* Theme Toggle (Desktop Only) */}
             <button
               onClick={toggleTheme}
-              className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-surface-container-high text-on-surface-variant transition-all duration-200 active:scale-95 border border-outline-variant/10"
+              className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl hover:bg-surface-container-high text-on-surface-variant transition-all duration-200 active:scale-95 border border-outline-variant/10"
               title={theme === 'light' ? t('dark.mode') : t('light.mode')}
               aria-label="Toggle visual theme"
             >
@@ -179,10 +179,10 @@ const AdminLayout = () => {
               </span>
             </button>
 
-            {/* Language Selection */}
+            {/* Language Selection (Desktop Only) */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
-              className="flex items-center gap-xs px-sm py-[7px] rounded-xl hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-all active:scale-95 uppercase tracking-wider border border-outline-variant/20 font-bold bg-surface-container-lowest/50"
+              className="hidden sm:flex items-center gap-xs px-sm py-[7px] rounded-xl hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-all active:scale-95 uppercase tracking-wider border border-outline-variant/20 font-bold bg-surface-container-lowest/50"
               title={language === 'en' ? 'Cambiar a Español' : 'Switch to English'}
             >
               <span className="material-symbols-outlined text-[18px]">language</span>
@@ -205,12 +205,31 @@ const AdminLayout = () => {
                     <p className="font-label-lg text-label-lg text-on-surface font-bold truncate">{user.full_name || 'Admin User'}</p>
                     <p className="text-label-md text-on-surface-variant truncate text-[11px] opacity-75">{user.email}</p>
                   </div>
+                  
+                  {/* Theme Switcher for Mobile */}
+                  <button
+                    onClick={() => { toggleTheme(); setIsProfileOpen(false); }}
+                    className="sm:hidden w-full text-left px-sm py-sm hover:bg-surface-container-low transition-colors text-on-surface font-body-sm flex items-center gap-sm"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
+                    <span>{theme === 'light' ? t('dark.mode') : t('light.mode')}</span>
+                  </button>
+
+                  {/* Language Selection for Mobile */}
+                  <button
+                    onClick={() => { setLanguage(language === 'en' ? 'es' : 'en'); setIsProfileOpen(false); }}
+                    className="sm:hidden w-full text-left px-sm py-sm hover:bg-surface-container-low transition-colors text-on-surface font-body-sm flex items-center gap-sm"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">language</span>
+                    <span>{language === 'en' ? 'Español' : 'English'}</span>
+                  </button>
+
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
                       navigate(isSuperAdmin ? '/superadmin/settings' : '/staff/settings');
                     }}
-                    className="w-full text-left px-sm py-sm hover:bg-surface-container-low transition-colors text-on-surface font-body-sm flex items-center gap-sm"
+                    className="w-full text-left px-sm py-sm hover:bg-surface-container-low transition-colors text-on-surface font-body-sm flex items-center gap-sm border-t sm:border-t-0 border-outline-variant/10"
                   >
                     <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
                     <span>{t('my.profile')}</span>
@@ -269,7 +288,7 @@ const AdminLayout = () => {
             onClick={() => setIsSidebarOpen(false)}
           >
             <aside
-              className="w-80 h-full bg-surface p-md flex flex-col gap-base animate-in slide-in-from-left duration-200"
+              className="w-72 max-w-[80vw] h-full bg-surface p-md flex flex-col gap-base animate-in slide-in-from-left duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-sm border-b border-outline-variant/10 pb-sm">

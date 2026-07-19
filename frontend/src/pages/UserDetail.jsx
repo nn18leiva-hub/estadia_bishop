@@ -196,13 +196,13 @@ export default function UserDetail() {
             
             {/* Portal Permissions Config box */}
             <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md shadow-md">
-              <div className="flex justify-between items-center mb-md border-b border-outline-variant/15 pb-xs">
+              <div className="flex flex-col sm:flex-row gap-xs justify-between sm:items-center mb-md border-b border-outline-variant/15 pb-xs">
                 <h3 className="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs">
                   <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                   <span>{t('portal.permissions')}</span>
                 </h3>
                 {user.role !== 'parent' && (
-                  <span className="text-[11px] font-semibold text-primary bg-primary/5 px-sm py-[3px] rounded-lg border border-outline-variant/20 font-mono">
+                  <span className="text-[11px] font-semibold text-primary bg-primary/5 px-sm py-[3px] rounded-lg border border-outline-variant/20 font-mono self-start sm:self-auto">
                     {permissions.length} Active Rules
                   </span>
                 )}

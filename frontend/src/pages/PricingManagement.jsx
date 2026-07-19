@@ -128,7 +128,7 @@ export default function PricingManagement() {
         {/* Pricing Items Settings Cards Grid */}
         <div className="lg:col-span-12 space-y-sm">
           
-          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-sm shadow-sm flex items-center justify-between">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-sm shadow-sm flex flex-col sm:flex-row gap-xs sm:items-center justify-between">
             <span className="font-label-lg text-label-lg font-bold text-primary flex items-center gap-xs">
               <span className="material-symbols-outlined text-primary text-[18px]">payments</span>
               <span>Document Types Fee Settings</span>
