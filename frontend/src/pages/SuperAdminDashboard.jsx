@@ -21,13 +21,6 @@ const SuperAdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userSubTab, setUserSubTab] = useState('parents'); // 'parents' or 'staff'
 
-  // Pricing State
-  const [pricingList, setPricingList] = useState([]);
-  const [updatingPriceId, setUpdatingPriceId] = useState(null);
-  const [priceInputs, setPriceInputs] = useState({}); // e.g. { document_type_id: "15.00" }
-  const [pricingError, setPricingError] = useState('');
-  const [pricingSuccess, setPricingSuccess] = useState('');
-
   // Password Override State
   const [overrideTarget, setOverrideTarget] = useState(null);
   const [newPassword, setNewPassword] = useState('');
@@ -35,25 +28,14 @@ const SuperAdminDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [staffData, userData, statsData, pricingData] = await Promise.all([
+      const [staffData, userData, statsData] = await Promise.all([
         apiFetch('/superadmin/staff'),
         apiFetch('/superadmin/users'),
-        apiFetch('/superadmin/stats'),
-        apiFetch('/superadmin/pricing').catch(() => [])
+        apiFetch('/superadmin/stats')
       ]);
       setStaffList(Array.isArray(staffData) ? staffData : []);
       setUserList(Array.isArray(userData) ? userData : []);
       setStats(statsData || { registered: { staff: [], parents: [] }, online: { staff: [], parents: [] } });
-      
-      const pricingArray = Array.isArray(pricingData) ? pricingData : [];
-      setPricingList(pricingArray);
-      
-      // Initialize inputs with current base_price
-      const inputs = {};
-      pricingArray.forEach(p => {
-        inputs[p.document_type_id] = p.base_price;
-      });
-      setPriceInputs(inputs);
     } catch (err) {
       console.error(err);
     } finally {
@@ -99,41 +81,6 @@ const SuperAdminDashboard = () => {
       loadData();
     } catch (err) {
       alert('Failed to delete staff: ' + err.message);
-    }
-  };
-
-  const handleUpdatePrice = async (id) => {
-    setUpdatingPriceId(id);
-    setPricingError('');
-    setPricingSuccess('');
-    try {
-      const newPrice = parseFloat(priceInputs[id]);
-      if (isNaN(newPrice) || newPrice < 0) {
-        throw new Error(t('price.invalid') || 'Invalid price value.');
-      }
-      
-      await apiFetch(`/superadmin/pricing/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ base_price: newPrice })
-      });
-      
-      setPricingSuccess(t('price.updated') || 'Price updated successfully!');
-      // Reload pricing data
-      const updatedPricing = await apiFetch('/superadmin/pricing');
-      if (Array.isArray(updatedPricing)) {
-        setPricingList(updatedPricing);
-        const inputs = {};
-        updatedPricing.forEach(p => {
-          inputs[p.document_type_id] = p.base_price;
-        });
-        setPriceInputs(inputs);
-      }
-      setTimeout(() => setPricingSuccess(''), 3000);
-    } catch (err) {
-      setPricingError(err.message || t('price.update.fail') || 'Failed to update price.');
-      setTimeout(() => setPricingError(''), 4000);
-    } finally {
-      setUpdatingPriceId(null);
     }
   };
 
@@ -247,16 +194,10 @@ const SuperAdminDashboard = () => {
         >
           {t('public.users')}
         </button>
-        <button 
-          onClick={() => { setActiveTab('pricing'); setSearchQuery(''); }}
-          className={`pb-sm font-label-md text-label-md sm:font-label-lg sm:text-label-lg transition-all border-b-2 uppercase tracking-wider whitespace-nowrap ${activeTab === 'pricing' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-primary'}`}
-        >
-          {t('pricing.mgmt')}
-        </button>
       </div>
 
       {/* Search Input Bar */}
-      {activeTab !== 'provision' && activeTab !== 'pricing' && (
+      {activeTab !== 'provision' && (
         <div className="bg-surface-container-lowest border border-outline-variant/20 p-xs sm:p-md rounded shadow-sm mb-sm sm:mb-lg">
           <div className="relative flex items-center max-w-md">
             <span className="material-symbols-outlined absolute left-sm text-on-surface-variant">search</span>
@@ -700,118 +641,6 @@ const SuperAdminDashboard = () => {
             </>
           )}
 
-        </div>
-      )}
-
-      {/* TAB CONTENT: PRICING */}
-      {activeTab === 'pricing' && (
-        <div className="animate-in fade-in duration-300 space-y-md">
-          {pricingSuccess && (
-            <div className="p-sm text-center text-on-primary bg-green-600 rounded border border-outline-variant/10 text-sm font-bold animate-in fade-in duration-300">
-              {pricingSuccess}
-            </div>
-          )}
-          {pricingError && (
-            <div className="p-sm text-center text-error bg-error-container rounded border border-outline-variant/10 text-sm font-bold animate-in fade-in duration-300">
-              {pricingError}
-            </div>
-          )}
-
-          {/* Table Container */}
-          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
-                <tr>
-                  <th className="p-md">{t('document.type') || 'Document Type'}</th>
-                  <th className="p-md">{t('description') || 'Description'}</th>
-                  <th className="p-md text-right px-lg">{t('base.price.bzd') || 'Base Price (BZD)'}</th>
-                  <th className="p-md text-center">{t('actions') || 'Actions'}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10 text-body-md text-on-surface">
-                {dataLoading ? (
-                  <tr>
-                    <td colSpan={4} className="p-xl text-center">
-                      <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
-                    </td>
-                  </tr>
-                ) : pricingList.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="p-xl text-center text-on-surface-variant font-body-md">
-                      {t('no.document.types') || 'No document types registered.'}
-                    </td>
-                  </tr>
-                ) : (
-                  pricingList.map(item => {
-                    const isAuto = item.is_auto_generated || !item.requires_payment;
-                    const currentValue = priceInputs[item.document_type_id];
-                    const isUpdating = updatingPriceId === item.document_type_id;
-
-                    return (
-                      <tr key={item.document_type_id} className="hover:bg-surface-container-low/30 transition-colors">
-                        {/* Type/Name */}
-                        <td className="p-md">
-                          <strong className="block text-on-surface font-bold text-base mb-xs">
-                            {t(item.name) || item.name}
-                          </strong>
-                          <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                            isAuto ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-container text-on-primary-container'
-                          }`}>
-                            {isAuto ? t('auto.generated') || 'Auto-generated' : t('paid.document') || 'Paid'}
-                          </span>
-                        </td>
-
-                        {/* Description */}
-                        <td className="p-md text-on-surface-variant text-sm max-w-xs truncate md:max-w-md">
-                          {item.description || '-'}
-                        </td>
-
-                        {/* Input Value */}
-                        <td className="p-md text-right px-lg">
-                          {isAuto ? (
-                            <span className="text-on-surface-variant opacity-60 font-semibold italic">
-                              {t('free') || 'FREE'}
-                            </span>
-                          ) : (
-                            <div className="inline-flex items-center gap-xs">
-                              <span className="text-on-surface-variant font-semibold">$</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.50"
-                                className="w-24 px-xs py-[4px] text-right bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md font-semibold"
-                                value={currentValue !== undefined ? currentValue : ''}
-                                onChange={e => setPriceInputs({ ...priceInputs, [item.document_type_id]: e.target.value })}
-                                disabled={isUpdating}
-                              />
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Action Button */}
-                        <td className="p-md text-center">
-                          {!isAuto && (
-                            <button
-                              onClick={() => handleUpdatePrice(item.document_type_id)}
-                              className="inline-flex items-center gap-xs px-md py-xs bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold disabled:opacity-50"
-                              disabled={isUpdating || currentValue === item.base_price}
-                            >
-                              {isUpdating ? (
-                                <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                              ) : (
-                                <span className="material-symbols-outlined text-sm">save</span>
-                              )}
-                              {t('save') || 'Save'}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
       )}
   

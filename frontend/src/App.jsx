@@ -37,6 +37,7 @@ import UserDetail from './pages/UserDetail';
 import InviteUser from './pages/InviteUser';
 import ConfirmInvite from './pages/ConfirmInvite';
 import PermissionsSuccess from './pages/PermissionsSuccess';
+import PricingManagement from './pages/PricingManagement';
 
 // Shared
 import Profile from './pages/Profile';
@@ -172,6 +173,7 @@ function App() {
                 <Route path="/superadmin/users/invite/confirm" element={<ConfirmInvite />} />
                 <Route path="/superadmin/users/success" element={<PermissionsSuccess />} />
                 <Route path="/superadmin/users/:id" element={<UserDetail />} />
+                <Route path="/superadmin/pricing" element={<PricingManagement />} />
                 <Route path="/superadmin/settings" element={<Profile embedded />} />
                 <Route path="/staff/settings" element={<Profile embedded />} />
               </Route>
