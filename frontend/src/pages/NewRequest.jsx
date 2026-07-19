@@ -93,10 +93,12 @@ export default function NewRequest() {
   const [idFile, setIdFile] = useState(null);
   const [idPreview, setIdPreview] = useState('');
 
-  const handleIdFileChange = (e) => {
+  const handleIdFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setIdFile(file);
+      // Persist immediately to sessionStorage (survives iOS context resets)
+      await storeIdFile(file);
       if (file.type.startsWith('image/')) {
         setIdPreview(URL.createObjectURL(file));
       } else {
@@ -260,10 +262,10 @@ export default function NewRequest() {
     }
   };
 
-  const handleNavigateToSign = () => {
+  const handleNavigateToSign = async () => {
     // Persist the uploaded ID file so DigitalSignature can attach it to the request
     if (idFile) {
-      storeIdFile(idFile);
+      await storeIdFile(idFile);
     }
 
     const customFormData = {
@@ -301,8 +303,8 @@ export default function NewRequest() {
 
   // Store idFile in the module-level store before navigating (File objects cannot
   // survive serialization through React Router's History API state).
-  const safeNavigateToSign = () => {
-    storeIdFile(idFile);
+  const safeNavigateToSign = async () => {
+    await storeIdFile(idFile);
     handleNavigateToSign();
   };
 

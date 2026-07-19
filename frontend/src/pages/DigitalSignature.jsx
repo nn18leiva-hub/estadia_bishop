@@ -27,9 +27,10 @@ export default function DigitalSignature() {
   const { user } = useAuth();
 
   // Form data passed from NewRequest via location state + the idFile via fileStore
-  // (File objects cannot be serialized through React Router's History API)
+  // (File objects cannot be serialized through React Router's History API,
+  //  and iOS Safari can reset JS context when file picker opens — fileStore
+  //  uses sessionStorage as a fallback so it survives any context reset.)
   const { requestData, fee, docLabel } = location.state || {};
-  const idFile = getIdFile();
   const isForm = requestData?.document_type_name === 'lateness_form' || requestData?.document_type_name === 'absence_form';
 
   // Pre-fill typed name from the parent account name so the parent doesn't have to retype
@@ -176,21 +177,17 @@ export default function DigitalSignature() {
         });
       }
 
-      // Attach ID image file from fileStore (cleared immediately after attaching)
-      const currentIdFile = getIdFile();
-      if (currentIdFile) {
-        formData.append('id_image', currentIdFile);
+      // Attach ID image file. getIdFile() auto-restores from sessionStorage if
+      // the in-memory copy was lost (iOS Safari page reload on file picker open).
+      const idFileToSend = getIdFile();
+      if (idFileToSend) {
+        formData.append('id_image', idFileToSend);
         clearIdFile();
-      } else if (idFile) {
-        // Fallback: use the idFile captured at render time
-        formData.append('id_image', idFile);
       }
 
       // Debug: log what is being sent
-      console.log('[DigitalSignature] Submitting request:', requestData?.document_type_name, '| ID file present:', !!(currentIdFile || idFile));
-      for (const [key] of formData.entries()) {
-        console.log(' formData key:', key);
-      }
+      console.log('[DigitalSignature] Submitting:', requestData?.document_type_name, '| ID file:', !!idFileToSend);
+      for (const [key] of formData.entries()) console.log('  field:', key);
 
       const data = await apiFetch('/requests/create', {
         method: 'POST',
