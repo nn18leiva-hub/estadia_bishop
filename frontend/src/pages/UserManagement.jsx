@@ -100,26 +100,19 @@ export default function UserManagement() {
               <span className="material-symbols-outlined text-[24px]">analytics</span>
             </div>
             <div>
-              <h3 className="font-headline-sm text-headline-sm text-white font-bold">{t('directory.insights') || 'Directory Insights'}</h3>
-              <p className="font-body-sm text-[12px] opacity-80 mt-[2px]">{t('directory.insights.desc') || 'Live access control summary'}</p>
+              <h3 className="font-headline-sm text-headline-sm text-white font-bold">{t('directory.overview') || 'Directory Overview'}</h3>
+              <p className="font-body-sm text-[12px] opacity-80 mt-[2px]">{t('directory.overview.desc') || 'Total counts of registered portal profiles'}</p>
             </div>
           </div>
           
-          <div className="mt-lg grid grid-cols-3 gap-sm relative z-10">
+          <div className="mt-lg grid grid-cols-2 gap-sm relative z-10">
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Staff</p>
+              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Staff Members</p>
               <p className="font-headline-sm text-headline-sm text-white font-bold leading-tight mt-[2px]">{loading ? '—' : stats.totalStaff || 0}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Parents</p>
+              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Parents &amp; Alumni</p>
               <p className="font-headline-sm text-headline-sm text-white font-bold leading-tight mt-[2px]">{loading ? '—' : stats.totalParents || 0}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Online</p>
-              <div className="flex items-center gap-xs mt-[2px]">
-                <p className="font-headline-sm text-headline-sm text-white font-bold leading-tight">{loading ? '—' : stats.activeNow || 0}</p>
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
-              </div>
             </div>
           </div>
         </div>

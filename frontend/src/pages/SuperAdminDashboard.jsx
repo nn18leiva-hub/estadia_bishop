@@ -27,14 +27,7 @@ const SuperAdminDashboard = () => {
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Mock Audit Logs
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, action: 'Role permissions updated', user: 'Admin User', target: 'Staff SVR-0001', time: '5 mins ago', type: 'info' },
-    { id: 2, action: 'Database backup compiled', user: 'System Cron', target: 'parentportal.sql', time: '1 hour ago', type: 'success' },
-    { id: 3, action: 'Pricing modified', user: 'Admin User', target: 'Official Transcript -> $15.00', time: '2 hours ago', type: 'warning' },
-    { id: 4, action: 'New staff node provisioned', user: 'Admin User', target: 'staff-registrar@bishopmartin.edu', time: '4 hours ago', type: 'success' },
-    { id: 5, action: 'Password override executed', user: 'Admin User', target: 'nn13leiva@gmail.com', time: '5 hours ago', type: 'danger' },
-  ]);
+
 
   const loadData = async () => {
     setDataLoading(true);
@@ -103,11 +96,6 @@ const SuperAdminDashboard = () => {
       setFormData({ full_name: '', email: '', password: '', role: 'admin' });
       setActiveTab('registry');
       loadData();
-      
-      setAuditLogs(prev => [
-        { id: Date.now(), action: 'New staff node provisioned', user: 'Admin User', target: formData.email, time: 'Just now', type: 'success' },
-        ...prev
-      ]);
     } catch (err) {
       setError(err.message || 'Failed to create staff');
     } finally {
@@ -120,11 +108,6 @@ const SuperAdminDashboard = () => {
     try {
       await apiFetch(`/superadmin/staff/${id}`, { method: 'DELETE' });
       loadData();
-      
-      setAuditLogs(prev => [
-        { id: Date.now(), action: 'Staff node terminated', user: 'Admin User', target: email, time: 'Just now', type: 'danger' },
-        ...prev
-      ]);
     } catch (err) {
       alert('Failed to delete staff: ' + err.message);
     }
@@ -140,11 +123,6 @@ const SuperAdminDashboard = () => {
         body: JSON.stringify({ targetEmail: overrideTargetEmail, newPassword: overridePassword })
       });
       alert(`Successfully overrode password for ${overrideTargetEmail}`);
-      
-      setAuditLogs(prev => [
-        { id: Date.now(), action: 'Password override executed', user: 'Admin User', target: overrideTargetEmail, time: 'Just now', type: 'danger' },
-        ...prev
-      ]);
 
       setShowOverrideModal(false);
       setOverrideTargetEmail('');
@@ -186,74 +164,55 @@ const SuperAdminDashboard = () => {
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-sm">
-        {/* Total Accounts */}
+        {/* Registered Parents */}
         <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-primary flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wider">{t('total.users') || 'Total Accounts'}</h3>
+            <h3 className="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wider">Parents &amp; Alumni</h3>
             <div className="p-[6px] rounded-lg bg-primary/5 text-primary">
-              <span className="material-symbols-outlined text-[20px] flex">group</span>
+              <span className="material-symbols-outlined text-[20px] flex">family_restroom</span>
             </div>
           </div>
-          <div className="space-y-xs mt-base">
-            <div className="flex justify-between items-center font-body-sm text-[12px]">
-              <span className="text-on-surface-variant font-medium">Parents &amp; Students</span>
-              <span className="text-on-surface font-bold">{dataLoading ? '—' : userList.length}</span>
-            </div>
-            <div className="flex justify-between items-center font-body-sm text-[12px]">
-              <span className="text-on-surface-variant font-medium">Staff Members</span>
-              <span className="text-on-surface font-bold">{dataLoading ? '—' : staffList.length}</span>
-            </div>
-          </div>
-          <p className="font-headline-md text-headline-md text-primary font-bold mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
-            <span className="text-on-surface text-sm">Total Registered</span>
-            <span>{dataLoading ? '—' : userList.length + staffList.length}</span>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md leading-none font-bold text-on-surface mt-sm">
+            {dataLoading ? '—' : userList.length}
           </p>
+          <div className="mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
+            <span className="text-[11px] text-on-surface-variant font-medium">Registered public accounts</span>
+            <button onClick={() => setActiveTab('users')} className="text-xs text-primary font-bold hover:underline">View List</button>
+          </div>
         </div>
 
-        {/* Online Active Sessions */}
+        {/* Staff Members */}
         <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-secondary flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-secondary uppercase font-bold tracking-wider">Online Nodes (15m)</h3>
+            <h3 className="font-label-lg text-label-lg text-secondary uppercase font-bold tracking-wider">Staff Members</h3>
             <div className="p-[6px] rounded-lg bg-secondary/5 text-secondary">
-              <span className="material-symbols-outlined text-[20px] flex">memory</span>
+              <span className="material-symbols-outlined text-[20px] flex">badge</span>
             </div>
           </div>
-          <div className="space-y-xs mt-base">
-            <div className="flex justify-between items-center font-body-sm text-[12px]">
-              <span className="text-on-surface-variant font-medium">Active Parents</span>
-              <span className="text-secondary font-bold">{dataLoading ? '—' : onlineParents}</span>
-            </div>
-            <div className="flex justify-between items-center font-body-sm text-[12px]">
-              <span className="text-on-surface-variant font-medium">Active Staff</span>
-              <span className="text-secondary font-bold">{dataLoading ? '—' : onlineStaff}</span>
-            </div>
-          </div>
-          <p className="font-headline-md text-headline-md text-secondary font-bold mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
-            <span className="text-on-surface text-sm flex items-center gap-xs">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Live Sync
-            </span>
-            <span>{dataLoading ? '—' : onlineParents + onlineStaff}</span>
+          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md leading-none font-bold text-on-surface mt-sm">
+            {dataLoading ? '—' : staffList.length}
           </p>
+          <div className="mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
+            <span className="text-[11px] text-on-surface-variant font-medium">Active administrative users</span>
+            <button onClick={() => setActiveTab('registry')} className="text-xs text-secondary font-bold hover:underline">View Registry</button>
+          </div>
         </div>
 
-        {/* System Diagnostics Monitor */}
+        {/* Portal Configuration */}
         <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-green-600 flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-green-700 uppercase font-bold tracking-wider">Diagnostics</h3>
+            <h3 className="font-label-lg text-label-lg text-green-700 uppercase font-bold tracking-wider">Document Pricing</h3>
             <div className="p-[6px] rounded-lg bg-green-50 text-green-600">
-              <span className="material-symbols-outlined text-[20px] flex">settings_ethernet</span>
+              <span className="material-symbols-outlined text-[20px] flex">payments</span>
             </div>
           </div>
-          <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed mb-sm mt-xs">
-            Continuous monitoring of local database health, encryption indices, and server telemetry.
+          <p className="text-[11px] text-on-surface-variant font-medium leading-normal mb-sm mt-xs">
+            Configure request processing fees for official transcripts, diplomas, and enrollment letters.
           </p>
-          <div className="flex justify-between items-center mt-md pt-sm border-t border-outline-variant/10">
-            <span className="font-label-md text-[10px] text-on-surface-variant font-bold">STATUS</span>
-            <div className="flex items-center gap-xs font-bold text-green-600 text-[12px]">
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-              NOMINAL
-            </div>
+          <div className="pt-sm border-t border-outline-variant/10 flex justify-end">
+            <button onClick={() => navigate('/superadmin/pricing')} className="px-sm py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
+              Manage Pricing
+            </button>
           </div>
         </div>
       </div>
@@ -321,7 +280,7 @@ const SuperAdminDashboard = () => {
                   <tr>
                     <th className="p-sm">ID</th>
                     <th className="p-sm">Identity</th>
-                    <th className="p-sm">Security</th>
+                    <th className="p-sm">Access Level</th>
                     <th className="p-sm text-right">Actions</th>
                   </tr>
                 </thead>
@@ -333,7 +292,7 @@ const SuperAdminDashboard = () => {
 
                     return (
                       <tr key={s.staff_id} className="hover:bg-surface-container-low/20 transition-colors">
-                        <td className="p-sm font-mono font-bold text-primary">SVR-{String(s.staff_id).padStart(4, '0')}</td>
+                        <td className="p-sm font-mono font-bold text-primary">STF-{String(s.staff_id).padStart(4, '0')}</td>
                         <td className="p-sm">
                           <p className="font-bold text-on-surface">{s.full_name}</p>
                           <p className="text-[11px] text-on-surface-variant">{s.email}</p>
@@ -345,7 +304,7 @@ const SuperAdminDashboard = () => {
                           <button onClick={() => triggerDirectReset(s.email)} className="px-xs py-xs bg-secondary/5 text-secondary border border-secondary/20 hover:bg-secondary/10 rounded-lg text-[11px] font-bold">Reset Password</button>
                           <button onClick={() => navigate(`/superadmin/users/staff-${s.staff_id}`)} className="px-xs py-xs bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 rounded-lg text-[11px] font-bold">Permissions</button>
                           {!isSelf && (
-                            <button onClick={() => handleDeleteStaff(s.staff_id, s.email)} className="px-xs py-xs bg-error-container/40 text-error hover:bg-error-container/60 rounded-lg text-[11px] font-bold">Terminate</button>
+                            <button onClick={() => handleDeleteStaff(s.staff_id, s.email)} className="px-xs py-xs bg-error-container/40 text-error hover:bg-error-container/60 rounded-lg text-[11px] font-bold">Remove</button>
                           )}
                         </td>
                       </tr>
@@ -517,81 +476,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Diagnostics Latency & System Logs Bento Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-md">
-        
-        {/* Latency monitor */}
-        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm space-y-sm">
-          <div>
-            <h3 className="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs border-b border-outline-variant/10 pb-xs">
-              <span className="material-symbols-outlined text-[20px]">query_stats</span>
-              <span>Services Latency</span>
-            </h3>
-            <p className="text-[10px] text-on-surface-variant mt-[2px] leading-relaxed">
-              Real-time response times of essential server infrastructure components.
-            </p>
-          </div>
 
-          <div className="space-y-sm pt-xs">
-            {[
-              { label: 'PostgreSQL Database', val: '12ms', width: '8.3%', color: 'bg-green-500' },
-              { label: 'SMTP Mail Server', val: '45ms', width: '25%', color: 'bg-green-500' },
-              { label: 'Storage Sync API', val: '18ms', width: '15%', color: 'bg-green-500' },
-              { label: 'Payment Gateway', val: '120ms', width: '66.6%', color: 'bg-secondary' },
-            ].map((node) => (
-              <div key={node.label} className="space-y-[3px]">
-                <div className="flex justify-between text-[11px] font-bold text-on-surface-variant">
-                  <span>{node.label}</span>
-                  <span className="font-mono text-primary">{node.val}</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/5">
-                  <div className={`h-full rounded-full ${node.color}`} style={{ width: node.width }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Audit Log Stream */}
-        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm flex flex-col justify-between gap-sm">
-          <div>
-            <h3 className="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs border-b border-outline-variant/10 pb-xs">
-              <span className="material-symbols-outlined text-[20px]">history</span>
-              <span>Administrative Audit Logs</span>
-            </h3>
-            <p className="text-[10px] text-on-surface-variant mt-[2px] leading-relaxed">
-              Consolidated real-time registry of system updates, password overrides, and database configurations.
-            </p>
-          </div>
-
-          <div className="border border-outline-variant/15 rounded-xl bg-surface-container-low p-sm h-48 overflow-y-auto font-mono text-[11px] text-on-surface flex flex-col gap-sm">
-            {auditLogs.map((log) => {
-              let indicatorBg = 'bg-primary/10 text-primary';
-              if (log.type === 'success') indicatorBg = 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400';
-              if (log.type === 'warning') indicatorBg = 'bg-yellow-100 text-yellow-750 dark:bg-yellow-950/40 dark:text-yellow-400';
-              if (log.type === 'danger') indicatorBg = 'bg-red-100 text-red-750 dark:bg-red-950/40 dark:text-red-400';
-
-              return (
-                <div key={log.id} className="flex gap-sm p-xs hover:bg-surface-container-lowest/30 rounded-lg transition-colors border border-transparent">
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${indicatorBg}`}>
-                    <span className="material-symbols-outlined text-[14px]">
-                      {log.type === 'success' ? 'check_circle' : log.type === 'warning' ? 'warning' : log.type === 'danger' ? 'key_off' : 'info'}
-                    </span>
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <p className="font-bold text-on-surface leading-tight">{log.action}</p>
-                    <p className="text-[10px] text-on-surface-variant truncate opacity-85 mt-[2px]">
-                      Actor: {log.user} · Target: <span className="font-mono font-bold text-primary">{log.target}</span>
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant opacity-60 self-center">{log.time}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      </div>
 
       {/* PASSWORD OVERRIDE MODAL */}
       {showOverrideModal && (

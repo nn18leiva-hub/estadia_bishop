@@ -295,7 +295,7 @@ export default function UserDetail() {
               )}
             </div>
 
-            {/* Custom User Logs timeline (Only for staff nodes) */}
+            {/* Custom User Logs timeline (Only for staff profiles) */}
             {user.role !== 'parent' && (
               <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md shadow-sm space-y-sm">
                 <h3 className="font-headline-sm text-headline-sm text-primary font-bold border-b border-outline-variant/10 pb-xs flex items-center gap-xs">
@@ -329,8 +329,8 @@ export default function UserDetail() {
                     <span className="absolute -left-[29px] top-px w-5.5 h-5.5 rounded-full bg-primary/10 border border-primary flex items-center justify-center text-primary">
                       <span className="material-symbols-outlined text-[12px] font-bold">add_card</span>
                     </span>
-                    <p className="font-label-lg text-label-lg font-bold text-on-surface">Created verification entry SVR-{user.id.toString().replace('staff-','')}</p>
-                    <p className="text-[10px] text-on-surface-variant">Initial database sync and role assignment initialized</p>
+                    <p className="font-label-lg text-label-lg font-bold text-on-surface">Created profile STF-{user.id.toString().replace('staff-','')}</p>
+                    <p className="text-[10px] text-on-surface-variant">Account created and role assigned</p>
                     <span className="text-[10px] text-on-surface-variant font-medium opacity-70 block mt-[2px]">1 week ago</span>
                   </div>
                 </div>

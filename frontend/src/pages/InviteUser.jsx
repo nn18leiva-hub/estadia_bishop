@@ -35,7 +35,7 @@ export default function InviteUser() {
       title: 'Viewer',
       subtitle: t('level.viewer') || 'Viewer (Read-only)',
       icon: 'visibility',
-      desc: 'Can read lists, audit logs, and analytics, but cannot update request status, verify payments, or change configurations.',
+      desc: 'Can read directory listings and request logs, but cannot update request status, verify payments, or change configurations.',
       color: 'border-secondary/20 hover:border-secondary text-secondary bg-secondary/5',
       activeColor: 'border-secondary bg-secondary/10 text-secondary ring-2 ring-secondary/25'
     },
@@ -53,7 +53,7 @@ export default function InviteUser() {
       title: 'Admin',
       subtitle: t('level.superadmin') || 'Admin (Root Control)',
       icon: 'admin_panel_settings',
-      desc: 'System administrator. Full access to provision staff, perform database overrides, manage pricing catalog, and delete nodes.',
+      desc: 'System administrator. Full access to provision staff, perform database overrides, manage pricing catalog, and manage accounts.',
       color: 'border-red-500/20 hover:border-red-500 text-red-600 bg-red-500/5',
       activeColor: 'border-red-500 bg-red-500/10 text-red-600 ring-2 ring-red-500/25'
     }
