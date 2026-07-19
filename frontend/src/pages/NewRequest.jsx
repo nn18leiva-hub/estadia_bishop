@@ -42,6 +42,24 @@ export default function NewRequest() {
   const [error, setError] = useState('');
   const [savedStudents, setSavedStudents] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [documentTypes, setDocumentTypes] = useState(DOCUMENT_TYPES);
+
+  // Load document type prices from backend
+  useEffect(() => {
+    apiFetch('/requests/document-types')
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDocumentTypes(prev => prev.map(dt => {
+            const dbMatch = data.find(dbDt => dbDt.name === dt.id);
+            if (dbMatch && dbMatch.base_price !== undefined) {
+              return { ...dt, price: parseFloat(dbMatch.base_price) };
+            }
+            return dt;
+          }));
+        }
+      })
+      .catch(err => console.error('Error fetching live prices:', err));
+  }, []);
 
   // Load real student history from past requests
   useEffect(() => {
@@ -201,7 +219,7 @@ export default function NewRequest() {
     }
   };
 
-  const doc = DOCUMENT_TYPES.find(d => d.id === selectedDoc);
+  const doc = documentTypes.find(d => d.id === selectedDoc);
   const deliveryItem = DELIVERY_METHODS.find(d => d.id === delivery);
   const processingItem = PROCESSING_SPEEDS.find(p => p.id === processing);
   const totalFee = (doc?.price || 0) + (deliveryItem?.price || 0) + (processingItem?.price || 0);
@@ -332,7 +350,7 @@ export default function NewRequest() {
               <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
-              {DOCUMENT_TYPES.filter(d => {
+              {documentTypes.filter(d => {
                 // Past students may only request transcripts
                 const userType = user?.type || user?.user_type;
                 if (userType === 'past_student') return d.id === 'transcript';

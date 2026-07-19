@@ -2,17 +2,17 @@
 
 TRUNCATE TABLE document_types RESTART IDENTITY CASCADE;
 
-INSERT INTO document_types (name, description, is_auto_generated, requires_payment) VALUES
-('lateness_form', 'Lateness Form (Auto-generated slip)', TRUE, FALSE),
-('absence_form', 'Absence Form (Auto-generated slip)', TRUE, FALSE),
-('permission_slip', 'Permission Slip (Auto-generated)', TRUE, FALSE),
-('transcript', 'Official Transcript', FALSE, TRUE),
-('enrollment', 'Letter of Enrollment / Enrollment Letter', FALSE, TRUE),
-('graduation', 'Graduation Certificate', FALSE, TRUE),
-('deans', 'Dean''s Letter', FALSE, TRUE),
-('diploma', 'Replacement Diploma', FALSE, TRUE),
-('good_moral', 'Good Moral Certificate', FALSE, TRUE),
-('other', 'Other / Special Request', FALSE, FALSE);
+INSERT INTO document_types (name, description, is_auto_generated, requires_payment, base_price) VALUES
+('lateness_form', 'Lateness Form (Auto-generated slip)', TRUE, FALSE, 0),
+('absence_form', 'Absence Form (Auto-generated slip)', TRUE, FALSE, 0),
+('permission_slip', 'Permission Slip (Auto-generated)', TRUE, FALSE, 0),
+('transcript', 'Official Transcript', FALSE, TRUE, 15),
+('enrollment', 'Letter of Enrollment / Enrollment Letter', FALSE, TRUE, 10),
+('graduation', 'Graduation Certificate', FALSE, TRUE, 45),
+('deans', 'Dean''s Letter', FALSE, TRUE, 10),
+('diploma', 'Replacement Diploma', FALSE, TRUE, 75),
+('good_moral', 'Good Moral Certificate', FALSE, TRUE, 10),
+('other', 'Other / Special Request', FALSE, FALSE, 0);
 
 TRUNCATE TABLE school_payment_info RESTART IDENTITY CASCADE;
 

@@ -28,7 +28,8 @@ CREATE TABLE document_types (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     is_auto_generated BOOLEAN DEFAULT FALSE,
-    requires_payment BOOLEAN DEFAULT TRUE
+    requires_payment BOOLEAN DEFAULT TRUE,
+    base_price NUMERIC(10,2) DEFAULT 0
 );
 
 CREATE TABLE document_requests (

@@ -170,6 +170,48 @@ const getDetailedStats = async (req, res) => {
     }
 };
 
+// GET /api/superadmin/pricing — list all document types with base_price
+const getDocumentPricing = async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT document_type_id, name, description, is_auto_generated, requires_payment, base_price FROM document_types ORDER BY document_type_id'
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching pricing.' });
+    }
+};
+
+// PATCH /api/superadmin/pricing/:id — update base_price for a document type
+const updateDocumentPrice = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { base_price } = req.body;
+
+        if (base_price === undefined || base_price === null || isNaN(parseFloat(base_price))) {
+            return res.status(400).json({ message: 'A valid base_price is required.' });
+        }
+        if (parseFloat(base_price) < 0) {
+            return res.status(400).json({ message: 'Price cannot be negative.' });
+        }
+
+        const result = await db.query(
+            'UPDATE document_types SET base_price = $1 WHERE document_type_id = $2 RETURNING document_type_id, name, base_price',
+            [parseFloat(base_price), id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Document type not found.' });
+        }
+
+        res.json({ message: 'Price updated successfully.', documentType: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error updating price.' });
+    }
+};
+
 module.exports = { 
     createStaffUser, 
     getStaffUserById,
@@ -178,5 +220,7 @@ module.exports = {
     deleteStaffUser, 
     getAllPublicUsers, 
     overridePassword,
-    getDetailedStats 
+    getDetailedStats,
+    getDocumentPricing,
+    updateDocumentPrice
 };

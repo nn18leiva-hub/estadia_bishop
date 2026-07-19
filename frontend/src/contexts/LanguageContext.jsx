@@ -642,6 +642,14 @@ const translations = {
     "no.notifications": "No notifications yet",
     "unread.notifications": "Unread Notifications",
     "clear.all": "Clear All",
+    "pricing.mgmt": "Price Management",
+    "pricing.subtitle": "Update document fees dynamically",
+    "base.price.bzd": "Base Price (BZD)",
+    "price.updated": "Price updated successfully!",
+    "price.update.fail": "Failed to update price.",
+    "price.invalid": "Invalid price value.",
+    "auto.generated": "Auto-generated",
+    "paid.document": "Paid Document",
   },
   es: {
     // Auth & Common
@@ -1282,6 +1290,14 @@ const translations = {
     "no.notifications": "No hay notificaciones por el momento",
     "unread.notifications": "Notificaciones Sin Leer",
     "clear.all": "Limpiar todo",
+    "pricing.mgmt": "Gestión de Precios",
+    "pricing.subtitle": "Actualizá el costo de los documentos en tiempo real",
+    "base.price.bzd": "Precio Base (BZD)",
+    "price.updated": "¡Precio actualizado correctamente!",
+    "price.update.fail": "Error al actualizar el precio.",
+    "price.invalid": "El precio ingresado no es válido.",
+    "auto.generated": "Autogenerado",
+    "paid.document": "De Pago",
   }
 };
 

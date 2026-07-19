@@ -16,4 +16,7 @@ router.get('/stats', superAdminController.getDetailedStats);
 router.get('/users', superAdminController.getAllPublicUsers);
 router.post('/override-password', superAdminController.overridePassword);
 
+router.get('/pricing', superAdminController.getDocumentPricing);
+router.patch('/pricing/:id', superAdminController.updateDocumentPrice);
+
 module.exports = router;
