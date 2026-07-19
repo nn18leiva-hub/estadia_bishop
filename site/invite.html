@@ -13,219 +13,373 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        "outline": "#8e706c", "surface-container-highest": "#e3e2e0", "primary-container": "#800000",
-        "surface-container-high": "#e9e8e6", "error-container": "#ffdad6", "on-background": "#1a1c1b",
-        "surface-container-lowest": "#ffffff", "surface-container-low": "#f4f3f1", "on-surface": "#1a1c1b",
-        "on-secondary": "#ffffff", "error": "#ba1a1a", "primary": "#570000", "on-surface-variant": "#5a413d",
-        "on-error": "#ffffff", "surface-dim": "#dadad8", "surface-bright": "#faf9f7", "secondary": "#735c00",
-        "surface": "#faf9f7", "surface-container": "#efeeec", "background": "#faf9f7",
-        "surface-variant": "#e3e2e0", "outline-variant": "#e2bfb9", "secondary-container": "#fed65b",
-        "on-secondary-container": "#745c00", "on-primary-container": "#ff8371", "on-primary": "#ffffff",
-        "on-error-container": "#93000a"
+        "outline": "#8e706c",
+        "surface-container-highest": "#e3e2e0",
+        "primary-container": "#800000",
+        "surface-container-high": "#e9e8e6",
+        "error-container": "#ffdad6",
+        "on-background": "#1a1c1b",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f4f3f1",
+        "on-surface": "#1a1c1b",
+        "on-secondary": "#ffffff",
+        "error": "#ba1a1a",
+        "primary": "#570000",
+        "on-surface-variant": "#5a413d",
+        "on-error": "#ffffff",
+        "surface-dim": "#dadad8",
+        "surface-bright": "#faf9f7",
+        "secondary": "#735c00",
+        "surface": "#faf9f7",
+        "surface-container": "#efeeec",
+        "background": "#faf9f7",
+        "surface-variant": "#e3e2e0",
+        "outline-variant": "#e2bfb9",
+        "secondary-container": "#fed65b",
+        "on-secondary-container": "#745c00",
+        "on-primary-container": "#ff8371",
+        "on-primary": "#ffffff",
+        "on-error-container": "#93000a",
+        "tertiary": "#162839",
+        "tertiary-container": "#2c3e50",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#96a9be"
       },
-      borderRadius: { "none": "0", "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
-      spacing: { "none": "0", "base": "4px", "xs": "8px", "sm": "16px", "md": "24px", "lg": "40px", "xl": "64px", "gutter": "24px" },
+      borderRadius: {
+        "none": "0",
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      spacing: {
+        "none": "0",
+        "base": "4px",
+        "xs": "8px",
+        "sm": "16px",
+        "md": "24px",
+        "lg": "40px",
+        "xl": "64px",
+        "gutter": "24px"
+      },
       fontFamily: {
-        "headline-lg": ["Libre Caslon Text","serif"], "headline-md": ["Libre Caslon Text","serif"],
-        "headline-sm": ["Libre Caslon Text","serif"], "body-md": ["Work Sans","sans-serif"],
-        "body-sm": ["Work Sans","sans-serif"], "label-lg": ["Work Sans","sans-serif"], "label-md": ["Work Sans","sans-serif"]
+        "headline-lg": ["Libre Caslon Text", "serif"],
+        "headline-md": ["Libre Caslon Text", "serif"],
+        "headline-sm": ["Libre Caslon Text", "serif"],
+        "display-lg": ["Libre Caslon Text", "serif"],
+        "body-lg": ["Work Sans", "sans-serif"],
+        "body-md": ["Work Sans", "sans-serif"],
+        "body-sm": ["Work Sans", "sans-serif"],
+        "label-lg": ["Work Sans", "sans-serif"],
+        "label-md": ["Work Sans", "sans-serif"]
       },
       fontSize: {
-        "headline-lg": ["32px",{"lineHeight":"40px","fontWeight":"600"}],
-        "headline-md": ["24px",{"lineHeight":"32px","fontWeight":"600"}],
-        "headline-sm": ["20px",{"lineHeight":"28px","fontWeight":"600"}],
-        "body-md": ["16px",{"lineHeight":"24px","fontWeight":"400"}],
-        "body-sm": ["14px",{"lineHeight":"20px","fontWeight":"400"}],
-        "label-lg": ["14px",{"lineHeight":"20px","letterSpacing":"0.05em","fontWeight":"600"}],
-        "label-md": ["12px",{"lineHeight":"16px","fontWeight":"500"}]
+        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
       }
     }
   }
 }
 </script>
-<style>.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }</style>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .bento-texture {
+    background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 12px 12px;
+  }
+</style>
 </head>
-<body class="bg-background min-h-screen font-body-md text-on-surface">
+<body class="bg-background font-body-md text-on-surface">
 
 <div class="flex min-h-screen">
 
-  <!-- Sidebar -->
-  <aside class="hidden md:flex h-screen w-80 bg-surface border-r border-outline-variant/20 flex-col p-md fixed left-0 top-0 bottom-0 z-40">
+  <!-- Desktop Floating Sidebar Navigation Card -->
+  <aside class="hidden md:flex h-[calc(100vh-2.5rem)] w-76 bg-surface-container-lowest border border-outline-variant/15 flex-col p-md fixed left-5 top-5 bottom-5 z-40 rounded-3xl shadow-sm">
     <div class="flex items-center gap-sm mb-lg">
-      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded flex-shrink-0">
-        <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-xl flex-shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-on-primary text-[22px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
       </div>
       <div>
-        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight">Bishop Martin</h1>
-        <p class="font-label-md text-label-md text-on-surface-variant">Staff Portal</p>
+        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight font-bold">Bishop Martin</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant font-semibold">Staff Portal</p>
       </div>
     </div>
+
     <nav class="flex flex-col gap-xs flex-grow">
-      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors rounded font-label-lg text-label-lg">
-        <span class="material-symbols-outlined text-[22px]">grid_view</span> Dashboard
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span>
+        <span>Dashboard</span>
       </a>
-      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container font-label-lg text-label-lg rounded">
-        <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1;">group</span> Users
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary text-on-primary font-label-lg text-label-lg rounded-xl shadow-md transition-all">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">group</span>
+        <span>Users Directory</span>
       </a>
-      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors rounded font-label-lg text-label-lg">
-        <span class="material-symbols-outlined text-[22px]">person</span> Profile
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">person</span>
+        <span>My Profile</span>
       </a>
     </nav>
-    <div class="pt-md border-t border-outline-variant/20 mt-auto">
-      <div class="flex items-center gap-sm px-sm py-sm">
+
+    <div class="pt-md border-t border-outline-variant/10 mt-auto relative">
+      <div class="flex items-center gap-sm px-xs py-xs cursor-pointer rounded-xl hover:bg-surface-container-low transition-colors" onclick="toggleDropdown()">
         <span class="material-symbols-outlined text-on-surface-variant text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
         <div class="flex-grow min-w-0">
-          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface truncate">Administrator</p>
+          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface font-bold truncate">Administrator</p>
           <p id="sidebar-user-email" class="font-label-md text-label-md text-on-surface-variant truncate">admin@bishopmartin.edu</p>
         </div>
-        <button onclick="logout()" class="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant flex-shrink-0">
-          <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+      </div>
+
+      <div id="profile-dropdown" class="hidden absolute bottom-14 left-0 w-full bg-surface-container-lowest border border-outline-variant/15 p-xs rounded-2xl shadow-lg z-50 flex flex-col gap-[2px]">
+        <a href="/profile.html" class="flex items-center gap-xs px-sm py-[6px] text-body-sm font-medium hover:bg-surface-container-low rounded-lg text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">settings</span> Account Settings
+        </a>
+        <button onclick="logout()" class="w-full text-left flex items-center gap-xs px-sm py-[6px] text-body-sm font-bold text-red-600 hover:bg-red-500/5 rounded-lg">
+          <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
         </button>
       </div>
-      <p class="font-label-md text-label-md text-on-surface-variant px-sm opacity-50 pb-xs">v1.0.4</p>
+
+      <p class="font-label-md text-label-md text-on-surface-variant px-xs opacity-50 pb-xs mt-base">v1.1.0 • Dev Mode</p>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="flex-grow md:ml-80 flex flex-col min-h-screen">
-    <!-- Top Bar -->
-    <header class="flex items-center justify-between px-sm w-full h-16 z-30 bg-surface border-b border-outline-variant/20 sticky top-0 md:h-[72px]">
+    
+    <!-- Top App Bar -->
+    <header class="flex items-center justify-between px-md w-full h-16 z-30 bg-surface border-b border-outline-variant/15 sticky top-0 md:h-[72px]">
       <div class="flex items-center gap-sm">
         <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer">
-          <span class="material-symbols-outlined text-primary">menu</span>
+          <span class="material-symbols-outlined text-primary text-[24px]">menu</span>
         </button>
-        <span class="font-headline-sm text-base sm:text-headline-sm font-semibold text-primary truncate max-w-[170px] min-[375px]:max-w-[210px] min-[410px]:max-w-[250px] sm:max-w-none">Bishop Martin Admin Portal</span>
+        <span class="font-headline-sm text-base sm:text-headline-sm font-bold text-primary truncate">Bishop Martin Admin Portal</span>
       </div>
-      <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
-        <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
-      </button>
+
+      <div class="flex items-center gap-sm">
+        <button id="theme-btn" onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/20 hover:bg-surface-container-high transition-transform duration-300">
+          <span class="material-symbols-outlined text-[20px] text-on-surface-variant">dark_mode</span>
+        </button>
+        <button onclick="toggleDropdown()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
+          <span class="material-symbols-outlined text-[24px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        </button>
+      </div>
     </header>
 
-    <!-- Content: Invitation Form -->
-    <div class="flex-grow flex items-center justify-center p-md md:p-xl relative overflow-hidden">
-      <!-- Background blur blobs -->
-      <div aria-hidden="true" class="absolute inset-0 opacity-[0.03] pointer-events-none">
-        <div class="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-secondary blur-[120px]"></div>
+    <!-- Content -->
+    <div class="p-sm sm:p-md md:p-lg flex-grow space-y-sm">
+      
+      <!-- Back button -->
+      <div>
+        <button onclick="window.history.back()" class="inline-flex items-center gap-xs text-primary hover:underline font-semibold font-label-lg cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Back to Users Directory</span>
+        </button>
       </div>
 
-      <div class="max-w-[600px] w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm z-10 relative overflow-hidden">
-        <!-- Accent bar -->
-        <div class="h-1.5 w-full bg-primary-container"></div>
-
-        <div class="p-lg md:p-xl space-y-md">
-          <!-- Icon + Title -->
-          <div class="flex flex-col items-center text-center space-y-sm mb-lg">
-            <div class="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary text-[40px]" style="font-variation-settings:'FILL' 1;">person_add</span>
-            </div>
-            <div>
-              <h2 class="font-headline-md text-headline-md text-on-surface">Invite New User</h2>
-              <p class="font-body-md text-body-md text-on-surface-variant">
-                Issue an invitation to join the Bishop Martin portal and set their permanent credentials.
-              </p>
-            </div>
-          </div>
-
-          <!-- Error Alert -->
-          <div id="error-alert" class="hidden flex gap-sm p-sm bg-error-container border border-error/20 rounded items-start">
-            <span class="material-symbols-outlined text-error text-[18px] flex-shrink-0 mt-[2px]">error_outline</span>
-            <p id="error-msg" class="font-body-sm text-body-sm text-on-error-container"></p>
-          </div>
-
-          <!-- Form -->
-          <form id="invite-form" class="space-y-md" autocomplete="off">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-              <div class="space-y-base">
-                <label class="font-label-lg text-label-lg text-on-surface-variant block" for="inv-name">Full Name</label>
-                <input id="inv-name" type="text" placeholder="Dr. Elena Sterling" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
-              </div>
-              <div class="space-y-base">
-                <label class="font-label-lg text-label-lg text-on-surface-variant block" for="inv-email">Institutional Email</label>
-                <input id="inv-email" type="email" placeholder="e.sterling@bishopmartin.edu" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
-              </div>
-              <div class="space-y-base">
-                <label class="font-label-lg text-label-lg text-on-surface-variant block" for="inv-role">Role</label>
-                <select id="inv-role" class="w-full py-sm px-sm bg-surface border border-outline-variant focus:border-primary outline-none rounded font-body-md appearance-none">
-                  <option value="admin">Staff Member (Admin)</option>
-                  <option value="viewer">Staff Member (Viewer)</option>
-                  <option value="super_admin">System Administrator</option>
-                </select>
-              </div>
-              <div class="space-y-base">
-                <label class="font-label-lg text-label-lg text-on-surface-variant block" for="inv-password">Temporary Password</label>
-                <input id="inv-password" type="password" placeholder="Min. 6 characters" class="w-full px-md py-sm bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md transition-all" required>
-              </div>
-            </div>
-
-            <!-- Preview Card -->
-            <div id="preview-card" class="hidden p-md bg-surface-container-low border border-outline-variant/20 rounded">
-              <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Invitation Preview</p>
-              <div class="flex items-center gap-md">
-                <div class="w-10 h-10 rounded bg-primary flex items-center justify-center text-on-primary font-bold text-base uppercase" id="preview-initials">?</div>
-                <div>
-                  <p id="preview-name" class="font-label-lg text-label-lg text-on-surface">—</p>
-                  <p id="preview-email" class="font-body-sm text-body-sm text-on-surface-variant">—</p>
-                </div>
-                <span id="preview-role-badge" class="ml-auto font-label-md text-label-md px-[6px] py-[2px] rounded bg-secondary-container text-on-secondary-container text-xs">Admin</span>
-              </div>
-            </div>
-
-            <!-- Action Footer -->
-            <div class="flex flex-col sm:flex-row-reverse gap-sm pt-md border-t border-outline-variant/10">
-              <button type="submit" id="send-btn" class="bg-primary-container text-white px-xl py-md font-label-lg text-label-lg rounded hover:bg-primary transition-all active:scale-95 shadow-sm flex items-center justify-center gap-sm">
-                Send Invitation
-                <span class="material-symbols-outlined">send</span>
-              </button>
-              <a href="/users.html" class="bg-transparent border border-outline text-primary px-xl py-md font-label-lg text-label-lg rounded hover:bg-surface-container-high transition-all active:scale-95 flex items-center justify-center gap-sm">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Go Back
-              </a>
-            </div>
-          </form>
+      <div class="max-w-3xl mx-auto space-y-sm">
+        
+        <!-- Title Header -->
+        <div>
+          <p class="text-primary font-bold tracking-wider uppercase text-[10px] sm:text-xs">Security Control</p>
+          <h2 class="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary font-bold">Invite New Portal User</h2>
+          <p class="font-body-md text-body-sm sm:font-body-md sm:text-body-md text-on-surface-variant max-w-2xl mt-px">
+            Configure system permissions bounds and temporary credentials for institutional staff profiles.
+          </p>
         </div>
+
+        <!-- Error Msg -->
+        <div id="error-alert" class="hidden flex items-center gap-sm px-sm py-xs bg-error-container/30 rounded-xl border border-error/20">
+          <span class="material-symbols-outlined text-error text-[20px]">error</span>
+          <p id="error-msg" class="font-body-sm text-on-error-container font-semibold"></p>
+        </div>
+
+        <!-- Form Card -->
+        <form id="invite-form" class="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md flex flex-col gap-md shadow-md" autocomplete="off">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md">
+            <!-- Full Name -->
+            <div class="flex flex-col gap-xs">
+              <label class="font-label-lg text-on-surface font-semibold text-[13px]" for="inv-name">Full Name</label>
+              <input id="inv-name" type="text" placeholder="e.g. Arthur Vance" class="w-full px-sm py-xs bg-surface border border-outline-variant/35 rounded-xl font-body-md focus:ring-2 focus:ring-primary/20 outline-none" required>
+            </div>
+            <!-- Email -->
+            <div class="flex flex-col gap-xs">
+              <label class="font-label-lg text-on-surface font-semibold text-[13px]" for="inv-email">Institutional Email</label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[20px]">mail</span>
+                <input id="inv-email" type="email" placeholder="a.vance@bishopmartin.edu" class="w-full pl-xl pr-sm py-xs bg-surface border border-outline-variant/35 rounded-xl font-body-md focus:ring-2 focus:ring-primary/20 outline-none" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md">
+            <!-- Temporary Password -->
+            <div class="flex flex-col gap-xs">
+              <label class="font-label-lg text-on-surface font-semibold text-[13px]" for="inv-password">Temporary Password</label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[20px]">password</span>
+                <input id="inv-password" type="password" placeholder="Min. 6 characters" class="w-full pl-xl pr-sm py-xs bg-surface border border-outline-variant/35 rounded-xl font-body-md focus:ring-2 focus:ring-primary/20 outline-none" required>
+              </div>
+            </div>
+            <!-- Blank placeholder/future field -->
+            <div class="hidden sm:block"></div>
+          </div>
+
+          <!-- Clickable Interactive Role Selection cards -->
+          <div class="flex flex-col gap-xs pt-xs border-t border-outline-variant/10">
+            <label class="font-label-lg text-on-surface font-semibold text-[13px]">Select Security Role</label>
+            
+            <input type="hidden" id="inv-role" value="admin">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-sm mt-xs">
+              
+              <!-- Viewer card -->
+              <div
+                id="role-card-viewer"
+                onclick="setRole('viewer')"
+                class="p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 bg-surface-container-lowest border-outline-variant/35 hover:bg-surface-container-low hover:shadow-sm"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-xs rounded-xl bg-surface flex">
+                    <span class="material-symbols-outlined text-[20px] text-secondary">visibility</span>
+                  </div>
+                  <span id="role-check-viewer" class="material-symbols-outlined text-[20px] text-primary hidden" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                </div>
+                <div>
+                  <p class="font-label-lg text-[13px] font-bold text-on-surface">Viewer</p>
+                  <p class="text-[10px] text-on-surface-variant font-medium mt-[2px] leading-normal">
+                    Can view audit logs and directory listings, but cannot edit system records or verify documents.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Staff card -->
+              <div
+                id="role-card-admin"
+                onclick="setRole('admin')"
+                class="p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 border-primary bg-primary/5 ring-2 ring-primary/25"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-xs rounded-xl bg-white flex">
+                    <span class="material-symbols-outlined text-[20px] text-primary">engineering</span>
+                  </div>
+                  <span id="role-check-admin" class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                </div>
+                <div>
+                  <p class="font-label-lg text-[13px] font-bold text-on-surface">Staff Admin</p>
+                  <p class="text-[10px] text-on-surface-variant font-medium mt-[2px] leading-normal">
+                    Standard operator access. Can verify bank payments, approve ID metrics, and issue prepared certificates.
+                  </p>
+                </div>
+              </div>
+
+              <!-- SuperAdmin card -->
+              <div
+                id="role-card-super_admin"
+                onclick="setRole('super_admin')"
+                class="p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 bg-surface-container-lowest border-outline-variant/35 hover:bg-surface-container-low hover:shadow-sm"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-xs rounded-xl bg-surface flex">
+                    <span class="material-symbols-outlined text-[20px] text-red-600">admin_panel_settings</span>
+                  </div>
+                  <span id="role-check-super_admin" class="material-symbols-outlined text-[20px] text-primary hidden" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                </div>
+                <div>
+                  <p class="font-label-lg text-[13px] font-bold text-on-surface">Super Admin</p>
+                  <p class="text-[10px] text-on-surface-variant font-medium mt-[2px] leading-normal">
+                    System root permissions. Can provision staff, audit latency registries, and force credential overrides.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Preview Card -->
+          <div id="preview-card" class="hidden p-sm bg-surface border border-outline-variant/20 rounded-2xl flex items-center gap-sm">
+            <div class="w-10 h-10 rounded-xl bg-primary/5 text-primary border border-primary/10 flex items-center justify-center font-bold text-sm uppercase shadow-sm" id="preview-initials">?</div>
+            <div>
+              <p id="preview-name" class="font-label-lg text-label-lg text-on-surface font-bold">—</p>
+              <p id="preview-email" class="text-[11px] text-on-surface-variant font-semibold">—</p>
+            </div>
+            <span id="preview-role-badge" class="ml-auto font-label-md text-[9px] px-[6px] py-[2px] rounded uppercase font-bold border border-primary/20 bg-primary/5 text-primary">Admin</span>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex justify-end gap-sm pt-md border-t border-outline-variant/10 mt-sm">
+            <button
+              type="button"
+              onclick="window.history.back()"
+              class="px-lg py-xs font-label-lg text-on-surface-variant hover:bg-surface-container-high rounded-xl border border-transparent font-bold transition-all active:scale-95 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="send-btn"
+              class="px-lg py-xs bg-primary text-on-primary font-label-lg rounded-xl shadow-md hover:bg-primary-container active:scale-95 transition-all flex items-center gap-xs font-bold cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-sm">send</span>
+              <span>Send Invitation</span>
+            </button>
+          </div>
+
+        </form>
+
       </div>
+
     </div>
 
-    <!-- Mobile Bottom Nav -->
-    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20">
-      <a href="/superadmin.html" class="flex flex-col items-center justify-center text-on-surface-variant active:scale-95 transition-all">
+    <!-- Bottom Nav Mobile -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20 shadow-lg">
+      <a href="/superadmin.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
         <span class="material-symbols-outlined">grid_view</span>
-        <span class="font-label-md text-label-md">Dashboard</span>
+        <span class="font-label-md text-[10px]">Dashboard</span>
       </a>
-      <a href="/users.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-95 transition-all">
+      <a href="/users.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-95 transition-all">
         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">group</span>
-        <span class="font-label-md text-label-md">Users</span>
+        <span class="font-label-md text-[10px]">Users</span>
       </a>
-      <a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant active:scale-95 transition-all">
+      <a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
         <span class="material-symbols-outlined">person</span>
-        <span class="font-label-md text-label-md">Profile</span>
+        <span class="font-label-md text-[10px]">Profile</span>
       </a>
     </nav>
     <div class="h-20 md:hidden"></div>
   </main>
 </div>
 
-<!-- Mobile Drawer -->
+<!-- Mobile drawer -->
 <div id="mobile-drawer" class="hidden fixed inset-0 bg-black/50 z-50 md:hidden" onclick="this.classList.add('hidden')">
-  <aside class="w-80 h-full bg-surface p-md flex flex-col" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between mb-lg">
+  <aside class="w-72 h-full bg-surface p-md flex flex-col gap-md" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between border-b border-outline-variant/10 pb-sm">
       <div class="flex items-center gap-sm">
-        <div class="w-10 h-10 bg-primary flex items-center justify-center rounded">
-          <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+        <div class="w-9 h-9 bg-primary flex items-center justify-center rounded-xl shadow-md">
+          <span class="material-symbols-outlined text-on-primary text-[18px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
         </div>
-        <h1 class="font-headline-sm text-headline-sm text-primary">Bishop Martin</h1>
+        <h1 class="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</h1>
       </div>
       <button onclick="document.getElementById('mobile-drawer').classList.add('hidden')" class="p-base hover:bg-surface-container-high rounded-full">
-        <span class="material-symbols-outlined">close</span>
+        <span class="material-symbols-outlined text-[20px]">close</span>
       </button>
     </div>
     <nav class="flex flex-col gap-xs">
-      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg">
         <span class="material-symbols-outlined">grid_view</span> Dashboard
       </a>
-      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container rounded font-label-lg text-label-lg">
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary/5 text-primary rounded-xl font-label-lg">
         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">group</span> Users
+      </a>
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg">
+        <span class="material-symbols-outlined">person</span> Profile
       </a>
     </nav>
   </aside>
@@ -233,11 +387,61 @@ tailwind.config = {
 
 <script src="/js/api.js"></script>
 <script>
-  if (!requireAuth('super_admin')) { /* redirected */ }
+  if (!requireAuth('super_admin')) { }
   populateSidebar();
 
-  // Live preview update
-  ['inv-name','inv-email','inv-role'].forEach(id => {
+  function toggleDropdown() {
+    document.getElementById('profile-dropdown').classList.toggle('hidden');
+  }
+
+  window.addEventListener('click', (e) => {
+    const dd = document.getElementById('profile-dropdown');
+    if (!dd) return;
+    if (!dd.classList.contains('hidden') && !e.target.closest('[onclick="toggleDropdown()"]') && !e.target.closest('#profile-dropdown')) {
+      dd.classList.add('hidden');
+    }
+  });
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-btn');
+    const isDark = html.classList.toggle('dark');
+    html.classList.toggle('light', !isDark);
+    btn.style.transform = 'rotate(180deg)';
+    setTimeout(() => {
+      btn.style.transform = 'rotate(0deg)';
+      btn.innerHTML = `<span class="material-symbols-outlined text-[20px] text-on-surface-variant">${isDark ? 'light_mode' : 'dark_mode'}</span>`;
+    }, 150);
+  }
+
+  function setRole(roleVal) {
+    document.getElementById('inv-role').value = roleVal;
+    
+    // Reset cards styles
+    const roles = ['viewer', 'admin', 'super_admin'];
+    roles.forEach(r => {
+      const card = document.getElementById(`role-card-${r}`);
+      const check = document.getElementById(`role-check-${r}`);
+      
+      card.className = "p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 bg-surface-container-lowest border-outline-variant/35 hover:bg-surface-container-low hover:shadow-sm";
+      check.classList.add('hidden');
+    });
+
+    // Select active card
+    const cardActive = document.getElementById(`role-card-${roleVal}`);
+    const checkActive = document.getElementById(`role-check-${roleVal}`);
+    
+    if (roleVal === 'super_admin') {
+      cardActive.className = "p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 border-red-500 bg-red-500/5 ring-2 ring-red-500/25";
+    } else {
+      cardActive.className = `p-sm border rounded-2xl cursor-pointer text-left flex flex-col justify-between h-full gap-sm transition-all duration-200 border-primary bg-primary/5 ring-2 ring-primary/25`;
+    }
+    
+    checkActive.classList.remove('hidden');
+    updatePreview();
+  }
+
+  ['inv-name','inv-email'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
   });
 
@@ -265,7 +469,7 @@ tailwind.config = {
     const errMsg = document.getElementById('error-msg');
     errAlert.classList.add('hidden');
     btn.disabled = true;
-    btn.innerHTML = 'Sending... <span class="material-symbols-outlined">hourglass_top</span>';
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Sending...';
 
     try {
       await apiFetch('/superadmin/staff', {
@@ -282,7 +486,7 @@ tailwind.config = {
       errMsg.textContent = err.message || 'Failed to send invitation.';
       errAlert.classList.remove('hidden');
       btn.disabled = false;
-      btn.innerHTML = 'Send Invitation <span class="material-symbols-outlined">send</span>';
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> <span>Send Invitation</span>';
     }
   });
 </script>

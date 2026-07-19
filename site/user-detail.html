@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>User Details | Bishop Martin Admin Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "outline": "#8e706c",
+        "surface-container-highest": "#e3e2e0",
+        "primary-container": "#800000",
+        "surface-container-high": "#e9e8e6",
+        "error-container": "#ffdad6",
+        "on-background": "#1a1c1b",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f4f3f1",
+        "on-surface": "#1a1c1b",
+        "on-secondary": "#ffffff",
+        "error": "#ba1a1a",
+        "primary": "#570000",
+        "on-surface-variant": "#5a413d",
+        "on-error": "#ffffff",
+        "surface-dim": "#dadad8",
+        "surface-bright": "#faf9f7",
+        "secondary": "#735c00",
+        "surface": "#faf9f7",
+        "surface-container": "#efeeec",
+        "background": "#faf9f7",
+        "surface-variant": "#e3e2e0",
+        "outline-variant": "#e2bfb9",
+        "secondary-container": "#fed65b",
+        "on-secondary-container": "#745c00",
+        "on-primary-container": "#ff8371",
+        "on-primary": "#ffffff",
+        "on-error-container": "#93000a",
+        "tertiary": "#162839",
+        "tertiary-container": "#2c3e50",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#96a9be"
+      },
+      borderRadius: {
+        "none": "0",
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      spacing: {
+        "none": "0",
+        "base": "4px",
+        "xs": "8px",
+        "sm": "16px",
+        "md": "24px",
+        "lg": "40px",
+        "xl": "64px",
+        "gutter": "24px"
+      },
+      fontFamily: {
+        "headline-lg": ["Libre Caslon Text", "serif"],
+        "headline-md": ["Libre Caslon Text", "serif"],
+        "headline-sm": ["Libre Caslon Text", "serif"],
+        "display-lg": ["Libre Caslon Text", "serif"],
+        "body-lg": ["Work Sans", "sans-serif"],
+        "body-md": ["Work Sans", "sans-serif"],
+        "body-sm": ["Work Sans", "sans-serif"],
+        "label-lg": ["Work Sans", "sans-serif"],
+        "label-md": ["Work Sans", "sans-serif"]
+      },
+      fontSize: {
+        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+      }
+    }
+  }
+}
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .bento-texture {
+    background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 12px 12px;
+  }
+</style>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="hidden md:flex h-[calc(100vh-2.5rem)] w-76 bg-surface-container-lowest border border-outline-variant/15 flex-col p-md fixed left-5 top-5 bottom-5 z-40 rounded-3xl shadow-sm">
+    <div class="flex items-center gap-sm mb-lg">
+      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-xl flex-shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-on-primary text-[22px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+      </div>
+      <div>
+        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight font-bold">Bishop Martin</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant font-semibold">Staff Portal</p>
+      </div>
+    </div>
+
+    <nav class="flex flex-col gap-xs flex-grow">
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary text-on-primary font-label-lg text-label-lg rounded-xl shadow-md transition-all">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">group</span>
+        <span>Users Directory</span>
+      </a>
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">person</span>
+        <span>My Profile</span>
+      </a>
+    </nav>
+
+    <div class="pt-md border-t border-outline-variant/10 mt-auto relative">
+      <div class="flex items-center gap-sm px-xs py-xs cursor-pointer rounded-xl hover:bg-surface-container-low transition-colors" onclick="toggleDropdown()">
+        <span class="material-symbols-outlined text-on-surface-variant text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        <div class="flex-grow min-w-0">
+          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface font-bold truncate">Administrator</p>
+          <p id="sidebar-user-email" class="font-label-md text-label-md text-on-surface-variant truncate">admin@bishopmartin.edu</p>
+        </div>
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+      </div>
+
+      <div id="profile-dropdown" class="hidden absolute bottom-14 left-0 w-full bg-surface-container-lowest border border-outline-variant/15 p-xs rounded-2xl shadow-lg z-50 flex flex-col gap-[2px]">
+        <a href="/profile.html" class="flex items-center gap-xs px-sm py-[6px] text-body-sm font-medium hover:bg-surface-container-low rounded-lg text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">settings</span> Account Settings
+        </a>
+        <button onclick="logout()" class="w-full text-left flex items-center gap-xs px-sm py-[6px] text-body-sm font-bold text-red-600 hover:bg-red-500/5 rounded-lg">
+          <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
+        </button>
+      </div>
+
+      <p class="font-label-md text-label-md text-on-surface-variant px-xs opacity-50 pb-xs mt-base">v1.1.0 • Dev Mode</p>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-grow md:ml-80 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between px-md w-full h-16 z-30 bg-surface border-b border-outline-variant/15 sticky top-0 md:h-[72px]">
+      <div class="flex items-center gap-sm">
+        <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer">
+          <span class="material-symbols-outlined text-primary text-[24px]">menu</span>
+        </button>
+        <span class="font-headline-sm text-base sm:text-headline-sm font-bold text-primary truncate">Bishop Martin Admin Portal</span>
+      </div>
+
+      <div class="flex items-center gap-sm">
+        <button id="theme-btn" onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/20 hover:bg-surface-container-high transition-transform duration-300">
+          <span class="material-symbols-outlined text-[20px] text-on-surface-variant">dark_mode</span>
+        </button>
+        <button onclick="toggleDropdown()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
+          <span class="material-symbols-outlined text-[24px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="p-sm sm:p-md md:p-lg flex-grow space-y-sm">
+      
+      <!-- Back button -->
+      <div>
+        <button onclick="window.history.back()" class="inline-flex items-center gap-xs text-primary hover:underline font-semibold font-label-lg cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Back to Users Directory</span>
+        </button>
+      </div>
+
+      <div id="loader" class="py-xl flex items-center justify-center">
+        <span class="material-symbols-outlined animate-spin text-primary text-[40px]">sync</span>
+      </div>
+
+      <div id="detail-container" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-md items-start">
+        
+        <!-- LEFT COLUMN: Profile Header, Info list, and Danger zone -->
+        <div class="lg:col-span-4 flex flex-col gap-md">
+          
+          <!-- Elegant Profile Header Card -->
+          <div class="bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-2xl p-md flex flex-col items-center text-center relative overflow-hidden shadow-md">
+            <div class="absolute inset-0 bento-texture opacity-10" />
+            <div class="relative z-10 flex flex-col items-center gap-sm">
+              <div id="profile-initials" class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-headline-lg font-bold shadow-md border border-white/20">??</div>
+              <div>
+                <h2 id="profile-name" class="font-headline-sm text-headline-sm text-white font-bold leading-tight">—</h2>
+                <p id="profile-role" class="font-body-sm text-[12px] opacity-80 capitalize mt-[2px] tracking-wide font-semibold">—</p>
+                <p id="profile-email" class="text-[11px] font-mono opacity-60 mt-base">—</p>
+              </div>
+              <span id="profile-status" class="px-md py-[4px] rounded-lg font-label-md text-label-md mt-xs capitalize font-bold border text-[10px] bg-secondary-container text-on-secondary-container border-secondary/20">
+                Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Account Info Details List -->
+          <div class="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md shadow-sm">
+            <h3 class="font-headline-sm text-headline-sm text-primary font-bold mb-sm border-b border-outline-variant/10 pb-xs flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[20px]">badge</span>
+              <span>Account Information</span>
+            </h3>
+            <div id="meta-list" class="space-y-sm">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+          <!-- Danger Zone Controls -->
+          <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-sm sm:p-md shadow-sm space-y-sm">
+            <div>
+              <h3 class="font-label-lg text-label-lg text-red-600 uppercase tracking-widest font-bold flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[18px]">gavel</span>
+                <span>Danger Zone</span>
+              </h3>
+              <p class="text-[10px] text-on-surface-variant mt-[2px] leading-relaxed font-semibold">
+                Suspend, deactivate, or reactivate this institutional access profile.
+              </p>
+            </div>
+            <button 
+              id="deactivate-btn"
+              onclick="handleDeactivate()"
+              class="w-full py-xs rounded-xl font-label-lg font-bold border transition-all active:scale-[0.98] border-red-500 text-red-500 hover:bg-red-500/10 cursor-pointer"
+            >
+              Deactivate Account
+            </button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Permissions accordion toggle switch and timeline logs -->
+        <div class="lg:col-span-8 flex flex-col gap-md">
+          
+          <!-- Permissions Switch box -->
+          <div class="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md shadow-md">
+            <div class="flex justify-between items-center mb-md border-b border-outline-variant/15 pb-xs">
+              <h3 class="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                <span>Portal Permissions Configuration</span>
+              </h3>
+              <span id="rules-count-badge" class="text-[11px] font-semibold text-primary bg-primary/5 px-sm py-[3px] rounded-lg border border-outline-variant/20 font-mono">
+                0 Active Rules
+              </span>
+            </div>
+
+            <div id="permissions-area" class="space-y-md">
+              <!-- Accordion category selection -->
+              <div id="accordion-tabs" class="flex bg-surface p-[3px] border border-outline-variant/35 rounded-xl gap-[2px]">
+                <!-- populated dynamically -->
+              </div>
+
+              <!-- List of iOS toggle switches -->
+              <div id="switches-container" class="space-y-sm">
+                <!-- populated dynamically -->
+              </div>
+
+              <!-- Save / Cancel -->
+              <div class="flex justify-end gap-sm mt-lg pt-md border-t border-outline-variant/15">
+                <button
+                  onclick="window.history.back()"
+                  class="px-lg py-xs font-label-lg text-on-surface-variant hover:bg-surface-container-high rounded-xl border border-transparent font-bold transition-all active:scale-95 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="save-permissions-btn"
+                  onclick="handleSavePermissions()"
+                  class="px-lg py-xs font-label-lg rounded-xl shadow-md transition-all font-bold flex items-center gap-xs active:scale-95 bg-primary text-on-primary hover:bg-primary-container cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-sm">save</span>
+                  <span>Save Permissions</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline activity log -->
+          <div id="timeline-card" class="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm sm:p-md shadow-sm space-y-sm">
+            <h3 class="font-headline-sm text-headline-sm text-primary font-bold border-b border-outline-variant/10 pb-xs flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[20px]">history</span>
+              <span>User Activity Timeline</span>
+            </h3>
+            
+            <div class="relative border-l border-outline-variant/35 pl-md ml-xs py-xs space-y-md text-left">
+              <div class="relative">
+                <span class="absolute -left-[29px] top-px w-5.5 h-5.5 rounded-full bg-primary/10 border border-primary flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined text-[12px] font-bold">check</span>
+                </span>
+                <p class="font-label-lg text-label-lg font-bold text-on-surface">Signed into console session</p>
+                <p class="text-[10px] text-on-surface-variant">Auth Method: Institutional MFA / IP: 190.23.41.112</p>
+                <span class="text-[10px] text-on-surface-variant font-medium opacity-70 block mt-[2px]">2 hours ago</span>
+              </div>
+
+              <div class="relative">
+                <span class="absolute -left-[29px] top-px w-5.5 h-5.5 rounded-full bg-primary/10 border border-primary flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined text-[12px] font-bold">article</span>
+                </span>
+                <p class="font-label-lg text-label-lg font-bold text-on-surface">Updated request #BM-1024 status</p>
+                <p class="text-[10px] text-on-surface-variant">Modified fields: Status &rarr; Ready for Pickup</p>
+                <span class="text-[10px] text-on-surface-variant font-medium opacity-70 block mt-[2px]">3 days ago</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Mobile Nav -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20 shadow-lg">
+      <a href="/superadmin.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">grid_view</span>
+        <span class="font-label-md text-[10px]">Dashboard</span>
+      </a>
+      <a href="/users.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-95 transition-all">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">group</span>
+        <span class="font-label-md text-[10px]">Users</span>
+      </a>
+      <a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-label-md text-[10px]">Profile</span>
+      </a>
+    </nav>
+    <div class="h-20 md:hidden"></div>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  if (!requireAuth('super_admin')) { }
+  populateSidebar();
+
+  const userId = new URLSearchParams(window.location.search).get('id');
+  let userDetails = null;
+  let activeAccordion = 'Requests';
+
+  const ALL_PERMISSIONS = [
+    { id: 'view_requests', label: 'View All Requests', group: 'Requests', desc: 'Allows the user to view list and details of all student requests.' },
+    { id: 'manage_requests', label: 'Process & Update Requests', group: 'Requests', desc: 'Allows the operator to prepare, issue, and flag request forms.' },
+    { id: 'approve_documents', label: 'Approve & Release Documents', group: 'Requests', desc: 'Administrative authority to sign off on prepared documents.' },
+    { id: 'view_payments', label: 'View Payment Records', group: 'Payments', desc: 'Permits viewing the bank transfer payments ledger.' },
+    { id: 'verify_payments', label: 'Verify Bank Transfers', group: 'Payments', desc: 'Enables checking uploaded receipt images and marking payments verified.' },
+    { id: 'view_users', label: 'View User Directory', group: 'Administration', desc: 'Allows viewing staff and parent profiles in the user directory.' },
+    { id: 'manage_users', label: 'Create & Edit Users', group: 'Administration', desc: 'Gives rights to create, delete, and modify user account details.' },
+    { id: 'manage_permissions', label: 'Manage Permissions', group: 'Administration', desc: 'Allows editing granular security permission sets.' },
+    { id: 'view_verifications', label: 'View ID Verifications', group: 'Verification', desc: 'Access to look at parent identity document uploads.' },
+    { id: 'approve_verifications', label: 'Approve ID Verifications', group: 'Verification', desc: 'Enables verifying and validating parent identities in the system.' },
+  ];
+
+  const GROUPS = [...new Set(ALL_PERMISSIONS.map(p => p.group))];
+  let permissionsState = [];
+
+  function toggleDropdown() {
+    document.getElementById('profile-dropdown').classList.toggle('hidden');
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-btn');
+    const isDark = html.classList.toggle('dark');
+    html.classList.toggle('light', !isDark);
+    btn.style.transform = 'rotate(180deg)';
+    setTimeout(() => {
+      btn.style.transform = 'rotate(0deg)';
+      btn.innerHTML = `<span class="material-symbols-outlined text-[20px] text-on-surface-variant">${isDark ? 'light_mode' : 'dark_mode'}</span>`;
+    }, 150);
+  }
+
+  async function loadUser() {
+    if (!userId) {
+      alert('Missing User ID');
+      window.location.href = '/users.html';
+      return;
+    }
+
+    try {
+      const data = await apiFetch(`/admin/users/${userId}`);
+      if (!data) throw new Error('User not found');
+      userDetails = data;
+      permissionsState = data.permissions || [];
+      
+      renderUserDetails();
+      document.getElementById('loader').classList.add('hidden');
+      document.getElementById('detail-container').classList.remove('hidden');
+    } catch (err) {
+      alert(err.message);
+      window.location.href = '/users.html';
+    }
+  }
+
+  function getInitials(name) {
+    return (name || '??').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function renderUserDetails() {
+    const u = userDetails;
+    document.getElementById('profile-initials').textContent = getInitials(u.full_name || u.name);
+    document.getElementById('profile-name').textContent = u.full_name || u.name;
+    document.getElementById('profile-role').textContent = u.role.replace(/_/g, ' ');
+    document.getElementById('profile-email').textContent = u.email;
+    
+    const isDeactivated = u.status === 'deactivated';
+    const statusEl = document.getElementById('profile-status');
+    statusEl.textContent = u.status || 'active';
+    if (isDeactivated) {
+      statusEl.className = 'px-md py-[4px] rounded-lg font-label-md text-label-md mt-xs capitalize font-bold border text-[10px] bg-red-500/5 text-red-600 border-red-500/25';
+      document.getElementById('deactivate-btn').className = 'w-full py-xs rounded-xl font-label-lg font-bold border border-green-600 text-green-700 hover:bg-green-600/10 cursor-pointer';
+      document.getElementById('deactivate-btn').textContent = 'Reactivate Account';
+    } else {
+      statusEl.className = 'px-md py-[4px] rounded-lg font-label-md text-label-md mt-xs capitalize font-bold border text-[10px] bg-secondary/5 text-secondary border-secondary/25';
+      document.getElementById('deactivate-btn').className = 'w-full py-xs rounded-xl font-label-lg font-bold border border-red-500 text-red-500 hover:bg-red-500/10 cursor-pointer';
+      document.getElementById('deactivate-btn').textContent = 'Deactivate Account';
+    }
+
+    const metas = [
+      { icon: 'fingerprint', label: 'User ID Reference', value: u.id },
+      { icon: 'alternate_email', label: 'Primary Email Address', value: u.email },
+      { icon: 'call', label: 'Contact Phone Number', value: u.phone || '—' },
+      { icon: 'admin_panel_settings', label: 'Designated Role', value: u.role, cap: true },
+      { icon: 'login', label: 'Last Activity Login', value: u.last_login ? new Date(u.last_login).toLocaleString('en-BZ') : 'Never active' },
+      { icon: 'calendar_today', label: 'Registry Date', value: u.created_at ? new Date(u.created_at).toLocaleDateString('en-BZ') : '—' }
+    ];
+
+    document.getElementById('meta-list').innerHTML = metas.map(m => `
+      <div class="flex items-center gap-sm py-xs border-b border-outline-variant/5 last:border-none">
+        <div class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-on-surface-variant/80 border border-outline-variant/10">
+          <span class="material-symbols-outlined text-[16px]">${m.icon}</span>
+        </div>
+        <div class="flex-grow min-w-0">
+          <p class="font-label-md text-label-md text-on-surface-variant font-medium text-[10px] opacity-75 uppercase tracking-wider">${m.label}</p>
+          <p class="font-body-sm text-body-sm truncate font-bold text-on-surface mt-[2px] ${m.cap ? 'capitalize' : ''}">${m.value}</p>
+        </div>
+      </div>`).join('');
+
+    if (u.role === 'parent' || u.role === 'past_student') {
+      document.getElementById('permissions-area').innerHTML = `
+        <div class="py-xl text-center text-on-surface-variant font-body-md max-w-md mx-auto space-y-sm">
+          <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <span class="material-symbols-outlined text-[32px]">account_box</span>
+          </div>
+          <p class="font-bold text-on-surface text-base">Client Authorization</p>
+          <p class="text-sm">Granular access rules are only configurable for institutional staff profiles. Parents and past students inherit default portal access rules.</p>
+        </div>`;
+      document.getElementById('timeline-card').classList.add('hidden');
+    } else {
+      document.getElementById('rules-count-badge').textContent = `${permissionsState.length} Active Rules`;
+      renderAccordionTabs();
+      renderPermissionsSwitches();
+    }
+  }
+
+  function renderAccordionTabs() {
+    const container = document.getElementById('accordion-tabs');
+    container.innerHTML = GROUPS.map(g => `
+      <button
+        type="button"
+        onclick="setActiveGroup('${g}')"
+        class="flex-1 py-[6px] text-center font-label-md text-[12px] font-bold rounded-lg transition-all cursor-pointer ${
+          activeAccordion === g ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
+        }"
+      >
+        ${g}
+      </button>`).join('');
+  }
+
+  function setActiveGroup(g) {
+    activeAccordion = g;
+    renderAccordionTabs();
+    renderPermissionsSwitches();
+  }
+
+  function togglePermission(permId) {
+    if (permissionsState.includes(permId)) {
+      permissionsState = permissionsState.filter(id => id !== permId);
+    } else {
+      permissionsState.push(permId);
+    }
+    document.getElementById('rules-count-badge').textContent = `${permissionsState.length} Active Rules`;
+    renderPermissionsSwitches();
+  }
+
+  function renderPermissionsSwitches() {
+    const container = document.getElementById('switches-container');
+    const groupPerms = ALL_PERMISSIONS.filter(p => p.group === activeAccordion);
+    
+    container.innerHTML = groupPerms.map(perm => {
+      const isChecked = permissionsState.includes(perm.id);
+      return `
+        <div 
+          onclick="togglePermission('${perm.id}')"
+          class="flex items-start gap-sm p-sm rounded-xl hover:bg-surface-container-low cursor-pointer border border-outline-variant/5 hover:border-outline-variant/25 transition-all group"
+        >
+          <!-- Custom iOS Toggle Switch -->
+          <div class="relative mt-base flex-shrink-0">
+            <div class="w-10 h-6 rounded-full transition-colors duration-200 border border-outline-variant/10 ${isChecked ? 'bg-primary' : 'bg-surface-container-high'}"></div>
+            <div class="absolute top-[2px] left-[2px] w-[20px] h-[20px] rounded-full bg-white shadow-md transition-transform duration-200 ${isChecked ? 'translate-x-4' : 'translate-x-0'}"></div>
+          </div>
+
+          <div class="flex-grow min-w-0">
+            <p class="font-label-lg text-label-lg font-bold text-on-surface group-hover:text-primary transition-colors">${perm.label}</p>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed mt-[2px] font-medium">${perm.desc}</p>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function handleSavePermissions() {
+    const btn = document.getElementById('save-permissions-btn');
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Saving...';
+    btn.disabled = true;
+    try {
+      await apiFetch(`/admin/users/${userId}/permissions`, {
+        method: 'PATCH',
+        body: JSON.stringify({ permissions: permissionsState })
+      });
+      alert('Permissions saved successfully!');
+      window.location.href = '/users.html';
+    } catch (err) {
+      alert('Failed to save permissions: ' + err.message);
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> <span>Save Permissions</span>';
+      btn.disabled = false;
+    }
+  }
+
+  async function handleDeactivate() {
+    const isAct = userDetails.status === 'active';
+    const msg = isAct
+      ? 'Deactivate this account? The user will be logged out and blocked from access.'
+      : 'Reactivate this account?';
+    if (!confirm(msg)) return;
+
+    const btn = document.getElementById('deactivate-btn');
+    btn.textContent = 'Updating...';
+    btn.disabled = true;
+
+    // Simulate backend status PATCH /admin/users/:id/status
+    setTimeout(async () => {
+      try {
+        userDetails.status = isAct ? 'deactivated' : 'active';
+        alert(isAct ? 'Account successfully deactivated.' : 'Account successfully reactivated.');
+        renderUserDetails();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }, 600);
+  }
+
+  loadUser();
+</script>
+</body>
+</html>

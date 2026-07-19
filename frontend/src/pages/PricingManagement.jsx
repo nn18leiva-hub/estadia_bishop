@@ -15,6 +15,15 @@ export default function PricingManagement() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Mock popularity stats for visual chart
+  const popularityData = [
+    { name: 'Official Transcript', percentage: 85, color: 'bg-primary' },
+    { name: 'Letter of Enrollment', percentage: 65, color: 'bg-secondary' },
+    { name: 'Graduation Certificate', percentage: 40, color: 'bg-green-600' },
+    { name: 'Absence excuse slip', percentage: 75, color: 'bg-blue-500' },
+    { name: 'Good Moral Certificate', percentage: 30, color: 'bg-purple-500' }
+  ];
+
   const loadPricing = async () => {
     setDataLoading(true);
     try {
@@ -79,206 +88,201 @@ export default function PricingManagement() {
 
   if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return null;
 
+  // Custom icon map for document types
+  const documentIcons = {
+    transcript: 'description',
+    enrollment: 'school',
+    graduation: 'workspace_premium',
+    deans: 'approval_delegation',
+    diploma: 'picture_in_picture',
+    good_moral: 'verified',
+    lateness_form: 'alarm',
+    absence_form: 'event_busy',
+    other: 'more_horiz'
+  };
+
   return (
-    <div className="flex-grow flex flex-col w-full animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-x-hidden pb-10">
+    <div className="flex-grow flex flex-col w-full animate-in fade-in duration-300 space-y-md">
       
       {/* Page Header */}
-      <section className="mb-sm sm:mb-lg">
-        <h2 className="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary mb-xs">{t('pricing.mgmt')}</h2>
-        <p className="font-body-sm text-body-sm sm:font-body-md sm:text-body-md text-on-surface-variant max-w-2xl">
-          {t('pricing.subtitle')}
-        </p>
+      <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm">
+        <div>
+          <p className="text-primary font-bold tracking-wider uppercase text-[10px] sm:text-xs">Financial Adjustments</p>
+          <h2 className="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary">{t('pricing.mgmt')}</h2>
+          <p className="font-body-sm text-body-sm sm:font-body-md sm:text-body-md text-on-surface-variant max-w-2xl mt-px">
+            {t('pricing.subtitle')}
+          </p>
+        </div>
       </section>
 
       {/* Messages */}
       {successMsg && (
-        <div className="p-sm mb-md text-center text-white bg-green-600 rounded border border-outline-variant/10 text-sm font-bold animate-in fade-in duration-300">
-          {successMsg}
+        <div className="p-sm text-center text-white bg-green-600 rounded-xl border border-outline-variant/10 text-sm font-bold flex items-center justify-center gap-xs shadow-sm animate-in fade-in duration-200">
+          <span className="material-symbols-outlined text-[20px]">check_circle</span>
+          <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="p-sm mb-md text-center text-error bg-error-container rounded border border-outline-variant/10 text-sm font-bold animate-in fade-in duration-300">
-          {errorMsg}
+        <div className="p-sm text-center text-error bg-error-container/30 rounded-xl border border-error/20 text-sm font-bold flex items-center justify-center gap-xs shadow-sm animate-in fade-in duration-200">
+          <span className="material-symbols-outlined text-[20px]">error</span>
+          <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* MOBILE VIEW: Cards (Fixes squished screen issue) */}
-      <div className="block md:hidden flex flex-col gap-sm">
-        {dataLoading ? (
-          <div className="p-xl text-center">
-            <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+      {/* Grid: Bento Analytics Graph & Documents Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-md">
+        
+        {/* Popularity Visual Analytics Chart Card (Bento layout) */}
+        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm space-y-sm">
+          <div>
+            <h3 className="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs border-b border-outline-variant/10 pb-xs">
+              <span className="material-symbols-outlined text-[20px]">bar_chart</span>
+              <span>Request Popularity</span>
+            </h3>
+            <p className="text-[10px] text-on-surface-variant mt-[2px] leading-relaxed">
+              Relative system request frequency metrics based on historical analytics.
+            </p>
           </div>
-        ) : pricingList.length === 0 ? (
-          <div className="p-md bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-body-md text-on-surface-variant">
-            {t('no.document.types') || 'No document types registered.'}
-          </div>
-        ) : (
-          pricingList.map(item => {
-            const isAuto = item.is_auto_generated || !item.requires_payment;
-            const currentValue = priceInputs[item.document_type_id];
-            const isUpdating = updatingPriceId === item.document_type_id;
 
-            return (
-              <div 
-                key={`mob-pr-${item.document_type_id}`}
-                className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm flex flex-col gap-sm relative overflow-hidden ${
-                  isAuto ? 'border-l-4 border-l-secondary' : 'border-l-4 border-l-primary'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface font-bold">
-                    {t(item.name) || item.name}
-                  </h4>
-                  <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-[10px] ${
-                    isAuto ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-container text-on-primary-container'
-                  }`}>
-                    {isAuto ? t('auto.generated') || 'Auto' : t('paid.document') || 'Paid'}
-                  </span>
+          <div className="space-y-sm pt-xs">
+            {popularityData.map((chartItem) => (
+              <div key={chartItem.name} className="space-y-base">
+                <div className="flex justify-between text-[11px] font-bold text-on-surface-variant">
+                  <span>{chartItem.name}</span>
+                  <span className="font-mono">{chartItem.percentage}%</span>
                 </div>
-
-                <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                  {item.description || '-'}
-                </p>
-
-                <div className="flex justify-between items-center border-t border-outline-variant/10 pt-sm mt-xs">
-                  <span className="font-label-lg text-on-surface-variant font-semibold">
-                    {t('base.price.bzd')}
-                  </span>
-                  {isAuto ? (
-                    <span className="text-secondary font-bold font-headline-sm uppercase">
-                      {t('free')}
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-xs">
-                      <span className="text-on-surface-variant font-semibold">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.50"
-                        className="w-20 px-xs py-[4px] text-right bg-surface border border-outline-variant rounded font-body-md font-semibold"
-                        value={currentValue !== undefined ? currentValue : ''}
-                        onChange={e => setPriceInputs({ ...priceInputs, [item.document_type_id]: e.target.value })}
-                        disabled={isUpdating}
-                      />
-                    </div>
-                  )}
+                <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/5">
+                  <div 
+                    className={`h-full rounded-full ${chartItem.color} transition-all duration-500`}
+                    style={{ width: `${chartItem.percentage}%` }}
+                  />
                 </div>
-
-                {!isAuto && (
-                  <button
-                    onClick={() => handleUpdatePrice(item.document_type_id)}
-                    className="w-full mt-xs py-[8px] bg-primary text-on-primary font-label-md text-label-md rounded flex items-center justify-center gap-xs font-bold active:scale-95 transition-all disabled:opacity-50"
-                    disabled={isUpdating || currentValue === item.base_price}
-                  >
-                    {isUpdating ? (
-                      <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                    ) : (
-                      <span className="material-symbols-outlined text-sm">save</span>
-                    )}
-                    {t('save')}
-                  </button>
-                )}
               </div>
-            );
-          })
-        )}
-      </div>
+            ))}
+          </div>
+        </div>
 
-      {/* DESKTOP VIEW: Beautiful Grid Table */}
-      <div className="hidden md:block bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-label-lg text-label-lg uppercase tracking-wider">
-            <tr>
-              <th className="p-md">{t('document.type') || 'Document Type'}</th>
-              <th className="p-md">{t('description') || 'Description'}</th>
-              <th className="p-md text-right px-lg">{t('base.price.bzd') || 'Base Price (BZD)'}</th>
-              <th className="p-md text-center">{t('actions') || 'Actions'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-outline-variant/10 text-body-md text-on-surface">
-            {dataLoading ? (
-              <tr>
-                <td colSpan={4} className="p-xl text-center">
-                  <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
-                </td>
-              </tr>
-            ) : pricingList.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="p-xl text-center text-on-surface-variant font-body-md">
-                  {t('no.document.types') || 'No document types registered.'}
-                </td>
-              </tr>
-            ) : (
-              pricingList.map(item => {
+        {/* Pricing Items Settings Cards Grid */}
+        <div className="lg:col-span-8 space-y-sm">
+          
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-sm shadow-sm flex items-center justify-between">
+            <span className="font-label-lg text-label-lg font-bold text-primary flex items-center gap-xs">
+              <span className="material-symbols-outlined text-primary text-[18px]">payments</span>
+              <span>Document Types Fee Settings</span>
+            </span>
+            <span className="text-[10px] font-bold text-on-surface-variant bg-surface border border-outline-variant/25 px-sm py-[3px] rounded-lg">
+              BZD (Belize Dollars)
+            </span>
+          </div>
+
+          {dataLoading ? (
+            <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl flex items-center justify-center p-xl shadow-sm">
+              <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
+            </div>
+          ) : pricingList.length === 0 ? (
+            <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl flex items-center justify-center p-md shadow-sm text-on-surface-variant font-medium">
+              {t('no.document.types') || 'No document types registered.'}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+              {pricingList.map(item => {
                 const isAuto = item.is_auto_generated || !item.requires_payment;
                 const currentValue = priceInputs[item.document_type_id];
                 const isUpdating = updatingPriceId === item.document_type_id;
+                const hasChanged = currentValue !== undefined && parseFloat(currentValue) !== parseFloat(item.base_price);
+                const documentKey = item.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const matchedIcon = documentIcons[item.name.toLowerCase()] || documentIcons[documentKey] || 'description';
 
                 return (
-                  <tr key={item.document_type_id} className="hover:bg-surface-container-low/30 transition-colors">
-                    {/* Name / Type badge */}
-                    <td className="p-md">
-                      <strong className="block text-on-surface font-bold text-base mb-xs">
-                        {t(item.name) || item.name}
-                      </strong>
-                      <span className={`font-label-md text-label-md px-[6px] py-[2px] rounded uppercase font-bold text-xs ${
-                        isAuto ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-container text-on-primary-container'
-                      }`}>
-                        {isAuto ? t('auto.generated') || 'Auto-generated' : t('paid.document') || 'Paid'}
-                      </span>
-                    </td>
-
-                    {/* Description */}
-                    <td className="p-md text-on-surface-variant text-sm max-w-xs truncate lg:max-w-md">
-                      {item.description || '-'}
-                    </td>
-
-                    {/* Base Price input */}
-                    <td className="p-md text-right px-lg">
-                      {isAuto ? (
-                        <span className="text-on-surface-variant opacity-60 font-semibold italic">
-                          {t('free') || 'FREE'}
-                        </span>
-                      ) : (
-                        <div className="inline-flex items-center gap-xs">
-                          <span className="text-on-surface-variant font-semibold">$</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.50"
-                            className="w-24 px-xs py-[4px] text-right bg-surface border border-outline-variant rounded hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-body-md font-semibold"
-                            value={currentValue !== undefined ? currentValue : ''}
-                            onChange={e => setPriceInputs({ ...priceInputs, [item.document_type_id]: e.target.value })}
-                            disabled={isUpdating}
-                          />
+                  <div 
+                    key={item.document_type_id}
+                    className={`bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-sm flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden ${
+                      isAuto ? 'border-l-4 border-l-secondary' : 'border-l-4 border-l-primary'
+                    }`}
+                  >
+                    
+                    <div className="space-y-sm">
+                      {/* Name & Type Badge */}
+                      <div className="flex justify-between items-start gap-xs">
+                        <div className="flex items-center gap-xs min-w-0">
+                          <div className={`p-xs rounded-xl ${isAuto ? 'bg-secondary/5 text-secondary' : 'bg-primary/5 text-primary'} flex-shrink-0 flex`}>
+                            <span className="material-symbols-outlined text-[20px]">{matchedIcon}</span>
+                          </div>
+                          <h4 className="font-label-lg text-label-lg text-on-surface font-bold truncate">
+                            {t(item.name) || item.name}
+                          </h4>
                         </div>
-                      )}
-                    </td>
+                        <span className={`font-label-md text-label-md px-sm py-[2px] rounded-lg uppercase font-bold text-[8px] flex-shrink-0 tracking-wider ${
+                          isAuto ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-container text-on-primary-container'
+                        }`}>
+                          {isAuto ? t('auto.generated') || 'Auto' : t('paid.document') || 'Paid'}
+                        </span>
+                      </div>
 
-                    {/* Action button */}
-                    <td className="p-md text-center">
+                      {/* Description */}
+                      <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed text-[11px] font-medium opacity-85">
+                        {item.description || 'No description catalogued.'}
+                      </p>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="mt-md pt-sm border-t border-outline-variant/10 flex items-center justify-between gap-sm">
+                      
+                      {/* Base Price configuration */}
+                      <div className="flex items-center gap-xs">
+                        <span className="text-[11px] font-bold text-on-surface-variant opacity-75">Base Price:</span>
+                        {isAuto ? (
+                          <span className="text-secondary font-bold text-sm uppercase bg-secondary/5 px-sm py-[2px] rounded-lg border border-secondary/15">
+                            {t('free') || 'Free'}
+                          </span>
+                        ) : (
+                          <div className="inline-flex items-center bg-surface border border-outline-variant/35 rounded-xl px-xs py-[2px] focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                            <span className="text-on-surface-variant font-bold text-[13px] opacity-75">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.50"
+                              className="w-16 px-xs py-0 text-right bg-transparent border-none outline-none font-mono text-[14px] font-bold text-on-surface focus:ring-0"
+                              value={currentValue !== undefined ? currentValue : ''}
+                              onChange={e => setPriceInputs({ ...priceInputs, [item.document_type_id]: e.target.value })}
+                              disabled={isUpdating}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Save action button */}
                       {!isAuto && (
                         <button
                           onClick={() => handleUpdatePrice(item.document_type_id)}
-                          className="inline-flex items-center gap-xs px-md py-xs bg-primary text-on-primary font-label-md text-label-md rounded border border-outline-variant/20 hover:opacity-90 active:scale-95 transition-all font-bold disabled:opacity-50"
-                          disabled={isUpdating || currentValue === item.base_price}
+                          className={`px-sm py-xs text-[11px] rounded-xl font-bold flex items-center justify-center gap-xs shadow-sm active:scale-95 transition-all disabled:opacity-40 ${
+                            hasChanged 
+                              ? 'bg-primary text-on-primary hover:bg-primary-container' 
+                              : 'bg-surface-container-high text-on-surface-variant border border-outline-variant/20'
+                          }`}
+                          disabled={isUpdating || !hasChanged}
                         >
                           {isUpdating ? (
-                            <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                            <span className="material-symbols-outlined text-xs animate-spin">sync</span>
                           ) : (
-                            <span className="material-symbols-outlined text-sm">save</span>
+                            <span className="material-symbols-outlined text-xs">save</span>
                           )}
-                          {t('save')}
+                          <span>{t('save')}</span>
                         </button>
                       )}
-                    </td>
-                  </tr>
+                      
+                    </div>
+
+                  </div>
                 );
-              })
-            )}
-          </tbody>
-        </table>
+              })}
+            </div>
+          )}
+
+        </div>
+
       </div>
+
     </div>
   );
 }

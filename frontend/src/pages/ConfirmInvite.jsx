@@ -9,57 +9,66 @@ export default function ConfirmInvite() {
   const name = state?.name || 'New User';
 
   return (
-    <div className="animate-in fade-in duration-500 flex items-center justify-center px-sm py-xl">
-      <div className="max-w-lg w-full flex flex-col items-center text-center gap-lg">
-        {/* Icon */}
-        <div className="w-28 h-28 rounded-full bg-secondary-container flex items-center justify-center">
-          <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: '56px', fontVariationSettings: "'FILL' 1" }}>mark_email_read</span>
+    <div className="animate-in fade-in zoom-in-95 duration-300 flex items-center justify-center px-sm py-md sm:py-xl">
+      <div className="max-w-lg w-full bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-sm sm:p-md shadow-lg flex flex-col items-center text-center gap-md">
+        
+        {/* Animated Check / Read Mail Icon */}
+        <div className="w-24 h-24 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-md relative overflow-hidden">
+          <div className="absolute inset-0 bg-white/10 animate-pulse" />
+          <span className="material-symbols-outlined text-on-secondary-container text-[48px] relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>mark_email_read</span>
         </div>
 
-        {/* Text */}
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-primary">{t('invitation.sent')}</h1>
-          <p className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
-            {t('invitation.sent.to')} <strong>{name}</strong>.
+        {/* Success message texts */}
+        <div className="space-y-xs">
+          <h1 className="font-headline-sm text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary font-bold">{t('invitation.sent')}</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto leading-relaxed">
+            {t('invitation.sent.to')} <strong className="text-on-surface font-semibold">{name}</strong>.
           </p>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-            <span className="font-mono text-primary">{email}</span>
-          </p>
+          <div className="inline-block bg-surface px-sm py-[4px] rounded-lg border border-outline-variant/20 font-mono text-primary text-[13px] font-semibold">
+            {email}
+          </div>
         </div>
 
-        {/* Info */}
-        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md w-full text-left">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('next.steps')}</h3>
+        {/* Detailed checklist of next steps */}
+        <div className="bg-surface border border-outline-variant/15 rounded-xl p-sm text-left w-full space-y-sm">
+          <h3 className="font-label-lg text-label-lg text-primary font-bold flex items-center gap-xs border-b border-outline-variant/10 pb-xs">
+            <span className="material-symbols-outlined text-[18px]">list_alt</span>
+            <span>{t('next.steps')}</span>
+          </h3>
           <div className="flex flex-col gap-sm">
             {[
-              { icon: 'mail', text: t('invite.step1') },
+              { icon: 'mail_outline', text: t('invite.step1') },
               { icon: 'password', text: t('invite.step2') },
               { icon: 'admin_panel_settings', text: t('invite.step3') },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-sm">
-                <span className="material-symbols-outlined text-primary flex-shrink-0 mt-0.5" style={{ fontSize: '20px' }}>{item.icon}</span>
-                <p className="font-body-sm text-on-surface-variant">{item.text}</p>
+                <div className="w-6 h-6 rounded-lg bg-primary/5 text-primary flex items-center justify-center flex-shrink-0 mt-[2px] border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 0" }}>{item.icon}</span>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant leading-normal">{item.text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-sm w-full">
+        {/* Navigation Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-sm w-full pt-xs border-t border-outline-variant/10">
           <button
             onClick={() => navigate('/superadmin/users/invite')}
-            className="flex-1 border border-primary text-primary py-sm rounded-lg font-label-lg hover:bg-primary-fixed/30 flex items-center justify-center gap-sm transition-all"
+            className="flex-grow border border-primary text-primary py-xs rounded-xl font-label-lg font-bold hover:bg-primary/5 flex items-center justify-center gap-xs active:scale-[0.98] transition-all"
           >
-            <span className="material-symbols-outlined">person_add</span>
-            {t('invite.another')}
+            <span className="material-symbols-outlined text-[20px]">person_add</span>
+            <span>{t('invite.another')}</span>
           </button>
           <button
             onClick={() => navigate('/superadmin/users')}
-            className="flex-1 bg-primary text-on-primary py-sm rounded-lg font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all"
+            className="flex-grow bg-primary text-on-primary py-xs rounded-xl font-label-lg font-bold hover:bg-primary-container flex items-center justify-center gap-xs active:scale-[0.98] transition-all shadow-md"
           >
-            <span className="material-symbols-outlined">group</span>
-            {t('all.users')}
+            <span className="material-symbols-outlined text-[20px]">group</span>
+            <span>{t('all.users')}</span>
           </button>
         </div>
+
       </div>
     </div>
   );

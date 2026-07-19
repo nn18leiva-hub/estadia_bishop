@@ -90,126 +90,158 @@ tailwind.config = {
 </script>
 <style>
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .bento-texture {
+    background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 12px 12px;
+  }
 </style>
 </head>
 <body class="bg-background font-body-md text-on-surface">
 
 <div class="flex min-h-screen">
 
-  <!-- Navigation Drawer (Desktop) -->
-  <aside class="hidden md:flex h-screen w-80 bg-surface border-r border-outline-variant/20 flex-col p-md fixed left-0 top-0 bottom-0 z-40">
-    <!-- Logo -->
+  <!-- Desktop Floating Sidebar Navigation Card -->
+  <aside class="hidden md:flex h-[calc(100vh-2.5rem)] w-76 bg-surface-container-lowest border border-outline-variant/15 flex-col p-md fixed left-5 top-5 bottom-5 z-40 rounded-3xl shadow-sm">
+    <!-- Logo & Shield branding -->
     <div class="flex items-center gap-sm mb-lg">
-      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded flex-shrink-0">
-        <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+      <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-xl flex-shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-on-primary text-[22px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
       </div>
       <div>
-        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight">Bishop Martin</h1>
-        <p class="font-label-md text-label-md text-on-surface-variant">Staff Portal</p>
+        <h1 class="font-headline-sm text-headline-sm text-primary leading-tight font-bold">Bishop Martin</h1>
+        <p class="font-label-md text-label-md text-on-surface-variant font-semibold">Staff Portal</p>
       </div>
     </div>
 
-    <!-- Nav Links -->
+    <!-- Active Indicator Nav Link Buttons -->
     <nav class="flex flex-col gap-xs flex-grow">
-      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded">
-        <span class="material-symbols-outlined text-[22px]">grid_view</span>
-        Dashboard
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span>
+        <span>Dashboard</span>
       </a>
-      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container font-label-lg text-label-lg rounded">
-        <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1;">group</span>
-        Users
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary text-on-primary font-label-lg text-label-lg rounded-xl shadow-md transition-all">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">group</span>
+        <span>Users Directory</span>
       </a>
-      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded">
-        <span class="material-symbols-outlined text-[22px]">person</span>
-        Profile
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low transition-colors duration-150 font-label-lg text-label-lg rounded-xl">
+        <span class="material-symbols-outlined text-[20px]">person</span>
+        <span>My Profile</span>
       </a>
     </nav>
 
-    <!-- User Footer -->
-    <div class="pt-md border-t border-outline-variant/20 mt-auto">
-      <div class="flex items-center gap-sm px-sm py-sm">
+    <!-- User Section footer inside Drawer -->
+    <div class="pt-md border-t border-outline-variant/10 mt-auto relative">
+      <div class="flex items-center gap-sm px-xs py-xs cursor-pointer rounded-xl hover:bg-surface-container-low transition-colors" onclick="toggleDropdown()">
         <span class="material-symbols-outlined text-on-surface-variant text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
         <div class="flex-grow min-w-0">
-          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface truncate">Administrator</p>
+          <p id="sidebar-user-name" class="font-label-lg text-label-lg text-on-surface font-bold truncate">Administrator</p>
           <p id="sidebar-user-email" class="font-label-md text-label-md text-on-surface-variant truncate">admin@bishopmartin.edu</p>
         </div>
-        <button onclick="logout()" class="p-xs hover:bg-surface-container-high rounded-full text-on-surface-variant flex-shrink-0" title="Logout">
-          <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+      </div>
+
+      <!-- Expandable Profile settings drop menu -->
+      <div id="profile-dropdown" class="hidden absolute bottom-14 left-0 w-full bg-surface-container-lowest border border-outline-variant/15 p-xs rounded-2xl shadow-lg z-50 flex flex-col gap-[2px]">
+        <a href="/profile.html" class="flex items-center gap-xs px-sm py-[6px] text-body-sm font-medium hover:bg-surface-container-low rounded-lg text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">settings</span> Account Settings
+        </a>
+        <button onclick="logout()" class="w-full text-left flex items-center gap-xs px-sm py-[6px] text-body-sm font-bold text-red-600 hover:bg-red-500/5 rounded-lg">
+          <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
         </button>
       </div>
-      <p class="font-label-md text-label-md text-on-surface-variant px-sm opacity-50 pb-xs">v1.0.4</p>
+
+      <p class="font-label-md text-label-md text-on-surface-variant px-xs opacity-50 pb-xs mt-base">v1.1.0 • Dev Mode</p>
     </div>
   </aside>
 
-  <!-- Main Content Area -->
+  <!-- Main Content wrapper -->
   <main class="flex-grow md:ml-80 flex flex-col min-h-screen">
 
     <!-- Top App Bar -->
-    <header class="flex items-center justify-between px-sm w-full h-16 z-30 bg-surface border-b border-outline-variant/20 sticky top-0 md:h-[72px]">
+    <header class="flex items-center justify-between px-md w-full h-16 z-30 bg-surface border-b border-outline-variant/15 sticky top-0 md:h-[72px]">
       <div class="flex items-center gap-sm">
         <button onclick="document.getElementById('mobile-drawer').classList.remove('hidden')" class="md:hidden p-base cursor-pointer">
-          <span class="material-symbols-outlined text-primary">menu</span>
+          <span class="material-symbols-outlined text-primary text-[24px]">menu</span>
         </button>
-        <span class="font-headline-sm text-base sm:text-headline-sm font-semibold text-primary truncate max-w-[170px] min-[375px]:max-w-[210px] min-[410px]:max-w-[250px] sm:max-w-none">Bishop Martin Admin Portal</span>
+        <span class="font-headline-sm text-base sm:text-headline-sm font-bold text-primary truncate">Bishop Martin Admin Portal</span>
       </div>
-      <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity">
-        <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
-      </button>
+
+      <div class="flex items-center gap-sm">
+        <!-- Theme Switch -->
+        <button id="theme-btn" onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/20 hover:bg-surface-container-high transition-transform duration-300">
+          <span class="material-symbols-outlined text-[20px] text-on-surface-variant">dark_mode</span>
+        </button>
+        <!-- Profile quick circle -->
+        <button onclick="toggleDropdown()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container">
+          <span class="material-symbols-outlined text-[24px]" style="font-variation-settings:'FILL' 1;">account_circle</span>
+        </button>
+      </div>
     </header>
 
-    <!-- Page Content -->
-    <div class="p-md md:p-lg flex-grow w-full max-w-[1200px] mx-auto">
+    <!-- Page Content Container -->
+    <div class="p-sm sm:p-md md:p-lg flex-grow space-y-md">
 
       <!-- Page Header -->
-      <section class="mb-lg">
-        <h2 class="font-headline-lg text-headline-lg text-primary mb-xs">User Management Directory</h2>
-        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-          Search and manage institutional access for staff, students, and legal guardians. Use filters to refine by status and activity period.
-        </p>
-        <div class="mt-md">
-          <a href="/invite.html" class="inline-flex items-center gap-xs bg-primary text-on-primary px-md py-sm rounded font-label-lg text-label-lg hover:opacity-90 active:scale-95 transition-all">
+      <section class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm">
+        <div>
+          <p class="text-primary font-bold tracking-wider uppercase text-[10px] sm:text-xs">Access Directory</p>
+          <h2 class="font-headline-lg text-headline-sm sm:font-headline-lg sm:text-headline-lg text-primary font-bold">User Management Directory</h2>
+          <p class="font-body-md text-body-sm sm:font-body-md sm:text-body-md text-on-surface-variant max-w-2xl mt-px">
+            Search, filter, and audit institutional access profiles for staff, parents, and past students.
+          </p>
+        </div>
+        <div>
+          <a href="/invite.html" class="inline-flex items-center gap-xs bg-primary text-on-primary px-md py-xs rounded-xl font-label-lg font-bold hover:bg-primary-container transition-all active:scale-95 shadow-md">
             <span class="material-symbols-outlined text-[18px]">person_add</span>
-            Invite New User
+            <span>Invite New User</span>
           </a>
         </div>
       </section>
 
-      <!-- User Search & Filters -->
-      <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded shadow-sm mb-md">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-md items-end">
-
-          <!-- Search -->
-          <div class="md:col-span-5">
-            <label class="block font-label-lg text-label-lg text-on-surface mb-xs">Search Directory</label>
+      <!-- Multi-Parameter Search & Filters -->
+      <div class="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm space-y-sm">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-sm items-end">
+          
+          <!-- Search input -->
+          <div class="md:col-span-5 flex flex-col gap-xs">
+            <label class="font-label-lg text-on-surface font-semibold text-[13px]">Search Directory</label>
             <div class="relative flex items-center">
-              <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[18px]">search</span>
+              <span class="material-symbols-outlined absolute left-sm text-on-surface-variant text-[20px]">search</span>
               <input
                 id="search-input"
                 type="text"
-                placeholder="Name, Email, or ID Number..."
-                class="w-full pl-xl pr-sm py-sm bg-surface-bright border border-outline-variant/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded font-body-md transition-colors"
+                placeholder="Search by name, email, or registry ID..."
+                class="w-full pl-xl pr-sm py-xs bg-surface border border-outline-variant/35 rounded-xl font-body-md outline-none focus:ring-2 focus:ring-primary/20"
                 oninput="filterAndRender()"
               >
             </div>
           </div>
 
-          <!-- Role Toggle -->
-          <div class="md:col-span-3">
-            <label class="block font-label-lg text-label-lg text-on-surface mb-xs">User Role</label>
-            <div id="role-toggle" class="flex p-base bg-surface-container-low rounded border border-outline-variant/20 h-[42px]">
-              <button onclick="setRoleFilter('Staff')" id="btn-staff" class="flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all bg-primary-container text-on-primary-container font-bold">
-                Staff
+          <!-- Role Toggle Buttons (Staff vs Parents) -->
+          <div class="md:col-span-3 flex flex-col gap-xs">
+            <label class="font-label-lg text-on-surface font-semibold text-[13px]">Registry Directory</label>
+            <div class="flex p-1 bg-surface border border-outline-variant/35 rounded-xl h-[42px] gap-[2px]">
+              <button
+                id="tab-btn-staff"
+                onclick="setRoleFilter('Staff')"
+                class="flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold bg-primary text-on-primary shadow-sm"
+              >
+                Staff Directory
               </button>
-              <button onclick="setRoleFilter('Parents')" id="btn-parents" class="flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all text-on-surface-variant hover:bg-surface-container-high">
-                Parents
+              <button
+                id="tab-btn-parents"
+                onclick="setRoleFilter('Parents')"
+                class="flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold text-on-surface-variant hover:bg-surface-container-low"
+              >
+                Parents &amp; Alumni
               </button>
             </div>
           </div>
 
           <!-- Status Filter -->
-          <div class="md:col-span-2">
-            <label class="block font-label-lg text-label-lg text-on-surface mb-xs">Account Status</label>
-            <select id="status-filter" onchange="filterAndRender()" class="w-full py-sm px-sm bg-surface-bright border border-outline-variant/40 focus:border-primary outline-none rounded font-body-md appearance-none">
+          <div class="md:col-span-2 flex flex-col gap-xs">
+            <label class="font-label-lg text-on-surface font-semibold text-[13px]">Account Status</label>
+            <select id="status-filter" onchange="filterAndRender()" class="w-full py-xs px-sm bg-surface border border-outline-variant/35 rounded-xl font-body-md outline-none focus:ring-2 focus:ring-primary/20">
               <option value="">All Statuses</option>
               <option value="Active">Active</option>
               <option value="Pending">Pending</option>
@@ -217,116 +249,116 @@ tailwind.config = {
             </select>
           </div>
 
-          <!-- Last Active -->
-          <div class="md:col-span-2">
-            <label class="block font-label-lg text-label-lg text-on-surface mb-xs">Last Active</label>
-            <select id="active-filter" onchange="filterAndRender()" class="w-full py-sm px-sm bg-surface-bright border border-outline-variant/40 focus:border-primary outline-none rounded font-body-md appearance-none">
+          <!-- Last Active Filter -->
+          <div class="md:col-span-2 flex flex-col gap-xs">
+            <label class="font-label-lg text-on-surface font-semibold text-[13px]">Last Activity</label>
+            <select id="active-filter" onchange="filterAndRender()" class="w-full py-xs px-sm bg-surface border border-outline-variant/35 rounded-xl font-body-md outline-none focus:ring-2 focus:ring-primary/20">
               <option value="">Any Time</option>
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>
               <option value="180+">Over 6 Months</option>
             </select>
           </div>
+
         </div>
       </div>
 
-      <!-- Bento Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-md">
-
+      <!-- Bento Grid (Insights & Cards) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-md">
+        
         <!-- Directory Insights Card -->
-        <div class="md:col-span-4 bg-primary text-on-primary p-md flex flex-col justify-between rounded">
-          <div>
-            <span class="material-symbols-outlined text-4xl mb-sm" style="font-variation-settings:'FILL' 1;">analytics</span>
-            <h3 class="font-headline-md text-headline-md">Directory Insights</h3>
-            <p class="font-body-sm text-body-sm opacity-80 mt-xs">
-              Summary of current user database and activation metrics.
+        <div class="lg:col-span-4 bg-gradient-to-br from-primary to-primary-container text-on-primary p-sm sm:p-md rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+          <div class="absolute inset-0 bento-texture opacity-10" />
+          <div class="relative z-10">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-sm border border-white/20">
+              <span class="material-symbols-outlined text-white text-[22px]" style="font-variation-settings:'FILL' 1;">analytics</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-white font-bold leading-tight" id="insights-label">Total Staff</h3>
+            <p class="font-body-sm text-[11px] opacity-80 mt-[2px] leading-relaxed">
+              Consolidated registry analytics and active database query counts.
             </p>
           </div>
-          <div class="mt-lg grid grid-cols-2 gap-sm">
+          <div class="mt-lg grid grid-cols-2 gap-sm relative z-10">
             <div>
-              <p id="insights-label" class="font-label-md text-label-md opacity-70">Total Staff</p>
-              <p id="insights-total" class="font-display-lg text-display-lg leading-tight">—</p>
+              <p class="font-label-md text-label-md opacity-70 text-[10px] uppercase font-bold tracking-wider" id="insights-total-label">Total Nodes</p>
+              <p id="insights-total" class="font-display-lg text-headline-lg sm:font-display-lg sm:text-display-lg leading-tight font-bold text-white">—</p>
             </div>
             <div>
-              <p class="font-label-md text-label-md opacity-70">Active Now</p>
-              <p id="insights-active" class="font-display-lg text-display-lg leading-tight">—</p>
+              <p class="font-label-md text-label-md opacity-70 text-[10px] uppercase font-bold tracking-wider">Active Status</p>
+              <p id="insights-active" class="font-display-lg text-headline-lg sm:font-display-lg sm:text-display-lg leading-tight font-bold text-white">—</p>
             </div>
           </div>
         </div>
 
-        <!-- Featured User Cards (2 slots) -->
-        <div id="featured-cards" class="md:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-md">
-          <!-- populated by JS -->
-          <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded animate-pulse min-h-[200px]"></div>
-          <div class="bg-surface-container-lowest border border-outline-variant/20 p-md rounded animate-pulse min-h-[200px]"></div>
+        <!-- Featured User Cards (Highlights) -->
+        <div id="featured-cards" class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-sm">
+          <div class="bg-surface-container-lowest border border-outline-variant/15 p-sm rounded-2xl animate-pulse min-h-[160px]"></div>
+          <div class="bg-surface-container-lowest border border-outline-variant/15 p-sm rounded-2xl animate-pulse min-h-[160px]"></div>
         </div>
 
-        <!-- Full Directory List -->
-        <div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant/10 rounded overflow-hidden">
-          <div class="bg-surface-container-low px-md py-xs flex items-center justify-between border-b border-outline-variant/20">
-            <span class="font-label-lg text-label-lg text-on-surface">Full Directory (Recent Updates)</span>
-            <button class="text-primary font-label-md text-label-md flex items-center gap-xs hover:underline">
-              View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
+        <!-- Full Directory List (Table View) -->
+        <div class="lg:col-span-12 bg-surface-container-lowest border border-outline-variant/15 rounded-2xl shadow-sm overflow-hidden">
+          <div class="bg-surface-container-low px-md py-sm flex items-center justify-between border-b border-outline-variant/15">
+            <span class="font-label-lg text-label-lg font-bold text-primary flex items-center gap-xs">
+              <span class="material-symbols-outlined text-primary text-[18px]">dns</span>
+              <span id="list-title">All Staff Directory List</span>
+            </span>
           </div>
           <div id="directory-list" class="divide-y divide-outline-variant/10">
-            <!-- populated by JS -->
-            <div class="p-md text-center font-body-md text-on-surface-variant">Loading directory records...</div>
+            <div class="p-xl text-center font-body-md text-on-surface-variant font-medium">Loading directory records...</div>
           </div>
         </div>
 
       </div>
+
     </div>
 
-    <!-- Bottom Nav (Mobile Only) -->
-    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20">
+    <!-- Bottom Navigation Mobile -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-base py-sm bg-surface border-t border-outline-variant/20 shadow-lg">
       <a href="/superadmin.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
         <span class="material-symbols-outlined">grid_view</span>
-        <span class="font-label-md text-label-md">Dashboard</span>
+        <span class="font-label-md text-[10px]">Dashboard</span>
       </a>
-      <a href="/users.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-95 transition-all">
+      <a href="/users.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-95 transition-all">
         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">group</span>
-        <span class="font-label-md text-label-md">Users</span>
+        <span class="font-label-md text-[10px]">Users</span>
       </a>
       <a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
         <span class="material-symbols-outlined">person</span>
-        <span class="font-label-md text-label-md">Profile</span>
+        <span class="font-label-md text-[10px]">Profile</span>
       </a>
     </nav>
-
-    <!-- Mobile spacer -->
     <div class="h-20 md:hidden"></div>
   </main>
-
 </div>
 
-<!-- Mobile Drawer -->
+<!-- Mobile drawer -->
 <div id="mobile-drawer" class="hidden fixed inset-0 bg-black/50 z-50 md:hidden" onclick="this.classList.add('hidden')">
-  <aside class="w-80 h-full bg-surface p-md flex flex-col" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between mb-lg">
+  <aside class="w-72 h-full bg-surface p-md flex flex-col gap-md" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between border-b border-outline-variant/10 pb-sm">
       <div class="flex items-center gap-sm">
-        <div class="w-10 h-10 bg-primary flex items-center justify-center rounded">
-          <span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
+        <div class="w-9 h-9 bg-primary flex items-center justify-center rounded-xl shadow-md">
+          <span class="material-symbols-outlined text-on-primary text-[18px]" style="font-variation-settings:'FILL' 1;">account_balance</span>
         </div>
-        <h1 class="font-headline-sm text-headline-sm text-primary">Bishop Martin</h1>
+        <h1 class="font-headline-sm text-headline-sm text-primary font-bold">Bishop Martin</h1>
       </div>
       <button onclick="document.getElementById('mobile-drawer').classList.add('hidden')" class="p-base hover:bg-surface-container-high rounded-full">
-        <span class="material-symbols-outlined">close</span>
+        <span class="material-symbols-outlined text-[20px]">close</span>
       </button>
     </div>
     <nav class="flex flex-col gap-xs">
-      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+      <a href="/superadmin.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg">
         <span class="material-symbols-outlined">grid_view</span> Dashboard
       </a>
-      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary-container text-on-primary-container rounded font-label-lg text-label-lg">
+      <a href="/users.html" class="flex items-center gap-sm px-sm py-[10px] bg-primary/5 text-primary rounded-xl font-label-lg">
         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">group</span> Users
       </a>
-      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+      <a href="/profile.html" class="flex items-center gap-sm px-sm py-[10px] text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg">
         <span class="material-symbols-outlined">person</span> Profile
       </a>
     </nav>
-    <div class="mt-auto pt-md border-t border-outline-variant/20">
-      <button onclick="logout()" class="flex items-center gap-sm px-sm py-sm w-full text-on-surface-variant hover:bg-surface-container-low rounded font-label-lg text-label-lg">
+    <div class="mt-auto pt-md border-t border-outline-variant/10">
+      <button onclick="logout()" class="flex items-center gap-sm px-sm py-sm w-full text-red-600 hover:bg-red-500/5 rounded-xl font-label-lg font-bold">
         <span class="material-symbols-outlined">logout</span> Sign Out
       </button>
     </div>
@@ -335,40 +367,64 @@ tailwind.config = {
 
 <script src="/js/api.js"></script>
 <script>
-  // Auth guard
   if (!requireAuth('super_admin')) { /* redirected */ }
-
   populateSidebar();
 
   let allUsers = [];
   let roleFilter = 'Staff';
 
-  function setRoleFilter(role) {
-    roleFilter = role;
-    document.getElementById('btn-staff').className = role === 'Staff'
-      ? 'flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all bg-primary-container text-on-primary-container font-bold'
-      : 'flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all text-on-surface-variant hover:bg-surface-container-high';
-    document.getElementById('btn-parents').className = role === 'Parents'
-      ? 'flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all bg-primary-container text-on-primary-container font-bold'
-      : 'flex-1 flex items-center justify-center font-label-md text-label-md rounded transition-all text-on-surface-variant hover:bg-surface-container-high';
-
-    document.getElementById('insights-label').textContent = `Total ${role}`;
-    loadUsers();
+  function toggleDropdown() {
+    const el = document.getElementById('profile-dropdown');
+    el.classList.toggle('hidden');
   }
 
-  const AVATAR_URLS = {
-    'Dr. Elena Sterling': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuC0f7CRn0-C1SC4s9e3UsjiLc8UGRyM50_XhcCLnzwQzrJqX2KTuEHUaL0AQ_SkE4ODXKqH6FCfY-LQADMEsSsSBPxk5hRlPsBG4qC7EeiuYMG7eTaXNU1xGV4vkgGLX5KSvJVZtb92ujZElcAOxL1davdOdAOi6KI1hpYeiITELuIRYxp9M89OWet3GNZhAWl4om9jgtoMNdvqAkEq8-BF4GFPprlnxs-6_BIs4m-g8LhU0twMkqf2jjJriZk-k0JDajc0R87AA',
-    'Arthur Vance': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBL2oz_NJZvot-EG4ls13R-Vq1F0dlsrREJS-yUdTVya-GS3D4zlNJZ0LBMClYBreiwLTuNOnYptXUzAt0Qcd6u_Ntxaw_kd2yxBvO4R3_KAywUiutfeGXpj5qBOWMp1OHSzBEefsUcf6qdxjy8rY8FrT4BxIk_DatXbumcs2Q8uU7yNyRKmsSsEMYckOIL29oV7c1iNpMs7WgzQW8ZF1SFzKro59P9nFvPYM9BoTzhyBPEZiuPXL3XzE5oqyfufz6MhV-yZisdxYw'
-  };
+  window.addEventListener('click', (e) => {
+    const dd = document.getElementById('profile-dropdown');
+    if (!dd) return;
+    if (!dd.classList.contains('hidden') && !e.target.closest('[onclick="toggleDropdown()"]') && !e.target.closest('#profile-dropdown')) {
+      dd.classList.add('hidden');
+    }
+  });
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-btn');
+    const isDark = html.classList.toggle('dark');
+    html.classList.toggle('light', !isDark);
+    btn.style.transform = 'rotate(180deg)';
+    setTimeout(() => {
+      btn.style.transform = 'rotate(0deg)';
+      btn.innerHTML = `<span class="material-symbols-outlined text-[20px] text-on-surface-variant">${isDark ? 'light_mode' : 'dark_mode'}</span>`;
+    }, 150);
+  }
 
   function getInitials(name) {
     return (name || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
 
   function getStatusBadge(status) {
-    if (status === 'Active') return 'bg-secondary-container text-on-secondary-container';
-    if (status === 'Pending') return 'bg-surface-container-high text-on-surface-variant';
-    return 'bg-error-container text-on-error-container';
+    if (status === 'Active') return 'bg-secondary/5 text-secondary border border-secondary/25';
+    if (status === 'Pending') return 'bg-surface-container-high text-on-surface-variant border border-outline-variant/15';
+    return 'bg-red-500/5 text-red-600 border border-red-500/25';
+  }
+
+  function setRoleFilter(role) {
+    roleFilter = role;
+    const btnStaff = document.getElementById('tab-btn-staff');
+    const btnParents = document.getElementById('tab-btn-parents');
+
+    if (role === 'Staff') {
+      btnStaff.className = "flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold bg-primary text-on-primary shadow-sm";
+      btnParents.className = "flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold text-on-surface-variant hover:bg-surface-container-low";
+      document.getElementById('insights-label').textContent = 'Total Staff';
+      document.getElementById('list-title').textContent = 'All Staff Directory List';
+    } else {
+      btnParents.className = "flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold bg-primary text-on-primary shadow-sm";
+      btnStaff.className = "flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold text-on-surface-variant hover:bg-surface-container-low";
+      document.getElementById('insights-label').textContent = 'Total Parents';
+      document.getElementById('list-title').textContent = 'All Public Parents & Alumni List';
+    }
+    loadUsers();
   }
 
   function mapUser(u) {
@@ -386,11 +442,12 @@ tailwind.config = {
     else if (u.user_type === 'parent') role = 'Parent / Legal Guardian';
     else if (u.user_type === 'past_student') role = 'Past Student';
 
-    let status = u.verified === false ? 'Pending' : 'Active';
-    if (u.email === 'a.vance@bishopmartin.edu') status = 'Deactivated';
+    let status = 'Active';
+    if (u.verified === false) status = 'Pending';
 
     return {
-      id: u.staff_id || u.id,
+      id: u.staff_id || u.parent_id || u.id,
+      prefix: u.staff_id ? 'staff' : 'parent',
       name: u.full_name,
       email: u.email,
       role,
@@ -407,7 +464,7 @@ tailwind.config = {
       filterAndRender();
     } catch (err) {
       console.error('Failed to load users', err);
-      document.getElementById('directory-list').innerHTML = `<div class="p-md text-center font-body-md text-error">${err.message}</div>`;
+      document.getElementById('directory-list').innerHTML = `<div class="p-md text-center font-body-md text-error font-semibold">${err.message}</div>`;
     }
   }
 
@@ -432,14 +489,10 @@ tailwind.config = {
       return matchSearch && matchStatus && matchActive;
     });
 
-    // Update insights
     document.getElementById('insights-total').textContent = allUsers.length;
     document.getElementById('insights-active').textContent = allUsers.filter(u => u.status === 'Active').length;
 
-    // Render featured cards (first 2)
     renderFeaturedCards(list.slice(0, 2));
-
-    // Render directory list
     renderDirectoryList(list);
   }
 
@@ -447,82 +500,95 @@ tailwind.config = {
     const container = document.getElementById('featured-cards');
     if (users.length === 0) {
       container.innerHTML = `
-        <div class="md:col-span-2 bg-surface-container-lowest border border-outline-variant/20 p-md rounded flex items-center justify-center font-body-md text-on-surface-variant min-h-[200px]">
-          No users found.
+        <div class="sm:col-span-2 bg-surface-container-lowest border border-outline-variant/15 p-sm rounded-2xl flex items-center justify-center font-body-sm text-on-surface-variant min-h-[160px] font-medium">
+          No featured accounts discovered.
         </div>`;
       return;
     }
 
     container.innerHTML = users.map(u => {
-      const avatarUrl = AVATAR_URLS[u.name];
       const statusBadge = getStatusBadge(u.status);
-      const avatarHtml = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${u.name}" class="w-12 h-12 rounded bg-surface-container-high object-cover">`
-        : `<div class="w-12 h-12 rounded bg-surface-container-high flex items-center justify-center text-primary font-bold text-lg">${getInitials(u.name)}</div>`;
+      const initials = getInitials(u.name);
+      const avatarHtml = `<div class="w-10 h-10 rounded-xl bg-primary/5 text-primary border border-primary/10 flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">${initials}</div>`;
 
       return `
-        <div class="bg-surface-container-lowest border border-outline-variant/20 p-md flex flex-col rounded hover:border-primary transition-all group cursor-pointer" onclick="window.location.href='/user-detail.html?id=${u.id}'">
-          <div class="flex justify-between items-start mb-md">
-            ${avatarHtml}
-            <span class="font-label-md text-label-md px-[6px] py-[2px] rounded text-xs ${statusBadge}">${u.status}</span>
+        <div class="bg-surface-container-lowest border border-outline-variant/15 p-sm rounded-2xl flex flex-col justify-between hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group" onclick="window.location.href='/user-detail.html?id=${u.prefix}-${u.id}'">
+          
+          <div class="space-y-xs">
+            <div class="flex justify-between items-center">
+              ${avatarHtml}
+              <span class="font-label-md text-[9px] px-[6px] py-[2px] rounded uppercase font-bold border ${statusBadge}">${u.status}</span>
+            </div>
+            <div>
+              <h4 class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">${u.name}</h4>
+              <p class="text-[10px] text-on-surface-variant font-medium mt-[2px] truncate">${u.role} • ID: ${u.id}</p>
+            </div>
           </div>
-          <h4 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">${u.name}</h4>
-          <p class="font-label-md text-label-md text-on-surface-variant mb-md">${u.role} · ID: ${u.id}</p>
-          <div class="mt-auto flex items-center gap-xs text-on-surface-variant">
-            <span class="material-symbols-outlined text-[18px]">history</span>
-            <span class="font-body-sm text-body-sm">${u.lastActive ? formatTimeAgo(u.lastActive) : (u.status === 'Pending' ? 'Pending Verification' : 'Never active')}</span>
+
+          <div class="mt-md pt-xs border-t border-outline-variant/10 flex items-center gap-xs text-on-surface-variant text-[11px] font-semibold">
+            <span class="material-symbols-outlined text-[16px]">history</span>
+            <span>${u.lastActive ? formatTimeAgo(u.lastActive) : (u.status === 'Pending' ? 'Pending Validation' : 'Never active')}</span>
           </div>
+
         </div>`;
     }).join('');
 
-    // Pad if only 1
     if (users.length === 1) {
-      container.innerHTML += `<div class="bg-surface-container-lowest border border-dashed border-outline-variant/30 p-md rounded flex items-center justify-center min-h-[200px] text-on-surface-variant font-body-sm text-body-sm">No second featured user</div>`;
+      container.innerHTML += `
+        <div class="bg-surface-container-lowest border border-dashed border-outline-variant/30 p-sm rounded-2xl flex items-center justify-center min-h-[160px] text-on-surface-variant font-body-sm text-[11px] font-semibold opacity-75">
+          No secondary featured item.
+        </div>`;
     }
   }
 
   function renderDirectoryList(users) {
     const container = document.getElementById('directory-list');
     if (users.length === 0) {
-      container.innerHTML = `<div class="p-xl text-center font-body-md text-on-surface-variant">No records found matching your current filters.</div>`;
+      container.innerHTML = `
+        <div class="p-xl text-center font-body-md text-on-surface-variant font-medium">
+          No directory records matches the filter criteria.
+        </div>`;
       return;
     }
 
     container.innerHTML = users.map(u => {
       const isPending = u.status === 'Pending';
       const lastLogin = u.lastActive ? formatTimeAgo(u.lastActive) : (isPending ? 'Pending Verification' : 'Never active');
+      const initials = getInitials(u.name);
+
       return `
-        <div class="p-md flex items-center hover:bg-surface-container-low/30 transition-colors cursor-pointer group" onclick="window.location.href='/user-detail.html?id=${u.id}'">
-          <div class="flex-grow grid grid-cols-1 md:grid-cols-4 gap-md items-center">
-            <div class="flex items-center gap-md">
-              <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold uppercase text-xs">${getInitials(u.name)}</div>
-              <div>
-                <p class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors">${u.name}</p>
-                <p class="font-body-sm text-body-sm text-on-surface-variant">${u.email}</p>
+        <div class="p-sm sm:p-md flex items-center hover:bg-surface-container-low/25 transition-colors cursor-pointer group" onclick="window.location.href='/user-detail.html?id=${u.prefix}-${u.id}'">
+          <div class="flex-grow grid grid-cols-1 md:grid-cols-4 gap-sm md:gap-md items-center">
+            
+            <div class="flex items-center gap-sm">
+              <div class="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10">${initials}</div>
+              <div class="min-w-0">
+                <p class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">${u.name}</p>
+                <p class="font-body-sm text-[12px] text-on-surface-variant truncate">${u.email}</p>
               </div>
             </div>
+            
             <div class="hidden md:block">
-              <p class="font-label-md text-label-md text-on-surface-variant">ROLE</p>
-              <p class="font-body-md text-body-md">${u.role}</p>
+              <p class="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Access Role</p>
+              <p class="font-body-md text-sm font-semibold text-on-surface mt-[2px]">${u.role}</p>
             </div>
+            
             <div class="hidden md:block">
-              <p class="font-label-md text-label-md text-on-surface-variant">LAST LOGIN</p>
-              <p class="font-body-md text-body-md ${isPending ? 'text-error' : ''}">${lastLogin}</p>
+              <p class="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Last Activity</p>
+              <p class="font-body-md text-sm font-semibold text-on-surface mt-[2px] ${isPending ? 'text-red-500' : ''}">${lastLogin}</p>
             </div>
+            
             <div class="flex justify-end gap-sm">
-              <button class="p-base hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
-                <span class="material-symbols-outlined">${isPending ? 'how_to_reg' : 'edit'}</span>
-              </button>
-              <button class="p-base hover:bg-surface-container-high rounded transition-colors text-on-surface-variant">
-                <span class="material-symbols-outlined">more_vert</span>
+              <button class="p-xs hover:bg-surface border border-transparent hover:border-outline-variant/30 rounded-xl transition-all text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">${isPending ? 'how_to_reg' : 'chevron_right'}</span>
               </button>
             </div>
+
           </div>
         </div>`;
     }).join('');
   }
 
-  // Init
   loadUsers();
 </script>
 </body>
