@@ -15,14 +15,7 @@ export default function PricingManagement() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Mock popularity stats for visual chart
-  const popularityData = [
-    { name: 'Official Transcript', percentage: 85, color: 'bg-primary' },
-    { name: 'Letter of Enrollment', percentage: 65, color: 'bg-secondary' },
-    { name: 'Graduation Certificate', percentage: 40, color: 'bg-green-600' },
-    { name: 'Absence excuse slip', percentage: 75, color: 'bg-blue-500' },
-    { name: 'Good Moral Certificate', percentage: 30, color: 'bg-purple-500' }
-  ];
+
 
   const loadPricing = async () => {
     setDataLoading(true);
@@ -131,39 +124,9 @@ export default function PricingManagement() {
 
       {/* Grid: Bento Analytics Graph & Documents Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-md">
-        
-        {/* Popularity Visual Analytics Chart Card (Bento layout) */}
-        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm space-y-sm">
-          <div>
-            <h3 className="font-headline-sm text-headline-sm text-primary font-bold flex items-center gap-xs border-b border-outline-variant/10 pb-xs">
-              <span className="material-symbols-outlined text-[20px]">bar_chart</span>
-              <span>Request Popularity</span>
-            </h3>
-            <p className="text-[10px] text-on-surface-variant mt-[2px] leading-relaxed">
-              Relative system request frequency metrics based on historical analytics.
-            </p>
-          </div>
-
-          <div className="space-y-sm pt-xs">
-            {popularityData.map((chartItem) => (
-              <div key={chartItem.name} className="space-y-base">
-                <div className="flex justify-between text-[11px] font-bold text-on-surface-variant">
-                  <span>{chartItem.name}</span>
-                  <span className="font-mono">{chartItem.percentage}%</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/5">
-                  <div 
-                    className={`h-full rounded-full ${chartItem.color} transition-all duration-500`}
-                    style={{ width: `${chartItem.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Pricing Items Settings Cards Grid */}
-        <div className="lg:col-span-8 space-y-sm">
+        <div className="lg:col-span-12 space-y-sm">
           
           <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-sm shadow-sm flex items-center justify-between">
             <span className="font-label-lg text-label-lg font-bold text-primary flex items-center gap-xs">

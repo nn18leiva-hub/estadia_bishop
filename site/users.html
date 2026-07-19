@@ -558,11 +558,11 @@ tailwind.config = {
 
       return `
         <div class="p-sm sm:p-md flex items-center hover:bg-surface-container-low/25 transition-colors cursor-pointer group" onclick="window.location.href='/user-detail.html?id=${u.prefix}-${u.id}'">
-          <div class="flex-grow grid grid-cols-1 md:grid-cols-4 gap-sm md:gap-md items-center">
+          <div class="flex-grow flex md:grid md:grid-cols-4 items-center justify-between gap-sm md:gap-md min-w-0">
             
-            <div class="flex items-center gap-sm">
-              <div class="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10">${initials}</div>
-              <div class="min-w-0">
+            <div class="flex items-center gap-sm flex-grow min-w-0">
+              <div class="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10 flex-shrink-0">${initials}</div>
+              <div class="min-w-0 flex-grow">
                 <p class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">${u.name}</p>
                 <p class="font-body-sm text-[12px] text-on-surface-variant truncate">${u.email}</p>
               </div>
@@ -578,7 +578,7 @@ tailwind.config = {
               <p class="font-body-md text-sm font-semibold text-on-surface mt-[2px] ${isPending ? 'text-red-500' : ''}">${lastLogin}</p>
             </div>
             
-            <div class="flex justify-end gap-sm">
+            <div class="flex-shrink-0 flex justify-end">
               <button class="p-xs hover:bg-surface border border-transparent hover:border-outline-variant/30 rounded-xl transition-all text-on-surface-variant">
                 <span class="material-symbols-outlined text-[20px]">${isPending ? 'how_to_reg' : 'chevron_right'}</span>
               </button>

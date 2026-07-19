@@ -314,11 +314,11 @@ export default function UserManagement() {
                   className="p-sm sm:p-md flex items-center hover:bg-surface-container-low/25 transition-colors cursor-pointer group" 
                   onClick={() => navigate(`/superadmin/users/${user.id}`)}
                 >
-                  <div className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-sm md:gap-md items-center">
+                  <div className="flex-grow flex md:grid md:grid-cols-4 items-center justify-between gap-sm md:gap-md min-w-0">
                     
-                    <div className="flex items-center gap-sm">
-                      <div className="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10">{initials}</div>
-                      <div className="min-w-0">
+                    <div className="flex items-center gap-sm flex-grow min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10 flex-shrink-0">{initials}</div>
+                      <div className="min-w-0 flex-grow">
                         <p className="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">{user.name}</p>
                         <p className="font-body-sm text-[12px] text-on-surface-variant truncate">{user.email}</p>
                       </div>
@@ -336,7 +336,7 @@ export default function UserManagement() {
                       </p>
                     </div>
                     
-                    <div className="flex justify-end gap-sm">
+                    <div className="flex-shrink-0 flex justify-end">
                       <button className="p-xs hover:bg-surface border border-transparent hover:border-outline-variant/30 rounded-xl transition-all text-on-surface-variant">
                         <span className="material-symbols-outlined text-[20px]">{user.status === 'pending' ? 'how_to_reg' : 'chevron_right'}</span>
                       </button>
