@@ -274,44 +274,82 @@ const SuperAdminDashboard = () => {
           ) : filteredStaff.length === 0 ? (
             <div className="p-md text-center font-body-sm text-on-surface-variant font-medium">No staff matches search.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-body-sm min-w-[600px]">
-                <thead className="bg-surface-container-low border-b border-outline-variant/15 text-on-surface-variant font-label-md uppercase tracking-wider">
-                  <tr>
-                    <th className="p-sm">ID</th>
-                    <th className="p-sm">Identity</th>
-                    <th className="p-sm">Access Level</th>
-                    <th className="p-sm text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {filteredStaff.map(s => {
-                    const roleTitle = s.role === 'admin' || s.role === 'super_admin' ? 'System Administrator' : (s.role === 'viewer' ? 'Read-only Viewer' : 'Staff Operator');
-                    const roleColor = s.role === 'super_admin' ? 'bg-red-500/5 text-red-600' : 'bg-primary/5 text-primary';
-                    const isSelf = s.email === user?.email;
+            <div>
+              {/* Desktop view */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse text-body-sm min-w-[600px]">
+                  <thead className="bg-surface-container-low border-b border-outline-variant/15 text-on-surface-variant font-label-md uppercase tracking-wider">
+                    <tr>
+                      <th className="p-sm">ID</th>
+                      <th className="p-sm">Identity</th>
+                      <th className="p-sm">Access Level</th>
+                      <th className="p-sm text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10">
+                    {filteredStaff.map(s => {
+                      const roleTitle = s.role === 'admin' || s.role === 'super_admin' ? 'System Administrator' : (s.role === 'viewer' ? 'Read-only Viewer' : 'Staff Operator');
+                      const roleColor = s.role === 'super_admin' ? 'bg-red-500/5 text-red-600' : 'bg-primary/5 text-primary';
+                      const isSelf = s.email === user?.email;
 
-                    return (
-                      <tr key={s.staff_id} className="hover:bg-surface-container-low/20 transition-colors">
-                        <td className="p-sm font-mono font-bold text-primary">STF-{String(s.staff_id).padStart(4, '0')}</td>
-                        <td className="p-sm">
-                          <p className="font-bold text-on-surface">{s.full_name}</p>
-                          <p className="text-[11px] text-on-surface-variant">{s.email}</p>
-                        </td>
-                        <td className="p-sm">
-                          <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold ${roleColor}`}>{roleTitle}</span>
-                        </td>
-                        <td className="p-sm text-right space-x-xs">
-                          <button onClick={() => triggerDirectReset(s.email)} className="px-xs py-xs bg-secondary/5 text-secondary border border-secondary/20 hover:bg-secondary/10 rounded-lg text-[11px] font-bold">Reset Password</button>
-                          <button onClick={() => navigate(`/superadmin/users/staff-${s.staff_id}`)} className="px-xs py-xs bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 rounded-lg text-[11px] font-bold">Permissions</button>
+                      return (
+                        <tr key={s.staff_id} className="hover:bg-surface-container-low/20 transition-colors">
+                          <td className="p-sm font-mono font-bold text-primary">STF-{String(s.staff_id).padStart(4, '0')}</td>
+                          <td className="p-sm">
+                            <p className="font-bold text-on-surface">{s.full_name}</p>
+                            <p className="text-[11px] text-on-surface-variant">{s.email}</p>
+                          </td>
+                          <td className="p-sm">
+                            <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold ${roleColor}`}>{roleTitle}</span>
+                          </td>
+                          <td className="p-sm text-right space-x-xs">
+                            <button onClick={() => triggerDirectReset(s.email)} className="px-xs py-xs bg-secondary/5 text-secondary border border-secondary/20 hover:bg-secondary/10 rounded-lg text-[11px] font-bold">Reset Password</button>
+                            <button onClick={() => navigate(`/superadmin/users/staff-${s.staff_id}`)} className="px-xs py-xs bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 rounded-lg text-[11px] font-bold">Permissions</button>
+                            {!isSelf && (
+                              <button onClick={() => handleDeleteStaff(s.staff_id, s.email)} className="px-xs py-xs bg-error-container/40 text-error hover:bg-error-container/60 rounded-lg text-[11px] font-bold">Remove</button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile view */}
+              <div className="md:hidden divide-y divide-outline-variant/10">
+                {filteredStaff.map(s => {
+                  const roleTitle = s.role === 'admin' || s.role === 'super_admin' ? 'System Administrator' : (s.role === 'viewer' ? 'Read-only Viewer' : 'Staff Operator');
+                  const roleColor = s.role === 'super_admin' ? 'bg-red-500/5 text-red-600' : 'bg-primary/5 text-primary';
+                  const isSelf = s.email === user?.email;
+                  const initials = s.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
+
+                  return (
+                    <div key={s.staff_id} className="p-sm flex flex-col gap-sm animate-in fade-in duration-200">
+                      <div className="flex items-center gap-sm">
+                        <div className="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs border border-primary/10 flex-shrink-0">{initials}</div>
+                        <div className="min-w-0 flex-grow">
+                          <p className="font-label-lg text-on-surface font-bold truncate">{s.full_name}</p>
+                          <p className="font-body-sm text-[12px] text-on-surface-variant truncate">{s.email}</p>
+                        </div>
+                        <span className="font-mono text-[10px] text-primary font-bold flex-shrink-0">STF-{String(s.staff_id).padStart(4, '0')}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center gap-xs">
+                        <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold ${roleColor}`}>{roleTitle}</span>
+                        
+                        <div className="flex gap-xs">
+                          <button onClick={() => triggerDirectReset(s.email)} className="px-xs py-1 bg-secondary/5 text-secondary border border-secondary/20 hover:bg-secondary/10 rounded-lg text-[10px] font-bold">Reset</button>
+                          <button onClick={() => navigate(`/superadmin/users/staff-${s.staff_id}`)} className="px-xs py-1 bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 rounded-lg text-[10px] font-bold">Rules</button>
                           {!isSelf && (
-                            <button onClick={() => handleDeleteStaff(s.staff_id, s.email)} className="px-xs py-xs bg-error-container/40 text-error hover:bg-error-container/60 rounded-lg text-[11px] font-bold">Remove</button>
+                            <button onClick={() => handleDeleteStaff(s.staff_id, s.email)} className="px-xs py-1 bg-error-container/40 text-error hover:bg-error-container/60 rounded-lg text-[10px] font-bold">Remove</button>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -325,54 +363,96 @@ const SuperAdminDashboard = () => {
           ) : filteredUsers.length === 0 ? (
             <div className="p-md text-center font-body-sm text-on-surface-variant font-medium">No public users discovered.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-body-sm min-w-[650px]">
-                <thead className="bg-surface-container-low border-b border-outline-variant/15 text-on-surface-variant font-label-md uppercase tracking-wider">
-                  <tr>
-                    <th className="p-sm">User ID</th>
-                    <th className="p-sm">Identity</th>
-                    <th className="p-sm">Verification</th>
-                    <th className="p-sm">Meta Details</th>
-                    <th className="p-sm text-center">Override Password</th>
-                    <th className="p-sm text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {filteredUsers.map(u => {
-                    const statusText = u.verified === false ? 'Unverified' : 'Verified';
-                    const statusColor = u.verified === false ? 'bg-error-container text-on-error-container border border-error/20' : 'bg-green-100 text-green-700 border border-green-200/20';
+            <div>
+              {/* Desktop view */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse text-body-sm min-w-[650px]">
+                  <thead className="bg-surface-container-low border-b border-outline-variant/15 text-on-surface-variant font-label-md uppercase tracking-wider">
+                    <tr>
+                      <th className="p-sm">User ID</th>
+                      <th className="p-sm">Identity</th>
+                      <th className="p-sm">Verification</th>
+                      <th className="p-sm">Meta Details</th>
+                      <th className="p-sm text-center">Override Password</th>
+                      <th className="p-sm text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10">
+                    {filteredUsers.map(u => {
+                      const statusText = u.verified === false ? 'Unverified' : 'Verified';
+                      const statusColor = u.verified === false ? 'bg-error-container text-on-error-container border border-error/20' : 'bg-green-100 text-green-700 border border-green-200/20';
 
-                    return (
-                      <tr key={u.parent_id || u.id} className="hover:bg-surface-container-low/20 transition-colors">
-                        <td className="p-sm font-mono font-bold text-primary">USR-{String(u.parent_id || u.id).padStart(4, '0')}</td>
-                        <td className="p-sm">
-                          <p className="font-bold text-on-surface">{u.full_name}</p>
-                          <p className="text-[11px] text-on-surface-variant">{u.email}</p>
-                        </td>
-                        <td className="p-sm">
-                          <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold border ${statusColor}`}>{statusText}</span>
-                        </td>
-                        <td className="p-sm">
-                          <div className="text-[11px] text-on-surface-variant leading-relaxed">
-                            <p>Date of Birth: {u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</p>
-                            <p>Phone: {u.phone || 'N/A'}</p>
-                          </div>
-                        </td>
-                        <td className="p-sm text-center">
-                          <button onClick={() => triggerDirectReset(u.email)} className="px-sm py-xs bg-secondary-container text-on-secondary-container hover:opacity-95 rounded-xl text-[11px] font-bold border border-outline-variant/20 shadow-sm">
-                            Override
-                          </button>
-                        </td>
-                        <td className="p-sm text-right">
-                          <button onClick={() => navigate(`/superadmin/users/parent-${u.parent_id || u.id}`)} className="px-sm py-xs bg-primary text-on-primary hover:bg-primary-container rounded-xl text-[11px] font-bold shadow-sm">
-                            View Profile
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                      return (
+                        <tr key={u.parent_id || u.id} className="hover:bg-surface-container-low/20 transition-colors">
+                          <td className="p-sm font-mono font-bold text-primary">USR-{String(u.parent_id || u.id).padStart(4, '0')}</td>
+                          <td className="p-sm">
+                            <p className="font-bold text-on-surface">{u.full_name}</p>
+                            <p className="text-[11px] text-on-surface-variant">{u.email}</p>
+                          </td>
+                          <td className="p-sm">
+                            <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold border ${statusColor}`}>{statusText}</span>
+                          </td>
+                          <td className="p-sm">
+                            <div className="text-[11px] text-on-surface-variant leading-relaxed">
+                              <p>Date of Birth: {u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</p>
+                              <p>Phone: {u.phone || 'N/A'}</p>
+                            </div>
+                          </td>
+                          <td className="p-sm text-center">
+                            <button onClick={() => triggerDirectReset(u.email)} className="px-sm py-xs bg-secondary-container text-on-secondary-container hover:opacity-95 rounded-xl text-[11px] font-bold border border-outline-variant/20 shadow-sm">
+                              Override
+                            </button>
+                          </td>
+                          <td className="p-sm text-right">
+                            <button onClick={() => navigate(`/superadmin/users/parent-${u.parent_id || u.id}`)} className="px-sm py-xs bg-primary text-on-primary hover:bg-primary-container rounded-xl text-[11px] font-bold shadow-sm">
+                              View Profile
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile view */}
+              <div className="md:hidden divide-y divide-outline-variant/10">
+                {filteredUsers.map(u => {
+                  const statusText = u.verified === false ? 'Unverified' : 'Verified';
+                  const statusColor = u.verified === false ? 'bg-error-container text-on-error-container border border-error/20' : 'bg-green-100 text-green-700 border border-green-200/20';
+                  const initials = u.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'US';
+
+                  return (
+                    <div key={u.parent_id || u.id} className="p-sm flex flex-col gap-xs animate-in fade-in duration-200">
+                      <div className="flex items-center gap-sm">
+                        <div className="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs border border-primary/10 flex-shrink-0">{initials}</div>
+                        <div className="min-w-0 flex-grow">
+                          <p className="font-label-lg text-on-surface font-bold truncate">{u.full_name}</p>
+                          <p className="font-body-sm text-[12px] text-on-surface-variant truncate">{u.email}</p>
+                        </div>
+                        <span className="font-mono text-[10px] text-primary font-bold flex-shrink-0">USR-{String(u.parent_id || u.id).padStart(4, '0')}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center gap-sm pt-xs border-t border-outline-variant/5">
+                        <div className="text-[11px] text-on-surface-variant leading-tight">
+                          <p>Birth: {u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</p>
+                          <p>Phone: {u.phone || 'N/A'}</p>
+                        </div>
+                        <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold border ${statusColor}`}>{statusText}</span>
+                      </div>
+
+                      <div className="flex justify-end gap-xs mt-xs">
+                        <button onClick={() => triggerDirectReset(u.email)} className="px-xs py-1 bg-secondary-container text-on-secondary-container hover:opacity-95 rounded-xl text-[10px] font-bold border border-outline-variant/20 shadow-sm">
+                          Reset
+                        </button>
+                        <button onClick={() => navigate(`/superadmin/users/parent-${u.parent_id || u.id}`)} className="px-xs py-1 bg-primary text-on-primary hover:bg-primary-container rounded-xl text-[10px] font-bold shadow-sm">
+                          Profile
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
