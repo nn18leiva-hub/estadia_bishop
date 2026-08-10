@@ -17,18 +17,35 @@ app.use(helmet());
 // --- CORS: Restrict to known origins ---
 const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'http://localhost:5173')
     .split(',')
-    .map(o => o.trim());
+    .map(o => o.trim().replace(/\/$/, ''));
 
 app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (e.g. curl, Postman, server-to-server)
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin) return callback(null, true);
+        
+        const cleanOrigin = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes('*') || allowedOrigins.includes(cleanOrigin)) {
             return callback(null, true);
         }
+
+        // Domain match check ignoring protocol (http vs https) and www subdomains
+        const originHost = cleanOrigin.replace(/^https?:\/\/(www\.)?/, '');
+        const isDomainMatch = allowedOrigins.some(ao => {
+            const aoHost = ao.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+            return aoHost === originHost;
+        });
+
+        if (isDomainMatch) {
+            return callback(null, true);
+        }
+
+        console.warn(`[CORS Blocked] Origin: ${origin} not in ALLOWED_ORIGIN:`, allowedOrigins);
         callback(new Error(`CORS policy: origin ${origin} not allowed`));
     },
     credentials: true
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
