@@ -29,6 +29,14 @@ const PROCESSING_SPEEDS = [
   { id: 'expedited', labelKey: 'proc.express', sublabelKey: 'proc.express.desc', price: 10, icon: 'bolt' },
 ];
 
+const TRANSCRIPT_PACKAGES = [
+  { id: 'regular_pickup', delivery: 'pickup', processing: 'standard', price: 15, titleKey: 'pkg.regular.pickup', descKey: 'pkg.regular.pickup.desc', icon: 'storefront' },
+  { id: 'regular_mailed', delivery: 'mailed', processing: 'standard', price: 20, titleKey: 'pkg.regular.mailed', descKey: 'pkg.regular.mailed.desc', icon: 'local_shipping' },
+  { id: 'express_pickup', delivery: 'pickup', processing: 'expedited', price: 25, titleKey: 'pkg.express.pickup', descKey: 'pkg.express.pickup.desc', icon: 'bolt' },
+  { id: 'express_mailed', delivery: 'mailed', processing: 'expedited', price: 30, titleKey: 'pkg.express.mailed', descKey: 'pkg.express.mailed.desc', icon: 'markunread_mailbox' },
+  { id: 'emailed_regular', delivery: 'emailed', processing: 'standard', price: 20, titleKey: 'pkg.emailed.regular', descKey: 'pkg.emailed.regular.desc', icon: 'mark_email_read' },
+];
+
 export default function NewRequest() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -88,6 +96,7 @@ export default function NewRequest() {
   const [studentForm, setStudentForm] = useState({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
   const [delivery, setDelivery] = useState('pickup');
   const [processing, setProcessing] = useState('standard');
+  const [transcriptPkg, setTranscriptPkg] = useState('regular_pickup');
   const [notes, setNotes] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [idFile, setIdFile] = useState(null);
@@ -219,7 +228,10 @@ export default function NewRequest() {
   const doc = documentTypes.find(d => d.id === selectedDoc);
   const deliveryItem = DELIVERY_METHODS.find(d => d.id === delivery);
   const processingItem = PROCESSING_SPEEDS.find(p => p.id === processing);
-  const totalFee = (doc?.price || 0) + (deliveryItem?.price || 0) + (processingItem?.price || 0);
+  const selectedTranscriptPkg = TRANSCRIPT_PACKAGES.find(p => p.id === transcriptPkg);
+  const totalFee = selectedDoc === 'transcript'
+    ? (selectedTranscriptPkg?.price || 15)
+    : (doc?.price || 0) + (deliveryItem?.price || 0) + (processingItem?.price || 0);
 
   const setStudentField = (k) => (e) => setStudentForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -773,53 +785,86 @@ export default function NewRequest() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
                   <div className="lg:col-span-2 flex flex-col gap-md">
-                    {/* Delivery Method */}
-                    <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                      <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
-                        {DELIVERY_METHODS.map(d => (
-                          <button
-                            key={d.id}
-                            onClick={() => setDelivery(d.id)}
-                            className={`flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all
-                              ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
-                          >
-                            <span className={`material-symbols-outlined ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
-                            <div>
-                              <p className="font-label-lg text-label-lg text-on-surface">{t(d.labelKey)}</p>
-                              <p className="font-body-sm text-body-sm text-on-surface-variant">{t(d.sublabelKey)}</p>
-                              <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
-                                {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
+                    {/* Transcript Specific Options */}
+                    {selectedDoc === 'transcript' ? (
+                      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                        <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('select.transcript.option') || 'Select Transcript Option & Price'}</h3>
+                        <div className="flex flex-col gap-sm">
+                          {TRANSCRIPT_PACKAGES.map(pkg => (
+                            <button
+                              key={pkg.id}
+                              type="button"
+                              onClick={() => {
+                                setTranscriptPkg(pkg.id);
+                                setDelivery(pkg.delivery);
+                                setProcessing(pkg.processing);
+                              }}
+                              className={`flex items-center gap-md p-md rounded-xl border-2 text-left transition-all cursor-pointer
+                                ${transcriptPkg === pkg.id ? 'border-primary bg-primary-fixed/20 shadow-sm' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                            >
+                              <span className={`material-symbols-outlined text-[28px] ${transcriptPkg === pkg.id ? 'text-primary' : 'text-on-surface-variant'}`}>{pkg.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-label-lg text-label-lg text-on-surface font-bold">{t(pkg.titleKey)}</p>
+                                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">{t(pkg.descKey)}</p>
+                              </div>
+                              <p className="font-headline-sm text-headline-sm font-bold text-primary flex-shrink-0">
+                                BZD ${pkg.price}.00
                               </p>
-                            </div>
-                          </button>
-                        ))}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Delivery Method */}
+                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                          <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+                            {DELIVERY_METHODS.map(d => (
+                              <button
+                                key={d.id}
+                                onClick={() => setDelivery(d.id)}
+                                className={`flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all
+                                  ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                              >
+                                <span className={`material-symbols-outlined ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
+                                <div>
+                                  <p className="font-label-lg text-label-lg text-on-surface">{t(d.labelKey)}</p>
+                                  <p className="font-body-sm text-body-sm text-on-surface-variant">{t(d.sublabelKey)}</p>
+                                  <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
+                                    {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    {/* Processing Speed */}
-                    <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
-                      <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
-                      <div className="flex flex-col gap-sm">
-                        {PROCESSING_SPEEDS.map(p => (
-                          <button
-                            key={p.id}
-                            onClick={() => setProcessing(p.id)}
-                            className={`flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all
-                              ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
-                          >
-                            <span className={`material-symbols-outlined ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
-                            <div className="flex-1">
-                              <p className="font-label-lg text-label-lg text-on-surface">{t(p.labelKey)}</p>
-                              <p className="font-body-sm text-body-sm text-on-surface-variant">{t(p.sublabelKey)}</p>
-                            </div>
-                            <p className={`font-label-lg font-bold ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
-                              {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                        {/* Processing Speed */}
+                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                          <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
+                          <div className="flex flex-col gap-sm">
+                            {PROCESSING_SPEEDS.map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => setProcessing(p.id)}
+                                className={`flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all
+                                  ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
+                              >
+                                <span className={`material-symbols-outlined ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
+                                <div className="flex-1">
+                                  <p className="font-label-lg text-label-lg text-on-surface">{t(p.labelKey)}</p>
+                                  <p className="font-body-sm text-body-sm text-on-surface-variant">{t(p.sublabelKey)}</p>
+                                </div>
+                                <p className={`font-label-lg font-bold ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
+                                  {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Additional Info */}
                     {(delivery === 'digital' || delivery === 'emailed') && (
