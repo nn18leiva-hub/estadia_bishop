@@ -787,7 +787,7 @@ export default function NewRequest() {
                   <div className="lg:col-span-2 flex flex-col gap-md">
                     {/* Transcript Specific Options */}
                     {selectedDoc === 'transcript' ? (
-                      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-sm sm:p-md">
                         <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('select.transcript.option') || 'Select Transcript Option & Price'}</h3>
                         <div className="flex flex-col gap-sm">
                           {TRANSCRIPT_PACKAGES.map(pkg => (
@@ -799,20 +799,26 @@ export default function NewRequest() {
                                 setDelivery(pkg.delivery);
                                 setProcessing(pkg.processing);
                               }}
-                              className={`w-full flex flex-col sm:flex-row sm:items-center justify-between gap-sm sm:gap-md p-sm sm:p-md rounded-xl border-2 text-left transition-all cursor-pointer
+                              className={`w-full text-left p-sm sm:p-md rounded-xl border-2 transition-all cursor-pointer block
                                 ${transcriptPkg === pkg.id ? 'border-primary bg-primary-fixed/20 shadow-sm' : 'border-outline-variant/30 hover:border-primary/40'}`}
                             >
-                              <div className="flex items-start sm:items-center gap-sm sm:gap-md flex-1 min-w-0 w-full sm:w-auto">
-                                <span className={`material-symbols-outlined text-[24px] sm:text-[28px] flex-shrink-0 mt-0.5 sm:mt-0 ${transcriptPkg === pkg.id ? 'text-primary' : 'text-on-surface-variant'}`}>{pkg.icon}</span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(pkg.titleKey)}</p>
-                                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 sm:mt-1 leading-normal">{t(pkg.descKey)}</p>
+                              <div className="flex items-start gap-sm sm:gap-md w-full">
+                                <span className={`material-symbols-outlined text-[24px] sm:text-[28px] flex-shrink-0 mt-0.5 ${transcriptPkg === pkg.id ? 'text-primary' : 'text-on-surface-variant'}`}>
+                                  {pkg.icon}
+                                </span>
+                                <div className="flex-1 w-full min-w-0">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 w-full mb-1">
+                                    <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">
+                                      {t(pkg.titleKey)}
+                                    </p>
+                                    <span className="font-headline-sm text-headline-sm font-bold text-primary whitespace-nowrap">
+                                      BZD ${pkg.price}.00
+                                    </span>
+                                  </div>
+                                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-normal">
+                                    {t(pkg.descKey)}
+                                  </p>
                                 </div>
-                              </div>
-                              <div className="flex justify-end sm:justify-start flex-shrink-0 self-end sm:self-auto pt-xs sm:pt-0 border-t sm:border-t-0 border-outline-variant/10 w-full sm:w-auto">
-                                <p className="font-headline-sm text-headline-sm font-bold text-primary whitespace-nowrap">
-                                  BZD ${pkg.price}.00
-                                </p>
                               </div>
                             </button>
                           ))}
@@ -821,23 +827,27 @@ export default function NewRequest() {
                     ) : (
                       <>
                         {/* Delivery Method */}
-                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-sm sm:p-md">
                           <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('delivery.method')}</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
                             {DELIVERY_METHODS.map(d => (
                               <button
                                 key={d.id}
                                 onClick={() => setDelivery(d.id)}
-                                className={`w-full flex items-center gap-sm p-sm rounded-xl border-2 text-left transition-all cursor-pointer
+                                className={`w-full text-left p-sm rounded-xl border-2 transition-all cursor-pointer block
                                   ${delivery === d.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
                               >
-                                <span className={`material-symbols-outlined flex-shrink-0 ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(d.labelKey)}</p>
-                                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-normal">{t(d.sublabelKey)}</p>
-                                  <p className={`font-label-lg mt-xs ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary font-bold'}`}>
-                                    {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
-                                  </p>
+                                <div className="flex items-start gap-sm w-full">
+                                  <span className={`material-symbols-outlined flex-shrink-0 mt-0.5 ${delivery === d.id ? 'text-primary' : 'text-on-surface-variant'}`}>{d.icon}</span>
+                                  <div className="flex-1 w-full min-w-0">
+                                    <div className="flex items-center justify-between gap-1 w-full">
+                                      <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(d.labelKey)}</p>
+                                      <p className={`font-label-lg font-bold flex-shrink-0 ${d.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
+                                        {d.price === 0 ? t('FREE') : `+BZD $${d.price}`}
+                                      </p>
+                                    </div>
+                                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-normal">{t(d.sublabelKey)}</p>
+                                  </div>
                                 </div>
                               </button>
                             ))}
@@ -845,24 +855,28 @@ export default function NewRequest() {
                         </div>
 
                         {/* Processing Speed */}
-                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md">
+                        <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-sm sm:p-md">
                           <h3 className="font-headline-sm text-headline-sm text-primary mb-md">{t('processing.speed')}</h3>
                           <div className="flex flex-col gap-sm">
                             {PROCESSING_SPEEDS.map(p => (
                               <button
                                 key={p.id}
                                 onClick={() => setProcessing(p.id)}
-                                className={`w-full flex items-center gap-md p-sm rounded-xl border-2 text-left transition-all cursor-pointer
+                                className={`w-full text-left p-sm rounded-xl border-2 transition-all cursor-pointer block
                                   ${processing === p.id ? 'border-primary bg-primary-fixed/20' : 'border-outline-variant/30 hover:border-primary/40'}`}
                               >
-                                <span className={`material-symbols-outlined flex-shrink-0 ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(p.labelKey)}</p>
-                                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-normal">{t(p.sublabelKey)}</p>
+                                <div className="flex items-start gap-sm w-full">
+                                  <span className={`material-symbols-outlined flex-shrink-0 mt-0.5 ${processing === p.id ? 'text-primary' : 'text-on-surface-variant'}`}>{p.icon}</span>
+                                  <div className="flex-1 w-full min-w-0">
+                                    <div className="flex items-center justify-between gap-1 w-full">
+                                      <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(p.labelKey)}</p>
+                                      <p className={`font-label-lg font-bold flex-shrink-0 ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
+                                        {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
+                                      </p>
+                                    </div>
+                                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-normal">{t(p.sublabelKey)}</p>
+                                  </div>
                                 </div>
-                                <p className={`font-label-lg font-bold flex-shrink-0 ml-sm whitespace-nowrap ${p.price === 0 ? 'text-on-surface-variant' : 'text-primary'}`}>
-                                  {p.price === 0 ? t('FREE') : `+BZD $${p.price}`}
-                                </p>
                               </button>
                             ))}
                           </div>
