@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../services/api';
 import bishopLogo from '../assets/bishop_martin_logo.png';
 
-export default function TopAppBar({ showBack = false, backTo = null, title = 'Bishop Martin Highschool Virtual Office', showNotifications = true }) {
+export default function TopAppBar({ showBack = false, backTo = null, title = 'Bishop Martin High School Virtual Office', showNotifications = true }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();

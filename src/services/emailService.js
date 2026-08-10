@@ -133,7 +133,7 @@ const sendNotificationEmail = async (userEmail, title, message) => {
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
-                    <h1 style="color: #800000; font-size: 24px; margin: 0; font-weight: 700;">Bishop Martin Highschool</h1>
+                    <h1 style="color: #800000; font-size: 24px; margin: 0; font-weight: 700;">Bishop Martin High School</h1>
                     <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">Virtual Office</p>
                 </div>
                 
@@ -184,11 +184,11 @@ const sendStaffInviteEmail = async (userEmail, staffName, tempPassword) => {
         html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
-                    <h1 style="color: #800000; font-size: 24px; margin: 0; font-weight: 700;">Bishop Martin Highschool</h1>
+                    <h1 style="color: #800000; font-size: 24px; margin: 0; font-weight: 700;">Bishop Martin High School</h1>
                     <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">Virtual Office Invitation</p>
                 </div>
                 <p>Hello <strong>${staffName}</strong>,</p>
-                <p>A staff account has been created for you on the Bishop Martin Highschool Virtual Office. Below are your temporary login credentials:</p>
+                <p>A staff account has been created for you on the Bishop Martin High School Virtual Office. Below are your temporary login credentials:</p>
                 <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 20px 0;">
                     <p style="margin: 0 0 8px 0;"><strong>Email:</strong> ${userEmail}</p>
                     <p style="margin: 0;"><strong>Temporary Password:</strong> <code style="font-size: 16px; letter-spacing: 2px;">${tempPassword}</code></p>

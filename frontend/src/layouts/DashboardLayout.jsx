@@ -21,7 +21,7 @@ const DashboardLayout = () => {
       <header className="bg-surface dark:bg-surface-dim flex items-center justify-between px-sm w-full h-16 z-50 border-b border-outline-variant/20 sticky top-0">
         <div className="flex items-center gap-sm">
           <button className="material-symbols-outlined text-primary dark:text-primary-fixed-dim cursor-pointer active:opacity-80 p-2 hover:bg-surface-container-high transition-colors rounded-full">menu</button>
-          <h1 className="font-headline-sm text-headline-sm font-semibold text-primary truncate hidden sm:block">Bishop Martin Highschool Virtual Office</h1>
+          <h1 className="font-headline-sm text-headline-sm font-semibold text-primary truncate hidden sm:block">Bishop Martin High School Virtual Office</h1>
           <h1 className="font-label-lg text-label-lg font-semibold text-primary sm:hidden">BM Virtual Office</h1>
         </div>
         <div className="flex items-center gap-sm">

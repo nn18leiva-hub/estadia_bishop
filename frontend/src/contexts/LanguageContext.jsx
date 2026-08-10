@@ -25,7 +25,7 @@ const translations = {
     "registrar.office": "Registrar's Office",
     "privacy.policy": "Privacy Policy",
     "terms.service": "Terms of Service",
-    "copyright": "Bishop Martin Highschool Virtual Office",
+    "copyright": "Bishop Martin High School Virtual Office",
     
     // Navigation & Layout
     "dashboard": "Dashboard",
@@ -693,7 +693,7 @@ const translations = {
     "registrar.office": "Oficina del Registrador",
     "privacy.policy": "Política de Privacidad",
     "terms.service": "Términos de Uso",
-    "copyright": "Bishop Martin Highschool Virtual Office",
+    "copyright": "Bishop Martin High School Virtual Office",
     
     // Navigation & Layout
     "dashboard": "Inicio",
