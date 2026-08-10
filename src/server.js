@@ -50,38 +50,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Profile pictures are public — they are display images, not sensitive documents
-app.use('/uploads/profile_pictures', express.static(path.join(process.cwd(), 'uploads', 'profile_pictures')));
+// Serve uploads directory (ID cards, receipts, signatures, profile pictures, documents) statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// All other uploads require a valid JWT (SSN cards, receipts, signatures, documents)
-app.get('/uploads/:folder/:file', (req, res) => {
-    const authHeader = req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Authentication required to access files.' });
-    }
-    const token = authHeader.split(' ')[1];
-    try {
-        jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-        return res.status(401).json({ message: 'Invalid or expired token.' });
-    }
-
-    const folder = req.params.folder;
-    const file = req.params.file;
-
-    // Prevent path traversal — only allow access to sensitive upload folders
-    const protectedFolders = ['ssn_cards', 'payment_receipts', 'signatures', 'documents'];
-    if (!protectedFolders.includes(folder)) {
-        return res.status(403).json({ message: 'Access denied.' });
-    }
-
-    const filePath = path.resolve('uploads', folder, file);
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: 'File not found.' });
-    }
-
-    res.sendFile(filePath);
-});
 
 // Serve static HTML site (non-sensitive)
 app.use(express.static(path.join(__dirname, '..', 'site')));
