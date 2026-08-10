@@ -3,17 +3,17 @@ const router = express.Router();
 const staffController = require('../controllers/staffController');
 const authenticate = require('../middleware/authMiddleware');
 const requireRole = require('../middleware/roleMiddleware');
-const { uploadProfilePicture, uploadDocument } = require('../middleware/uploadMiddleware');
+const { uploadProfilePicture, uploadDocument, validateUploadedFiles, IMAGE_MIMES, IMAGE_AND_PDF_MIMES } = require('../middleware/uploadMiddleware');
 
 router.use(authenticate, requireRole('staff'));
 
 router.get('/profile', staffController.getProfile);
 router.patch('/profile', staffController.updateProfile);
-router.post('/profile/upload-picture', uploadProfilePicture.single('profile_picture'), staffController.uploadProfilePicture);
+router.post('/profile/upload-picture', uploadProfilePicture.single('profile_picture'), validateUploadedFiles(IMAGE_MIMES), staffController.uploadProfilePicture);
 
 router.get('/requests', staffController.getAllRequests);
 router.get('/requests/:id', staffController.getRequestById);
-router.post('/requests/:id/upload', uploadDocument.single('document_file'), staffController.uploadDocument);
+router.post('/requests/:id/upload', uploadDocument.single('document_file'), validateUploadedFiles(IMAGE_AND_PDF_MIMES), staffController.uploadDocument);
 router.patch('/requests/:id/status', staffController.updateRequestStatusById);
 router.post('/verify-parent', staffController.verifyParent);
 router.post('/verify-payment', staffController.verifyPayment);

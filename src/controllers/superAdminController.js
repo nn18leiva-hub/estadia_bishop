@@ -144,15 +144,13 @@ const overridePassword = async (req, res) => {
 
 const getDetailedStats = async (req, res) => {
     try {
-        const ONLINE_WINDOW = '15 minutes';
-
         // Registered Counts
         const regStaff = await db.query("SELECT role, count(*) FROM staff GROUP BY role");
         const regParents = await db.query("SELECT user_type, count(*) FROM parents GROUP BY user_type");
 
         // Online Counts (Active in last 15 mins)
-        const onlineStaff = await db.query(`SELECT role, count(*) FROM staff WHERE last_activity > NOW() - INTERVAL '${ONLINE_WINDOW}' GROUP BY role`);
-        const onlineParents = await db.query(`SELECT user_type, count(*) FROM parents WHERE last_activity > NOW() - INTERVAL '${ONLINE_WINDOW}' GROUP BY user_type`);
+        const onlineStaff = await db.query("SELECT role, count(*) FROM staff WHERE last_activity > NOW() - INTERVAL '15 minutes' GROUP BY role");
+        const onlineParents = await db.query("SELECT user_type, count(*) FROM parents WHERE last_activity > NOW() - INTERVAL '15 minutes' GROUP BY user_type");
 
         res.json({
             registered: {

@@ -28,7 +28,7 @@ const updateProfile = async (req, res) => {
 
         const result = await db.query(
             'UPDATE parents SET full_name = $1, phone = $2 WHERE parent_id = $3 RETURNING parent_id, full_name, email, phone, profile_picture_path, verified, user_type, created_at',
-            [full_name, phone || null, req.user.id]
+            [full_name.trim(), phone ? phone.trim() : null, req.user.id]
         );
 
         res.json({ message: 'Profile updated successfully.', user: result.rows[0] });

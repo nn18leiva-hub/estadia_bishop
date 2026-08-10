@@ -5,6 +5,16 @@ const db = require('../config/db');
 const { sendPasswordResetEmail, sendProfileVerificationCode } = require('../services/emailService');
 require('dotenv').config();
 
+// Minimum password requirements
+const MIN_PASSWORD_LENGTH = 8;
+
+const validatePassword = (password) => {
+    if (!password || password.length < MIN_PASSWORD_LENGTH) {
+        return `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`;
+    }
+    return null;
+};
+
 const registerParent = async (req, res) => {
     try {
         const { full_name, email, phone, password, user_type, dob } = req.body;
@@ -13,7 +23,14 @@ const registerParent = async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields.' });
         }
 
+        // Validate password strength
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            return res.status(400).json({ message: passwordError });
+        }
+
         const normalizedEmail = email.toLowerCase().trim();
+        const trimmedName = full_name.trim();
 
         const type = user_type || 'parent';
         if (!['parent', 'past_student'].includes(type)) {
@@ -48,7 +65,7 @@ const registerParent = async (req, res) => {
 
         const newParent = await db.query(
             'INSERT INTO parents (full_name, email, phone, password_hash, user_type, dob) VALUES ($1, $2, $3, $4, $5, $6) RETURNING parent_id, full_name, email, user_type',
-            [full_name, normalizedEmail, phone, password_hash, type, type === 'past_student' ? dob : null]
+            [trimmedName, normalizedEmail, phone ? phone.trim() : null, password_hash, type, type === 'past_student' ? dob : null]
         );
 
         res.status(201).json({ message: 'User registered successfully.', user: newParent.rows[0] });
@@ -163,6 +180,12 @@ const resetPassword = async (req, res) => {
             return res.status(400).json({ message: 'Email, code, and new password are required.' });
         }
 
+        // Validate password strength
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            return res.status(400).json({ message: passwordError });
+        }
+
         const normalizedEmail = email.toLowerCase().trim();
 
         // Retrieve valid token for this specific email
@@ -233,6 +256,12 @@ const changeProfilePassword = async (req, res) => {
         
         if (!email) return res.status(400).json({ message: 'Unauthorized request.' });
         if (!code || !newPassword) return res.status(400).json({ message: 'Code and new password required.' });
+
+        // Validate password strength
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            return res.status(400).json({ message: passwordError });
+        }
 
         // Retrieve valid token
         const tokenRes = await db.query(

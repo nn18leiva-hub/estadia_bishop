@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { createNotification } = require('../services/notificationService');
+const { mapRequestKeys } = require('../utils/requestHelpers');
 
 
 const getProfile = async (req, res) => {
@@ -23,7 +24,7 @@ const updateProfile = async (req, res) => {
 
         const result = await db.query(
             'UPDATE staff SET full_name = $1 WHERE staff_id = $2 RETURNING staff_id, full_name, email, role, profile_picture_path, created_at',
-            [full_name, req.user.id]
+            [full_name.trim(), req.user.id]
         );
         res.json({ message: 'Profile updated successfully.', user: result.rows[0] });
     } catch (err) {
@@ -46,20 +47,6 @@ const uploadProfilePicture = async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server error during profile picture upload.' });
     }
-};
-
-const mapRequestKeys = (row) => {
-    if (!row) return row;
-    return {
-        ...row,
-        id: row.request_id,
-        student_name: row.student_full_name,
-        grade: row.student_graduation_year_or_years_attended,
-        document_type: row.document_type_name,
-        created_at: row.request_date,
-        parent_verified: row.id_verified,
-        student_id: null
-    };
 };
 
 const getAllRequests = async (req, res) => {
@@ -194,6 +181,39 @@ const verifyPayment = async (req, res) => {
     }
 };
 
+/**
+ * Shared verification guard used by both updateRequestStatus handlers.
+ * Checks ID and payment requirements before a status transition and applies
+ * any necessary auto-approvals. Returns null on success, or an error response
+ * object { status, message } if the transition is blocked.
+ */
+const applyVerificationChecks = async (requestDetails, status, staffId, requestId) => {
+    const isIdSatisfied = requestDetails.parent_verified ||
+        ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
+
+    const isPaymentSatisfied = !requestDetails.requires_payment ||
+        requestDetails.payment_verified ||
+        ['processing', 'ready_for_pickup', 'completed'].includes(status);
+
+    if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
+        return { status: 403, message: "Cannot transition to this status. The request's ID verification has not been approved yet." };
+    }
+
+    if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
+        return { status: 403, message: "Cannot transition to this status. The payment has not been verified yet." };
+    }
+
+    // Apply auto-approvals
+    if (isIdSatisfied && !requestDetails.parent_verified) {
+        await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [requestId]);
+    }
+    if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
+        await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [staffId, requestId]);
+    }
+
+    return null; // no error
+};
+
 const updateRequestStatus = async (req, res) => {
     try {
         const { request_id, status } = req.body;
@@ -218,29 +238,8 @@ const updateRequestStatus = async (req, res) => {
         }
         const requestDetails = reqResult.rows[0];
 
-        // Determine if ID verification is satisfied (either already verified, or we are auto-approving it by setting status to pending/processing/ready_for_pickup/completed)
-        const isIdSatisfied = requestDetails.parent_verified || ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
-
-        // Determine if payment verification is satisfied (either not required, already verified, or we are auto-approving it by setting status to processing/ready_for_pickup/completed)
-        const isPaymentSatisfied = !requestDetails.requires_payment || requestDetails.payment_verified || ['processing', 'ready_for_pickup', 'completed'].includes(status);
-
-        // ID must be verified for any status other than pending_verification or denied
-        if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
-            return res.status(403).json({ message: "Cannot transition to this status. The request's ID verification has not been approved yet." });
-        }
-
-        // Payment must be verified to transition to processing, ready_for_pickup, or completed
-        if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
-            return res.status(403).json({ message: "Cannot transition to this status. The payment has not been verified yet." });
-        }
-
-        // Apply database updates for auto-approvals
-        if (isIdSatisfied && !requestDetails.parent_verified) {
-            await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [request_id]);
-        }
-        if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
-            await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [req.user.id, request_id]);
-        }
+        const guardError = await applyVerificationChecks(requestDetails, status, req.user.id, request_id);
+        if (guardError) return res.status(guardError.status).json({ message: guardError.message });
 
         const updated = await db.query(
             'UPDATE document_requests SET status = $1 WHERE request_id = $2 RETURNING *',
@@ -292,29 +291,8 @@ const updateRequestStatusById = async (req, res) => {
         }
         const requestDetails = reqResult.rows[0];
 
-        // Determine if ID verification is satisfied (either already verified, or we are auto-approving it by setting status to pending/processing/ready_for_pickup/completed)
-        const isIdSatisfied = requestDetails.parent_verified || ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
-
-        // Determine if payment verification is satisfied (either not required, already verified, or we are auto-approving it by setting status to processing/ready_for_pickup/completed)
-        const isPaymentSatisfied = !requestDetails.requires_payment || requestDetails.payment_verified || ['processing', 'ready_for_pickup', 'completed'].includes(status);
-
-        // ID must be verified for any status other than pending_verification or denied
-        if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
-            return res.status(403).json({ message: "Cannot transition to this status. The request's ID verification has not been approved yet." });
-        }
-
-        // Payment must be verified to transition to processing, ready_for_pickup, or completed
-        if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
-            return res.status(403).json({ message: "Cannot transition to this status. The payment has not been verified yet." });
-        }
-
-        // Apply database updates for auto-approvals
-        if (isIdSatisfied && !requestDetails.parent_verified) {
-            await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [id]);
-        }
-        if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
-            await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [req.user.id, id]);
-        }
+        const guardError = await applyVerificationChecks(requestDetails, status, req.user.id, id);
+        if (guardError) return res.status(guardError.status).json({ message: guardError.message });
 
         const fields = ['status = $1'];
         const values = [status];
@@ -368,13 +346,23 @@ const updateRequestStatusById = async (req, res) => {
 const getStats = async (req, res) => {
     try {
         const pendingRes = await db.query("SELECT COUNT(*) FROM document_requests WHERE status IN ('pending', 'pending_verification')");
-        const issuedRes = await db.query("SELECT COUNT(*) FROM document_requests WHERE status = 'issued'");
+        // 'completed' is the persisted status; 'issued' is a frontend alias normalized before save
+        const completedRes = await db.query("SELECT COUNT(*) FROM document_requests WHERE status = 'completed' AND DATE(request_date) = CURRENT_DATE");
         const urgentRes = await db.query("SELECT COUNT(*) FROM document_requests WHERE processing_speed = 'urgent' AND status IN ('pending', 'processing')");
+
+        // Average lead time in days for completed requests (last 90 days)
+        const avgLeadRes = await db.query(`
+            SELECT ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - request_date)) / 86400.0)::numeric, 1) AS avg_days
+            FROM document_requests
+            WHERE status = 'completed'
+              AND request_date > NOW() - INTERVAL '90 days'
+        `);
+        const avgLeadTime = avgLeadRes.rows[0]?.avg_days ?? null;
         
         res.json({
             pending: parseInt(pendingRes.rows[0].count),
-            avgLeadTime: 2.4,
-            issuedToday: parseInt(issuedRes.rows[0].count),
+            avgLeadTime,
+            issuedToday: parseInt(completedRes.rows[0].count),
             urgent: parseInt(urgentRes.rows[0].count)
         });
     } catch (err) {
@@ -491,10 +479,10 @@ const uploadDocument = async (req, res) => {
 
         const { delivery_method } = requestDetails;
 
-        // Determine if we should update status to 'issued'
+        // Determine if we should update status to 'completed' (emailed delivery)
         let updatedStatusQuery = '';
         if (delivery_method === 'emailed') {
-            updatedStatusQuery = ", status = 'issued'";
+            updatedStatusQuery = ", status = 'completed'";
         }
 
         const result = await db.query(
@@ -522,7 +510,7 @@ const uploadDocument = async (req, res) => {
 
         res.json({
             message: delivery_method === 'emailed' 
-                ? 'Document uploaded and request marked as issued successfully.'
+                ? 'Document uploaded and request marked as completed successfully.'
                 : 'Document uploaded successfully.',
             request: result.rows[0],
             generated_file_path: docPath

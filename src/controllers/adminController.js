@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const { sendStaffInviteEmail } = require('../services/emailService');
 
 // Helper to convert DB permissions JSON object to frontend array of string keys
 const mapPermissionsToFrontend = (permissionsObj) => {
@@ -322,14 +323,19 @@ const inviteUser = async (req, res) => {
       [name, email, password_hash, dbRole, permissionsObj]
     );
 
+    // Send temp password via email — never return it in the response
+    sendStaffInviteEmail(email, name, tempPassword).catch(err => {
+      console.error(`Failed to send invite email to ${email}:`, err);
+    });
+
     res.status(201).json({
-      message: 'Invitation sent and user created.',
+      message: 'Invitation sent and user created. A temporary password has been emailed to the new staff member.',
       user: {
         id: `staff-${newStaff.rows[0].staff_id}`,
         name: newStaff.rows[0].full_name,
         email: newStaff.rows[0].email,
-        role: newStaff.rows[0].role,
-        tempPassword // Returned for test/simulated environment
+        role: newStaff.rows[0].role
+        // tempPassword intentionally omitted from response
       }
     });
   } catch (err) {

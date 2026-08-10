@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const { generateDocument } = require('../services/pdfGenerator');
 const { createNotification } = require('../services/notificationService');
+const { mapRequestKeys } = require('../utils/requestHelpers');
 
 
 // GET /api/requests/document-types — public, no auth needed
@@ -91,6 +92,16 @@ const createRequest = async (req, res) => {
             generated_file_path = await generateDocument(documentType, parent, req.body, signatureFile);
         }
 
+        // Safely parse form_data JSON
+        let parsedFormData = null;
+        if (form_data) {
+            try {
+                parsedFormData = typeof form_data === 'string' ? JSON.parse(form_data) : form_data;
+            } catch {
+                return res.status(400).json({ message: 'Invalid form_data: must be valid JSON.' });
+            }
+        }
+
         const newReq = await db.query(
             `INSERT INTO document_requests
              (parent_id, id_image_path, id_verified, student_full_name, student_graduation_year_or_years_attended,
@@ -101,16 +112,16 @@ const createRequest = async (req, res) => {
                 parentId,
                 idFile.path,
                 false,
-                student_full_name,
+                student_full_name.trim(),
                 student_graduation_year_or_years_attended || null,
                 documentType.document_type_id,
-                form_data ? (typeof form_data === 'string' ? JSON.parse(form_data) : form_data) : null,
+                parsedFormData,
                 generated_file_path,
                 normalizedDelivery,
                 processing_speed || 'standard',
                 recipient_email || null,
                 fee ? parseFloat(fee) : 0,
-                notes || null,
+                notes ? notes.trim() : null,
                 initialStatus,
             ]
         );
@@ -129,20 +140,6 @@ const createRequest = async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server error during request creation.' });
     }
-};
-
-const mapRequestKeys = (row) => {
-    if (!row) return row;
-    return {
-        ...row,
-        id: row.request_id,
-        student_name: row.student_full_name,
-        grade: row.student_graduation_year_or_years_attended,
-        document_type: row.document_type_name,
-        created_at: row.request_date,
-        parent_verified: row.id_verified,
-        student_id: null
-    };
 };
 
 const getMyRequests = async (req, res) => {

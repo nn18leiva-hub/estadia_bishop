@@ -36,6 +36,8 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+      - PORTAL_URL=${PORTAL_URL}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
