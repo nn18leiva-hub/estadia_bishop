@@ -19,14 +19,14 @@ const DOCUMENT_TYPES = [
 // Past students are loaded dynamically from request history
 
 const DELIVERY_METHODS = [
-  { id: 'digital', labelKey: 'digital.delivery', sublabelKey: 'pdf.sec.email', price: 0, icon: 'mark_email_read' },
-  { id: 'physical', labelKey: 'physical.copy', sublabelKey: 'pickup.postal', price: 15, icon: 'markunread_mailbox' },
+  { id: 'pickup', labelKey: 'del.pickup', sublabelKey: 'del.pickup.desc', price: 0, icon: 'storefront' },
+  { id: 'mailed', labelKey: 'del.mailed', sublabelKey: 'del.mailed.desc', price: 5, icon: 'local_shipping' },
+  { id: 'emailed', labelKey: 'del.emailed', sublabelKey: 'del.emailed.desc', price: 5, icon: 'mark_email_read' },
 ];
 
 const PROCESSING_SPEEDS = [
-  { id: 'standard', labelKey: 'std.proc', sublabelKey: 'std.proc.desc', price: 0, icon: 'schedule' },
-  { id: 'expedited', labelKey: 'exp.proc', sublabelKey: 'exp.proc.desc', price: 10, icon: 'fast_forward' },
-  { id: 'urgent', labelKey: 'urg.proc', sublabelKey: 'urg.proc.desc', price: 20, icon: 'bolt' },
+  { id: 'standard', labelKey: 'proc.regular', sublabelKey: 'proc.regular.desc', price: 0, icon: 'schedule' },
+  { id: 'expedited', labelKey: 'proc.express', sublabelKey: 'proc.express.desc', price: 10, icon: 'bolt' },
 ];
 
 export default function NewRequest() {
@@ -86,7 +86,7 @@ export default function NewRequest() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentForm, setStudentForm] = useState({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
-  const [delivery, setDelivery] = useState('digital');
+  const [delivery, setDelivery] = useState('pickup');
   const [processing, setProcessing] = useState('standard');
   const [notes, setNotes] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -822,7 +822,7 @@ export default function NewRequest() {
                     </div>
 
                     {/* Additional Info */}
-                    {delivery === 'digital' && (
+                    {(delivery === 'digital' || delivery === 'emailed') && (
                       <div className="flex flex-col gap-xs">
                         <label className="font-label-lg text-label-lg text-on-surface">{t('where.send')}</label>
                         <input
