@@ -230,7 +230,7 @@ export default function Requests() {
                         </div>
                         
                         <div onClick={e => e.stopPropagation()} className="flex-shrink-0">
-                          {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
+                          {(req.requires_payment && !req.payment_verified) ? (
                             <div 
                               className="flex items-center gap-xxs px-sm py-0.5 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-[10px] cursor-not-allowed select-none" 
                               title="Locked"
@@ -308,7 +308,7 @@ export default function Requests() {
                         </td>
                         <td className="px-md py-md" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-xs relative">
-                            {(!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? (
+                            {(req.requires_payment && !req.payment_verified) ? (
                               <div 
                                 className="flex items-center gap-xxs px-sm py-1 rounded-full border border-outline-variant/30 bg-surface-container-high text-on-surface-variant font-label-md text-xs cursor-not-allowed select-none" 
                                 title="Locked: Requester ID or Payment verification pending"

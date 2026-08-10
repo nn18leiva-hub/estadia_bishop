@@ -371,7 +371,6 @@ const SuperAdminDashboard = () => {
                     <tr>
                       <th className="p-sm">User ID</th>
                       <th className="p-sm">Identity</th>
-                      <th className="p-sm">Verification</th>
                       <th className="p-sm">Meta Details</th>
                       <th className="p-sm text-center">Override Password</th>
                       <th className="p-sm text-right">Actions</th>
@@ -379,18 +378,12 @@ const SuperAdminDashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-outline-variant/10">
                     {filteredUsers.map(u => {
-                      const statusText = u.verified === false ? 'Unverified' : 'Verified';
-                      const statusColor = u.verified === false ? 'bg-error-container text-on-error-container border border-error/20' : 'bg-green-100 text-green-700 border border-green-200/20';
-
                       return (
                         <tr key={u.parent_id || u.id} className="hover:bg-surface-container-low/20 transition-colors">
                           <td className="p-sm font-mono font-bold text-primary">USR-{String(u.parent_id || u.id).padStart(4, '0')}</td>
                           <td className="p-sm">
                             <p className="font-bold text-on-surface">{u.full_name}</p>
                             <p className="text-[11px] text-on-surface-variant">{u.email}</p>
-                          </td>
-                          <td className="p-sm">
-                            <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold border ${statusColor}`}>{statusText}</span>
                           </td>
                           <td className="p-sm">
                             <div className="text-[11px] text-on-surface-variant leading-relaxed">
@@ -418,8 +411,6 @@ const SuperAdminDashboard = () => {
               {/* Mobile view */}
               <div className="md:hidden divide-y divide-outline-variant/10">
                 {filteredUsers.map(u => {
-                  const statusText = u.verified === false ? 'Unverified' : 'Verified';
-                  const statusColor = u.verified === false ? 'bg-error-container text-on-error-container border border-error/20' : 'bg-green-100 text-green-700 border border-green-200/20';
                   const initials = u.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'US';
 
                   return (
@@ -438,8 +429,8 @@ const SuperAdminDashboard = () => {
                           <p>Birth: {u.dob ? new Date(u.dob).toLocaleDateString() : 'N/A'}</p>
                           <p>Phone: {u.phone || 'N/A'}</p>
                         </div>
-                        <span className={`px-xs py-[2px] rounded text-[10px] uppercase font-bold border ${statusColor}`}>{statusText}</span>
                       </div>
+
 
                       <div className="flex justify-end gap-xs mt-xs">
                         <button onClick={() => triggerDirectReset(u.email)} className="px-xs py-1 bg-secondary-container text-on-secondary-container hover:opacity-95 rounded-xl text-[10px] font-bold border border-outline-variant/20 shadow-sm">

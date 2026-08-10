@@ -223,40 +223,10 @@ export default function StaffRequestDetail() {
                 <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md shadow-sm">
                   <h3 className="font-headline-sm text-headline-sm text-primary mb-sm flex items-center gap-xs font-bold">
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>badge</span>
-                    {t('identity.verification') || 'Identity Verification'}
+                    {t('identity.document') || 'Attached Government ID'}
                   </h3>
                   <div className="flex flex-col gap-xs">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-xs border-b border-outline-variant/10 gap-1">
-                      <p className="font-body-sm text-on-surface-variant font-medium">{t('status') || 'Status'}</p>
-                      <span className={`text-label-md px-sm py-0.5 rounded-full font-semibold capitalize border self-start sm:self-auto ${
-                        req.parent_verified ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-500/20' : 'bg-amber-100 text-amber-800 border-amber-500/20'
-                      }`}>
-                        {req.parent_verified ? t('verified') || 'Verified' : t('pending') || 'Pending Review'}
-                      </span>
-                    </div>
-
-                    {!req.parent_verified && (
-                      <div className="flex gap-sm mt-sm">
-                        <button
-                          onClick={() => handleVerifyId('approved')}
-                          disabled={processing}
-                          className="flex-1 bg-primary text-on-primary py-sm rounded-xl font-label-md hover:bg-primary-container shadow-sm transition-colors flex items-center justify-center gap-xs font-semibold active:scale-95"
-                        >
-                          <span className="material-symbols-outlined text-sm">how_to_reg</span>
-                          Approve ID
-                        </button>
-                        <button
-                          onClick={() => handleVerifyId('rejected')}
-                          disabled={processing}
-                          className="flex-1 border border-error text-error py-sm rounded-xl font-label-md hover:bg-error-container transition-colors flex items-center justify-center gap-xs font-semibold active:scale-95"
-                        >
-                          <span className="material-symbols-outlined text-sm">close</span>
-                          Reject ID
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="mt-md flex flex-col gap-sm">
+                    <div className="mt-xs flex flex-col gap-sm">
                       <a
                         href={`/${req.id_image_path}`}
                         target="_blank"
@@ -266,6 +236,7 @@ export default function StaffRequestDetail() {
                         <span className="material-symbols-outlined">visibility</span>
                         {t('view.id.doc') || 'View Full ID Document'}
                       </a>
+
                       
                       {/* Inline ID Preview */}
                       <div className="w-full h-40 border border-outline-variant/20 rounded-xl overflow-hidden relative bg-surface-container-low">
@@ -455,9 +426,9 @@ export default function StaffRequestDetail() {
 
               {/* Document Upload Zone */}
               <div className={`bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md relative shadow-sm ${
-                req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'opacity-60' : ''
+                req && req.requires_payment && !req.payment_verified ? 'opacity-60' : ''
               }`}>
-                {req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) && (
+                {req && req.requires_payment && !req.payment_verified && (
                   <div 
                     className="absolute inset-0 z-10 cursor-not-allowed" 
                     onClick={(e) => { e.stopPropagation(); setShowStaffLockModal(true); }}
@@ -508,14 +479,14 @@ export default function StaffRequestDetail() {
                     type="file"
                     id="staff-doc-upload"
                     accept=".pdf,image/*"
-                    disabled={req && (!req.parent_verified || (req.requires_payment && !req.payment_verified))}
+                    disabled={req && req.requires_payment && !req.payment_verified}
                     onChange={handleDocFileChange}
                     className="hidden"
                   />
                   <label
-                    htmlFor={req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? undefined : "staff-doc-upload"}
+                    htmlFor={req && req.requires_payment && !req.payment_verified ? undefined : "staff-doc-upload"}
                     className={`flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-xl p-md transition-colors bg-surface-container-low/30 hover:bg-surface-container-low/50 ${
-                      req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                      req && req.requires_payment && !req.payment_verified ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                     }`}
                   >
                     <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '32px' }}>
@@ -537,7 +508,7 @@ export default function StaffRequestDetail() {
                 {selectedDocFile && (
                   <button
                     onClick={handleDocUpload}
-                    disabled={uploadingDoc || (req && (!req.parent_verified || (req.requires_payment && !req.payment_verified)))}
+                    disabled={uploadingDoc || (req && req.requires_payment && !req.payment_verified)}
                     className="w-full mt-md bg-primary text-on-primary py-sm rounded-xl font-label-lg shadow-sm hover:bg-primary-container flex items-center justify-center gap-sm transition-all disabled:opacity-50 font-bold active:scale-95"
                   >
                     {uploadingDoc ? (
@@ -583,14 +554,10 @@ export default function StaffRequestDetail() {
             <div>
               <h3 className="font-headline-sm text-headline-sm text-primary font-bold">{t('request.locked') || 'Processing Locked'}</h3>
               <p className="font-body-md text-on-surface-variant mt-xs">
-                {!req?.parent_verified && !req?.payment_verified && req?.requires_payment
-                  ? 'This request is locked because both the parent\'s identity and payment require verification.'
-                  : !req?.parent_verified
-                  ? 'This request is locked because the parent\'s identity has not been verified yet.'
-                  : 'This request is locked because payment verification is pending.'
-                }
+                This request is locked because payment verification is pending.
               </p>
             </div>
+
             <div className="flex flex-col gap-xs w-full mt-xs">
               {req?.requires_payment && !req?.payment_verified && (
                 <button

@@ -188,25 +188,14 @@ const verifyPayment = async (req, res) => {
  * object { status, message } if the transition is blocked.
  */
 const applyVerificationChecks = async (requestDetails, status, staffId, requestId) => {
-    const isIdSatisfied = requestDetails.parent_verified ||
-        ['pending', 'processing', 'ready_for_pickup', 'completed'].includes(status);
-
     const isPaymentSatisfied = !requestDetails.requires_payment ||
         requestDetails.payment_verified ||
         ['processing', 'ready_for_pickup', 'completed'].includes(status);
-
-    if (!isIdSatisfied && !['pending_verification', 'denied'].includes(status)) {
-        return { status: 403, message: "Cannot transition to this status. The request's ID verification has not been approved yet." };
-    }
 
     if (!isPaymentSatisfied && ['processing', 'ready_for_pickup', 'completed'].includes(status)) {
         return { status: 403, message: "Cannot transition to this status. The payment has not been verified yet." };
     }
 
-    // Apply auto-approvals
-    if (isIdSatisfied && !requestDetails.parent_verified) {
-        await db.query('UPDATE document_requests SET id_verified = TRUE WHERE request_id = $1', [requestId]);
-    }
     if (isPaymentSatisfied && requestDetails.requires_payment && !requestDetails.payment_verified) {
         await db.query('UPDATE payments SET verified = TRUE, verified_by_staff_id = $1 WHERE request_id = $2', [staffId, requestId]);
     }
@@ -468,10 +457,6 @@ const uploadDocument = async (req, res) => {
             return res.status(404).json({ message: 'Request not found.' });
         }
         const requestDetails = reqResult.rows[0];
-
-        if (!requestDetails.parent_verified) {
-            return res.status(403).json({ message: "Cannot modify request. The parent's ID has not been verified yet." });
-        }
 
         if (requestDetails.requires_payment && !requestDetails.payment_verified) {
             return res.status(403).json({ message: 'Cannot modify request. The payment has not been verified yet.' });
