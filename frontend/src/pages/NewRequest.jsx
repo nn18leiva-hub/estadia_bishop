@@ -371,11 +371,11 @@ export default function NewRequest() {
                 return true;
               }).map(d => (
                 <button
-                   key={d.id}
+                  key={d.id}
                   onClick={() => {
                     setSelectedDoc(d.id);
                   }}
-                  className={`text-left p-md rounded-xl border-2 transition-all flex flex-col gap-sm relative
+                  className={`w-full text-left p-sm sm:p-md rounded-xl border-2 transition-all flex flex-col gap-sm relative cursor-pointer
                     ${selectedDoc === d.id
                       ? 'border-primary bg-primary-fixed/30 shadow-md'
                       : 'border-outline-variant/30 bg-surface-container-lowest hover:border-primary/40 hover:shadow-sm'
@@ -799,19 +799,21 @@ export default function NewRequest() {
                                 setDelivery(pkg.delivery);
                                 setProcessing(pkg.processing);
                               }}
-                              className={`w-full flex items-center justify-between gap-md p-md rounded-xl border-2 text-left transition-all cursor-pointer
+                              className={`w-full flex flex-col sm:flex-row sm:items-center justify-between gap-sm sm:gap-md p-sm sm:p-md rounded-xl border-2 text-left transition-all cursor-pointer
                                 ${transcriptPkg === pkg.id ? 'border-primary bg-primary-fixed/20 shadow-sm' : 'border-outline-variant/30 hover:border-primary/40'}`}
                             >
-                              <div className="flex items-center gap-md flex-1 min-w-0">
-                                <span className={`material-symbols-outlined text-[28px] flex-shrink-0 ${transcriptPkg === pkg.id ? 'text-primary' : 'text-on-surface-variant'}`}>{pkg.icon}</span>
+                              <div className="flex items-start sm:items-center gap-sm sm:gap-md flex-1 min-w-0 w-full sm:w-auto">
+                                <span className={`material-symbols-outlined text-[24px] sm:text-[28px] flex-shrink-0 mt-0.5 sm:mt-0 ${transcriptPkg === pkg.id ? 'text-primary' : 'text-on-surface-variant'}`}>{pkg.icon}</span>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-body-md text-body-md text-on-surface font-bold leading-snug">{t(pkg.titleKey)}</p>
-                                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 leading-normal">{t(pkg.descKey)}</p>
+                                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 sm:mt-1 leading-normal">{t(pkg.descKey)}</p>
                                 </div>
                               </div>
-                              <p className="font-headline-sm text-headline-sm font-bold text-primary flex-shrink-0 ml-sm whitespace-nowrap">
-                                BZD ${pkg.price}.00
-                              </p>
+                              <div className="flex justify-end sm:justify-start flex-shrink-0 self-end sm:self-auto pt-xs sm:pt-0 border-t sm:border-t-0 border-outline-variant/10 w-full sm:w-auto">
+                                <p className="font-headline-sm text-headline-sm font-bold text-primary whitespace-nowrap">
+                                  BZD ${pkg.price}.00
+                                </p>
+                              </div>
                             </button>
                           ))}
                         </div>
