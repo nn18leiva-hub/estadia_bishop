@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const { sendStaffInviteEmail } = require('../services/emailService');
 
 const createStaffUser = async (req, res) => {
     try {
@@ -30,12 +31,18 @@ const createStaffUser = async (req, res) => {
             [full_name, email, password_hash, role, permissions || defaultPermissions]
         );
 
-        res.status(201).json({ message: 'Staff user created.', user: newStaff.rows[0] });
+        // Dispatch invitation email with temporary credentials
+        sendStaffInviteEmail(email, full_name, effectivePassword).catch(err => {
+            console.error(`Failed to send invite email to ${email}:`, err);
+        });
+
+        res.status(201).json({ message: 'Staff user created and invitation email dispatched.', user: newStaff.rows[0] });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error.' });
     }
 };
+
 
 const getStaffUserById = async (req, res) => {
     try {
