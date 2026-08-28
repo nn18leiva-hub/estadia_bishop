@@ -60,17 +60,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     const res = await apiFetch('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ identifier, email: identifier, password })
     });
     setAuthToken(res.token);
 
     if (res.type === 'parent' || res.type === 'past_student' || !res.type) {
-      await fetchProfile('parent', res.role, email);
+      await fetchProfile('parent', res.role, identifier);
     } else {
-      await fetchProfile('staff', res.role, email);
+      await fetchProfile('staff', res.role, identifier);
     }
     return res;
   };

@@ -78,6 +78,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const superAdminRoutes = require('./routes/superAdminRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 
 // Mount Routes securely through /api namespace
 app.use('/api/auth', authRoutes);
@@ -87,6 +88,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/students', studentRoutes);
 
 app.use((err, req, res, next) => {
     console.error("Global Error Handler Caught:", err.message, "Field:", err.field);

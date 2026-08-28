@@ -8,12 +8,16 @@ DROP TABLE IF EXISTS document_requests CASCADE;
 DROP TABLE IF EXISTS document_types CASCADE;
 DROP TABLE IF EXISTS parents CASCADE;
 DROP TABLE IF EXISTS password_resets CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
 
 CREATE TABLE parents (
     parent_id SERIAL PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     phone VARCHAR(50),
+    whatsapp_number VARCHAR(50),
+    signup_method VARCHAR(20) DEFAULT 'email' CHECK (signup_method IN ('email', 'whatsapp')),
+    notification_channel VARCHAR(20) DEFAULT 'email' CHECK (notification_channel IN ('email', 'whatsapp', 'both')),
     password_hash VARCHAR(255) NOT NULL,
     profile_picture_path TEXT,
     verified BOOLEAN DEFAULT FALSE,
@@ -96,4 +100,33 @@ CREATE TABLE password_resets (
     token VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
+    student_code VARCHAR(50) UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    dob DATE,
+    class_grade VARCHAR(50),
+    homeroom_teacher VARCHAR(255),
+    parent_email VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE notification_templates (
+    template_id SERIAL PRIMARY KEY,
+    event_key VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    title_template VARCHAR(255) NOT NULL,
+    message_template TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE notification_settings (
+    setting_id SERIAL PRIMARY KEY,
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value TEXT,
+    description TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

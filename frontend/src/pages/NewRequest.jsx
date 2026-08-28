@@ -13,7 +13,6 @@ const DOCUMENT_TYPES = [
   { id: 'lateness_form', labelKey: 'lateness.form', price: 0, icon: 'schedule', descKey: 'lateness.form.desc' },
   { id: 'absence_form', labelKey: 'absence.form', price: 0, icon: 'event_busy', descKey: 'absence.form.desc' },
   { id: 'transcript', labelKey: 'official.transcript', price: 15, icon: 'description', descKey: 'official.transcript' },
-  { id: 'enrollment', labelKey: 'enrollment.letter', price: 10, icon: 'history_edu', descKey: 'enrollment.letter' },
 ];
 
 // Past students are loaded dynamically from request history
@@ -64,29 +63,56 @@ export default function NewRequest() {
       .catch(err => console.error('Error fetching live prices:', err));
   }, []);
 
-  // Load real student history from past requests
+  // Load student directory from connected database API & past requests
   useEffect(() => {
-    apiFetch('/requests/my-requests')
-      .then(data => {
-        const list = Array.isArray(data) ? data : data.requests || [];
-        // Deduplicate by student name — keep most recent entry per student
+    setLoadingHistory(true);
+
+    const fetchDbStudents = apiFetch('/students/search?q=')
+      .then(res => res.students || [])
+      .catch(() => []);
+
+    const fetchHistory = apiFetch('/requests/my-requests')
+      .then(data => (Array.isArray(data) ? data : data.requests || []))
+      .catch(() => []);
+
+    Promise.all([fetchDbStudents, fetchHistory])
+      .then(([dbStudents, historyList]) => {
         const seen = new Map();
-        list.forEach(req => {
-          const key = req.student_full_name?.toLowerCase();
+
+        // 1. Add students directly from connected database
+        dbStudents.forEach(st => {
+          const key = (st.full_name || st.name || '').toLowerCase();
           if (key && !seen.has(key)) {
             seen.set(key, {
-              // All fields needed to pre-fill step 3
-              name:         req.student_full_name || '',
-              grade:        req.student_graduation_year_or_years_attended || '',
-              dob:          req.form_data?.dob || '',
-              relationship: req.form_data?.relationship || 'Parent',
-              requestDate:  req.request_date,
+              name: st.full_name || st.name,
+              grade: st.class_grade || st.grade || '',
+              dob: st.dob || '',
+              homeroom_teacher: st.homeroom_teacher || '',
+              student_code: st.student_code || `ID-${st.student_id}`,
+              relationship: 'Parent',
+              source: 'database',
             });
           }
         });
+
+        // 2. Add past student names from history not already in DB list
+        historyList.forEach(req => {
+          const key = req.student_full_name?.toLowerCase();
+          if (key && !seen.has(key)) {
+            seen.set(key, {
+              name: req.student_full_name || '',
+              grade: req.student_graduation_year_or_years_attended || '',
+              dob: req.form_data?.dob || '',
+              relationship: req.form_data?.relationship || 'Parent',
+              requestDate: req.request_date,
+              source: 'history',
+            });
+          }
+        });
+
         setSavedStudents([...seen.values()]);
       })
-      .catch(() => {})
+      .catch(err => console.error('Error loading student directory:', err))
       .finally(() => setLoadingHistory(false));
   }, []);
 
@@ -101,6 +127,69 @@ export default function NewRequest() {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [idFile, setIdFile] = useState(null);
   const [idPreview, setIdPreview] = useState('');
+
+  // Student Directory Lookup state
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [studentSearchResults, setStudentSearchResults] = useState([]);
+  const [isSearchingStudents, setIsSearchingStudents] = useState(false);
+  const [selectedDbStudent, setSelectedDbStudent] = useState(null);
+  const [manualOverride, setManualOverride] = useState(false);
+
+  // Debounced search for student database
+  useEffect(() => {
+    if (!studentSearchQuery.trim()) {
+      setStudentSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setIsSearchingStudents(true);
+      apiFetch(`/students/search?q=${encodeURIComponent(studentSearchQuery.trim())}`)
+        .then(data => {
+          setStudentSearchResults(data.students || []);
+        })
+        .catch(err => console.error('Error searching student database:', err))
+        .finally(() => setIsSearchingStudents(false));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [studentSearchQuery]);
+
+  const handleSelectStudent = (s) => {
+    setSelectedDbStudent(s);
+    setSelectedStudent(s.name ? s : null);
+    setManualOverride(false);
+    const name = s.full_name || s.name || '';
+    const grade = s.class_grade || s.grade || '';
+    const teacher = s.homeroom_teacher || s.teacher || s.home_room_teacher || '';
+    const dob = s.dob || '';
+
+    setStudentForm(prev => ({
+      ...prev,
+      fullName: name,
+      grade: grade,
+      dob: dob,
+    }));
+    if (teacher) setHomeRoomTeacher(teacher);
+    if (grade) {
+      setClassGrade(grade);
+      const match = grade.match(/^(Sr|F|S|J)(\d+)$/i);
+      if (match) {
+        setClassLevel(match[1]);
+        setClassNumber(match[2]);
+      }
+    }
+    setStudentSearchQuery('');
+    setStudentSearchResults([]);
+  };
+
+  const handleClearSelectedStudent = () => {
+    setSelectedDbStudent(null);
+    setSelectedStudent(null);
+    setStudentForm({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
+    setHomeRoomTeacher('');
+    setClassGrade('');
+    setClassLevel('');
+    setClassNumber('');
+  };
 
   const handleIdFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -137,13 +226,22 @@ export default function NewRequest() {
   // Handle class level/number updates
   const handleClassLevelChange = (level) => {
     setClassLevel(level);
-    const newGrade = level && classNumber ? level + classNumber : '';
+    const isStreamLevel = level === 'Sr' || level === 'J';
+    const num = (isStreamLevel && ['1','2','3','4','5'].includes(classNumber)) ? '' : classNumber;
+    if (isStreamLevel && ['1','2','3','4','5'].includes(classNumber)) {
+      setClassNumber('');
+    }
+    const sep = isStreamLevel && num ? ' ' : '';
+    const newGrade = level && num ? `${level}${sep}${num}` : level;
     setClassGrade(newGrade);
     setStudentForm(f => ({ ...f, grade: newGrade }));
   };
+
   const handleClassNumberChange = (num) => {
     setClassNumber(num);
-    const newGrade = classLevel && num ? classLevel + num : '';
+    const isStreamLevel = classLevel === 'Sr' || classLevel === 'J';
+    const sep = isStreamLevel && num ? ' ' : '';
+    const newGrade = classLevel && num ? `${classLevel}${sep}${num}` : (classLevel || num);
     setClassGrade(newGrade);
     setStudentForm(f => ({ ...f, grade: newGrade }));
   };
@@ -152,10 +250,14 @@ export default function NewRequest() {
   useEffect(() => {
     if (studentForm.grade) {
       setClassGrade(studentForm.grade);
-      const match = studentForm.grade.match(/^(Sr|F|S|J)(\d+)$/i);
-      if (match) {
-        setClassLevel(match[1]);
-        setClassNumber(match[2]);
+      const matchStream = studentForm.grade.match(/^(Sr|J)\s*(General|Business|Science|\d+)?$/i);
+      const matchNum = studentForm.grade.match(/^(F|S)(\d+)?$/i);
+      if (matchStream) {
+        setClassLevel(matchStream[1]);
+        setClassNumber(matchStream[2] || '');
+      } else if (matchNum) {
+        setClassLevel(matchNum[1]);
+        setClassNumber(matchNum[2] || '');
       } else {
         setClassLevel('');
         setClassNumber('');
@@ -210,17 +312,15 @@ export default function NewRequest() {
 
   // When a saved student is picked, populate ALL form fields
   const selectSavedStudent = (s) => {
-    if (selectedStudent?.name === s.name) {
-      // Deselect — clear the form
-      setSelectedStudent(null);
-      setStudentForm({ fullName: '', dob: '', grade: '', relationship: 'Parent' });
+    if (selectedStudent?.name === s.name || selectedDbStudent?.full_name === s.name) {
+      handleClearSelectedStudent();
     } else {
       setSelectedStudent(s);
-      setStudentForm({
-        fullName:     s.name,
-        dob:          s.dob,
-        grade:        s.grade,
-        relationship: s.relationship,
+      handleSelectStudent({
+        full_name: s.name,
+        class_grade: s.grade,
+        dob: s.dob,
+        homeroom_teacher: homeRoomTeacher,
       });
     }
   };
@@ -239,14 +339,14 @@ export default function NewRequest() {
     if (step === 1) return !!selectedDoc;
     if (step === 2) return !!idFile;
     if (step === 3) {
-      const studentOk = selectedStudent !== null || (studentForm.fullName && studentForm.grade);
+      const studentOk = !!(studentForm.fullName || studentSearchQuery).trim();
       if (!studentOk) return false;
 
       if (selectedDoc === 'lateness_form') {
-        return !!dateOfReturn && !!studentForm.grade && !!datesOfAbsenceOrLateness && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+        return !!dateOfLateness && !!reasonCategory && !!reasonDetails;
       }
       if (selectedDoc === 'absence_form') {
-        return !!dateOfReturn && !!studentForm.grade && !!datesOfAbsenceOrLateness && !!numberOfDaysAbsent && !!reasonCategory && !!reasonDetails && !!homeRoomTeacher;
+        return !!dateOfReturn && !!datesOfAbsenceOrLateness && !!numberOfDaysAbsent && !!reasonCategory && !!reasonDetails;
       }
       return true;
     }
@@ -286,12 +386,12 @@ export default function NewRequest() {
     };
 
     if (selectedDoc === 'lateness_form' || selectedDoc === 'absence_form') {
-      customFormData.date_of_return = dateOfReturn;
-      customFormData.class = classGrade;
-      customFormData.dates_of_absence_or_lateness = datesOfAbsenceOrLateness;
       if (selectedDoc === 'absence_form') {
+        customFormData.date_of_return = dateOfReturn;
         customFormData.number_of_days_absent = numberOfDaysAbsent;
       }
+      customFormData.class = classGrade;
+      customFormData.dates_of_absence_or_lateness = datesOfAbsenceOrLateness;
       customFormData.reason_category = reasonCategory;
       customFormData.reason_details = reasonDetails;
       customFormData.home_room_teacher = homeRoomTeacher;
@@ -485,136 +585,62 @@ export default function NewRequest() {
               <p className="font-body-md text-body-md text-on-surface-variant mt-xs">{t('choose.doc.desc')}</p>
             </div>
 
-            {/* Past Students from Request History */}
-            {loadingHistory ? (
-              <div className="mb-md flex gap-sm">
-                {[1,2].map(i => (
-                  <div key={i} className="flex-shrink-0 w-56 h-20 rounded-xl border border-outline-variant/20 bg-surface-container animate-pulse" />
-                ))}
-              </div>
-            ) : savedStudents.length > 0 && (
-              <div className="mb-md">
-                <p className="font-label-lg text-label-lg text-on-surface mb-sm flex items-center gap-xs">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>history</span>
-                  {t('saved.students')}
-                  <span className="font-body-sm text-on-surface-variant text-xs ml-auto">Tap to auto-fill</span>
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
-                  {savedStudents.map((s, idx) => {
-                    const isSelected = selectedStudent?.name === s.name;
-                    const initials = s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-                    return (
+
+
+            {/* Student Search Bar */}
+            <div className="mb-md bg-surface-container-lowest border border-primary/30 rounded-xl p-md shadow-sm relative">
+              <label className="font-label-lg text-label-lg text-primary font-semibold flex items-center gap-xs mb-xs">
+                <span className="material-symbols-outlined text-primary">search</span>
+                {t('manual.fullName') || 'Student Full Name'} *
+              </label>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={studentForm.fullName || studentSearchQuery}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setStudentSearchQuery(val);
+                    setStudentForm(prev => ({ ...prev, fullName: val }));
+                    if (!val) {
+                      setSelectedDbStudent(null);
+                      setSelectedStudent(null);
+                    }
+                  }}
+                  placeholder="Type student full name or search directory (e.g. Alex Johnson)..."
+                  className="w-full border border-outline-variant/60 rounded-xl px-md py-sm bg-surface font-body-md shadow-inner focus:outline-none focus:border-primary font-semibold text-primary"
+                />
+                {isSearchingStudents && (
+                  <span className="absolute right-3 top-3 material-symbols-outlined animate-spin text-primary">sync</span>
+                )}
+
+                {/* Search Results Dropdown */}
+                {studentSearchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-xs bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-xl z-30 max-h-60 overflow-y-auto divide-y divide-outline-variant/10">
+                    {studentSearchResults.map(s => (
                       <button
-                        key={idx}
-                        onClick={() => selectSavedStudent(s)}
-                        className={`text-left p-sm rounded-xl border-2 transition-all flex flex-col gap-xs relative
-                          ${isSelected
-                            ? 'border-primary bg-primary-fixed/20 shadow-sm'
-                            : 'border-outline-variant/30 hover:border-primary/40 hover:shadow-sm bg-surface-container-lowest'
-                          }`}
+                        key={s.student_id || s.student_code}
+                        type="button"
+                        onClick={() => {
+                          handleSelectStudent(s);
+                          setStudentSearchQuery(s.full_name || s.name);
+                        }}
+                        className="w-full text-left p-sm hover:bg-primary-fixed/20 transition-colors flex items-center justify-between gap-sm cursor-pointer"
                       >
-                        {isSelected && (
-                          <span className="absolute top-2 right-2 material-symbols-outlined text-primary" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        )}
-                        <div className="flex items-center gap-sm">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-label-lg flex-shrink-0
-                            ${isSelected ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'}`}>
-                            {initials}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-label-lg text-on-surface truncate">{s.name}</p>
-                            <p className="font-body-sm text-on-surface-variant text-xs">{s.relationship}</p>
-                          </div>
+                        <div>
+                          <p className="font-label-lg text-on-surface font-semibold">{s.full_name}</p>
+                          <p className="font-body-xs text-on-surface-variant">
+                            Grade: <span className="font-semibold text-primary">{s.class_grade || 'N/A'}</span> • Teacher: {s.homeroom_teacher || 'N/A'}
+                          </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-xs pt-xs border-t border-outline-variant/10">
-                          {s.grade && (
-                            <div>
-                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>GRADE / YEAR</p>
-                              <p className="font-body-sm text-on-surface text-xs truncate">{s.grade}</p>
-                            </div>
-                          )}
-                          {s.dob && (
-                            <div>
-                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>DATE OF BIRTH</p>
-                              <p className="font-body-sm text-on-surface text-xs">{new Date(s.dob).toLocaleDateString('en-BZ')}</p>
-                            </div>
-                          )}
-                          {s.requestDate && (
-                            <div>
-                              <p className="font-label-md text-on-surface-variant" style={{ fontSize: '10px' }}>LAST REQUEST</p>
-                              <p className="font-body-sm text-on-surface text-xs">{new Date(s.requestDate).toLocaleDateString('en-BZ', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                            </div>
-                          )}
-                        </div>
+                        <span className="px-xs py-0.5 rounded bg-primary-container text-primary font-label-md text-xs">
+                          {s.student_code || `ID-${s.student_id}`}
+                        </span>
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-md">
-              <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest flex items-center gap-xs">
-                {selectedStudent ? (
-                  <><span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>edit</span> {t('or.manual.override')}</>
-                ) : t('student.details')}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
-                <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.fullName')}</label>
-                  <input
-                    type="text" required
-                    value={studentForm.fullName}
-                    onChange={setStudentField('fullName')}
-                    placeholder="Student's full name"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                  />
-                </div>
-                <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('manual.grade') || 'Class / Grade'} *</label>
-                  <div className="grid grid-cols-2 gap-xs">
-                    <select
-                      required
-                      value={classLevel}
-                      onChange={e => handleClassLevelChange(e.target.value)}
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
-                    >
-                      <option value="">{t('select.level') || 'Level'}</option>
-                      <option value="F">F (Freshman)</option>
-                      <option value="S">S (Sophomore)</option>
-                      <option value="J">J (Junior)</option>
-                      <option value="Sr">Sr (Senior)</option>
-                    </select>
-                    <select
-                      required
-                      value={classNumber}
-                      onChange={e => handleClassNumberChange(e.target.value)}
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
-                    >
-                      <option value="">{t('select.number') || 'Number'}</option>
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                      <option value="5">5</option>
-                    </select>
+                    ))}
                   </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-xs">
-                <label className="font-label-lg text-label-lg text-on-surface">{t('manual.relationship')}</label>
-                <select
-                  value={studentForm.relationship}
-                  onChange={setStudentField('relationship')}
-                  className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md bg-transparent"
-                >
-                  <option value="Parent">{t('rel.parent')}</option>
-                  <option value="Legal Guardian">{t('rel.guardian')}</option>
-                  <option value="Self (Alumni)">{t('rel.self')}</option>
-                  <option value="Authorized Representative">{t('rel.rep')}</option>
-                </select>
+                )}
               </div>
             </div>
 
@@ -627,16 +653,18 @@ export default function NewRequest() {
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
-                  <div className="flex flex-col gap-xs">
-                    <label className="font-label-lg text-label-lg text-on-surface">{t('date.of.return')} *</label>
-                    <input
-                      type="date"
-                      required
-                      value={dateOfReturn}
-                      onChange={e => setDateOfReturn(e.target.value)}
-                      className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                    />
-                  </div>
+                  {selectedDoc === 'absence_form' && (
+                    <div className="flex flex-col gap-xs">
+                      <label className="font-label-lg text-label-lg text-on-surface">{t('date.of.return')} *</label>
+                      <input
+                        type="date"
+                        required
+                        value={dateOfReturn}
+                        onChange={e => setDateOfReturn(e.target.value)}
+                        className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
+                      />
+                    </div>
+                  )}
 
                   {/* Class / Grade is unified in the Student Details section above */}
 
@@ -692,21 +720,9 @@ export default function NewRequest() {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-xs">
-                  <label className="font-label-lg text-label-lg text-on-surface">{t('home.room.teacher')} *</label>
-                  <input
-                    type="text"
-                    required
-                    value={homeRoomTeacher}
-                    onChange={e => setHomeRoomTeacher(e.target.value)}
-                    placeholder="e.g. Mr. Smith"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-xs bg-surface font-body-md"
-                  />
-                </div>
-
                 <div className="flex flex-col gap-sm border-t border-outline-variant/20 pt-md">
                   <label className="font-label-lg text-label-lg text-on-surface uppercase tracking-widest text-primary">
-                    {t('reason.absence.lateness') || 'Reason for Absence or Lateness'} *
+                    {selectedDoc === 'lateness_form' ? t('reason.lateness') : t('reason.absence')} *
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-sm">
                     {[
@@ -984,7 +1000,9 @@ export default function NewRequest() {
                   <>
                     <p className="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest mb-sm border-t border-outline-variant/20 pt-md">{t('form.details') || 'Form Details'}</p>
                     <div className="grid grid-cols-2 gap-sm">
-                      <div><p className="font-label-md text-label-md text-on-surface-variant">{t('date.of.return')}</p><p className="font-body-md text-body-md">{dateOfReturn}</p></div>
+                      {selectedDoc === 'absence_form' && (
+                        <div><p className="font-label-md text-label-md text-on-surface-variant">{t('date.of.return')}</p><p className="font-body-md text-body-md">{dateOfReturn}</p></div>
+                      )}
                       <div><p className="font-label-md text-label-md text-on-surface-variant">{t('dates.of.absence.lateness')}</p><p className="font-body-md text-body-md">{datesOfAbsenceOrLateness}</p></div>
                       {selectedDoc === 'absence_form' && (
                         <div><p className="font-label-md text-label-md text-on-surface-variant">{t('num.days.absent')}</p><p className="font-body-md text-body-md">{numberOfDaysAbsent}</p></div>

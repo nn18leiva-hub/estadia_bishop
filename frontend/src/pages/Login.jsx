@@ -114,19 +114,21 @@ export default function Login() {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-md">
-                {/* Email */}
+                {/* Email or WhatsApp */}
                 <div className="flex flex-col gap-xs">
-                  <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">{t('email.address')}</label>
+                  <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">
+                    {t('login.identifier.label') || 'Email or WhatsApp Number'}
+                  </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">mail</span>
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">contact_mail</span>
                     <input
                       id="email"
-                      type="email"
-                      autoComplete="email"
+                      type="text"
+                      autoComplete="username"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="guardian@example.com"
+                      placeholder="email@example.com or +501 600-0000"
                       className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md text-body-md transition-all placeholder:text-on-surface-variant/50"
                     />
                   </div>

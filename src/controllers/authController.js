@@ -17,10 +17,23 @@ const validatePassword = (password) => {
 
 const registerParent = async (req, res) => {
     try {
-        const { full_name, email, phone, password, user_type, dob } = req.body;
+        const { full_name, email, phone, whatsapp_number, signup_method, notification_channel, password, user_type, dob } = req.body;
         
-        if (!full_name || !email || !password) {
+        if (!full_name || !password) {
             return res.status(400).json({ message: 'Missing required fields.' });
+        }
+
+        const method = signup_method === 'whatsapp' ? 'whatsapp' : 'email';
+        const channel = ['email', 'whatsapp', 'both'].includes(notification_channel) ? notification_channel : method;
+
+        const normalizedEmail = email ? email.toLowerCase().trim() : null;
+        const normalizedPhone = (whatsapp_number || phone) ? (whatsapp_number || phone).trim() : null;
+
+        if (method === 'email' && !normalizedEmail) {
+            return res.status(400).json({ message: 'Email address is required for Email signup.' });
+        }
+        if (method === 'whatsapp' && !normalizedPhone) {
+            return res.status(400).json({ message: 'WhatsApp number is required for WhatsApp signup.' });
         }
 
         // Validate password strength
@@ -29,7 +42,6 @@ const registerParent = async (req, res) => {
             return res.status(400).json({ message: passwordError });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
         const trimmedName = full_name.trim();
 
         const type = user_type || 'parent';
@@ -55,17 +67,26 @@ const registerParent = async (req, res) => {
             }
         }
 
-        const emailCheck = await db.query('SELECT parent_id FROM parents WHERE email = $1', [normalizedEmail]);
-        if (emailCheck.rows.length > 0) {
-            return res.status(400).json({ message: 'Email already registered.' });
+        if (normalizedEmail) {
+            const emailCheck = await db.query('SELECT parent_id FROM parents WHERE email = $1', [normalizedEmail]);
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ message: 'Email already registered.' });
+            }
+        }
+
+        if (normalizedPhone) {
+            const phoneCheck = await db.query('SELECT parent_id FROM parents WHERE whatsapp_number = $1 OR phone = $1', [normalizedPhone]);
+            if (phoneCheck.rows.length > 0) {
+                return res.status(400).json({ message: 'WhatsApp/Phone number already registered.' });
+            }
         }
 
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(password, saltRounds);
 
         const newParent = await db.query(
-            'INSERT INTO parents (full_name, email, phone, password_hash, user_type, dob) VALUES ($1, $2, $3, $4, $5, $6) RETURNING parent_id, full_name, email, user_type',
-            [trimmedName, normalizedEmail, phone ? phone.trim() : null, password_hash, type, type === 'past_student' ? dob : null]
+            'INSERT INTO parents (full_name, email, phone, whatsapp_number, signup_method, notification_channel, password_hash, user_type, dob) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING parent_id, full_name, email, phone, whatsapp_number, signup_method, notification_channel, user_type',
+            [trimmedName, normalizedEmail, normalizedPhone, normalizedPhone, method, channel, password_hash, type, dob]
         );
 
         res.status(201).json({ message: 'User registered successfully.', user: newParent.rows[0] });
@@ -77,20 +98,24 @@ const registerParent = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, identifier, password } = req.body;
+        const inputId = (identifier || email || '').trim();
         
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password are required.' });
+        if (!inputId || !password) {
+            return res.status(400).json({ message: 'Email or WhatsApp number and password are required.' });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedId = inputId.toLowerCase();
 
-        let result = await db.query('SELECT * FROM staff WHERE email = $1', [normalizedEmail]);
+        let result = await db.query('SELECT * FROM staff WHERE LOWER(email) = $1', [normalizedId]);
         let user = result.rows[0];
         let userType = 'staff';
         
         if (!user) {
-            result = await db.query('SELECT * FROM parents WHERE email = $1', [normalizedEmail]);
+            result = await db.query(
+                'SELECT * FROM parents WHERE LOWER(email) = $1 OR whatsapp_number = $2 OR phone = $2',
+                [normalizedId, inputId]
+            );
             user = result.rows[0];
             userType = 'parent';
         }
@@ -106,21 +131,30 @@ const login = async (req, res) => {
 
         const payload = {
             id: userType === 'parent' ? user.parent_id : user.staff_id,
-            email: user.email,
+            email: user.email || user.whatsapp_number,
             type: userType === 'parent' ? user.user_type : userType,
-            role: userType === 'staff' ? user.role : undefined
+            role: user.role || 'user'
         };
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
         const finalType = userType === 'parent' ? user.user_type : userType;
 
-        // Track activity: update last_activity timestamp
-        const activityTable = userType === 'parent' ? 'parents' : 'staff';
-        const activityIdCol = userType === 'parent' ? 'parent_id' : 'staff_id';
-        db.query(`UPDATE ${activityTable} SET last_activity = NOW() WHERE ${activityIdCol} = $1`, [payload.id])
-          .catch(err => console.error('Failed to update activity:', err));
-
-        res.json({ message: 'Login successful', token, type: finalType, id: payload.id, role: payload.role });
+        res.json({
+            message: 'Login successful',
+            token,
+            type: finalType,
+            id: payload.id,
+            role: payload.role,
+            user: {
+                id: payload.id,
+                full_name: user.full_name,
+                email: user.email,
+                phone: user.phone || user.whatsapp_number,
+                whatsapp_number: user.whatsapp_number,
+                signup_method: user.signup_method,
+                notification_channel: user.notification_channel
+            }
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error during login.' });

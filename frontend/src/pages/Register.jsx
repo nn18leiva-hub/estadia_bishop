@@ -11,8 +11,17 @@ export default function Register() {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const [form, setForm] = useState({
-    fullName: '', email: '', phone: '', password: '', confirmPassword: '', terms: false,
-    userType: 'parent', dob: ''
+    fullName: '',
+    email: '',
+    phone: '',
+    whatsappNumber: '',
+    signupMethod: 'email',
+    notificationChannel: 'email',
+    password: '',
+    confirmPassword: '',
+    terms: false,
+    userType: 'parent',
+    dob: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,17 +56,22 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
+      const loginId = form.signupMethod === 'email' ? form.email : (form.whatsappNumber || form.phone);
+
       await register({
         full_name: form.fullName,
-        email: form.email,
-        phone: form.phone || undefined,
+        signup_method: form.signupMethod,
+        email: form.email || undefined,
+        whatsapp_number: form.whatsappNumber || form.phone || undefined,
+        phone: form.whatsappNumber || form.phone || undefined,
+        notification_channel: form.notificationChannel,
         password: form.password,
         user_type: form.userType,
         dob: form.dob || (form.userType === 'parent' ? '1990-01-01' : '')
       });
       
       // Auto login user after registration
-      await login(form.email, form.password);
+      await login(loginId, form.password);
       navigate('/dashboard/parents');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -135,7 +149,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, userType: 'parent' }))}
-                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all cursor-pointer ${
                       form.userType === 'parent'
                         ? 'bg-primary text-on-primary font-bold shadow-sm'
                         : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -147,7 +161,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, userType: 'past_student' }))}
-                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all cursor-pointer ${
                       form.userType === 'past_student'
                         ? 'bg-primary text-on-primary font-bold shadow-sm'
                         : 'text-on-surface-variant hover:bg-surface-container-high'
@@ -165,36 +179,69 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Full Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-                <div className="flex flex-col gap-xs">
-                  <label htmlFor="fullName" className="font-label-lg text-label-lg text-on-surface">{t('full.name')}</label>
-                  <input
-                    id="fullName" type="text" required
-                    value={form.fullName} onChange={set('fullName')}
-                    placeholder="e.g. Maria Santos"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md"
-                  />
-                </div>
-                <div className="flex flex-col gap-xs">
-                  <label htmlFor="phone" className="font-label-lg text-label-lg text-on-surface">{t('phone.number')}</label>
-                  <input
-                    id="phone" type="tel"
-                    value={form.phone} onChange={set('phone')}
-                    placeholder="+501 600-0000"
-                    className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md"
-                  />
+              {/* Signup Method Selector: Email vs WhatsApp */}
+              <div className="flex flex-col gap-xs">
+                <label className="font-label-lg text-label-lg text-on-surface flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-primary text-[18px]">how_to_reg</span>
+                  {t('signup.method') || 'Signup Method'}
+                </label>
+                <div className="flex p-1 bg-surface-container-low rounded-xl border border-outline-variant/30 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm(f => ({ ...f, signupMethod: 'email', notificationChannel: f.notificationChannel || 'email' }));
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all cursor-pointer ${
+                      form.signupMethod === 'email'
+                        ? 'bg-primary text-on-primary font-bold shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">mail</span>
+                    {t('signup.email') || 'Email Address'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm(f => ({ ...f, signupMethod: 'whatsapp', notificationChannel: f.notificationChannel || 'whatsapp' }));
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-xs font-label-md text-label-md py-2 rounded-lg transition-all cursor-pointer ${
+                      form.signupMethod === 'whatsapp'
+                        ? 'bg-green-700 text-white font-bold shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">chat</span>
+                    {t('signup.whatsapp') || 'WhatsApp Number'}
+                  </button>
                 </div>
               </div>
 
-              {/* Email & Date of Birth */}
-              <div className={`grid grid-cols-1 gap-md ${form.userType === 'past_student' ? 'md:grid-cols-2' : ''}`}>
+              {/* Full Name */}
+              <div className="flex flex-col gap-xs">
+                <label htmlFor="fullName" className="font-label-lg text-label-lg text-on-surface">{t('full.name')}</label>
+                <input
+                  id="fullName" type="text" required
+                  value={form.fullName} onChange={set('fullName')}
+                  placeholder="e.g. Maria Santos"
+                  className="border border-outline-variant/50 rounded-lg px-sm py-sm bg-surface font-body-md"
+                />
+              </div>
+
+              {/* Email or WhatsApp Fields according to signup method */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                {/* Email Address Field */}
                 <div className="flex flex-col gap-xs">
-                  <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">{t('email.address')}</label>
+                  <label htmlFor="email" className="font-label-lg text-label-lg text-on-surface">
+                    {t('email.address')} {form.signupMethod === 'email' ? <span className="text-error">*</span> : '(Optional)'}
+                  </label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">mail</span>
                     <input
-                      id="email" type="email" required autoComplete="email"
+                      id="email" type="email"
+                      required={form.signupMethod === 'email'}
+                      autoComplete="email"
                       value={form.email} onChange={set('email')}
                       placeholder="guardian@example.com"
                       className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
@@ -202,23 +249,73 @@ export default function Register() {
                   </div>
                 </div>
 
-                {form.userType === 'past_student' && (
-                  <div className="flex flex-col gap-xs">
-                    <label htmlFor="dob" className="font-label-lg text-label-lg text-on-surface">
-                      {t('dob')}
-                    </label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">cake</span>
-                      <input
-                        id="dob" type="date"
-                        required
-                        value={form.dob} onChange={set('dob')}
-                        className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
-                      />
-                    </div>
+                {/* WhatsApp Phone Number Field */}
+                <div className="flex flex-col gap-xs">
+                  <label htmlFor="whatsappNumber" className="font-label-lg text-label-lg text-on-surface">
+                    {t('signup.whatsapp') || 'WhatsApp Number'} {form.signupMethod === 'whatsapp' ? <span className="text-error">*</span> : '(Optional)'}
+                  </label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-green-600 text-xl">chat</span>
+                    <input
+                      id="whatsappNumber" type="tel"
+                      required={form.signupMethod === 'whatsapp'}
+                      value={form.whatsappNumber} onChange={set('whatsappNumber')}
+                      placeholder="+501 600-0000"
+                      className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
+                    />
                   </div>
-                )}
+                </div>
               </div>
+
+              {/* Notification Preferences Section */}
+              <div className="flex flex-col gap-xs p-sm bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-xs">
+                <label className="font-label-lg text-label-lg text-on-surface flex items-center gap-xs font-bold">
+                  <span className="material-symbols-outlined text-primary text-[18px]">notifications_active</span>
+                  {t('notification.preference') || 'Notification Preferences'}
+                </label>
+                <p className="text-body-sm font-body-sm text-on-surface-variant mb-xs">
+                  {t('where.receive.notifications') || 'Where would you like to receive status updates, receipts, and slip links?'}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-xs">
+                  {[
+                    { id: 'email', label: t('receive.via.email') || 'Email Only', icon: 'mail' },
+                    { id: 'whatsapp', label: t('receive.via.whatsapp') || 'WhatsApp Only', icon: 'chat' },
+                    { id: 'both', label: t('receive.via.both') || 'Both Email & WhatsApp', icon: 'mark_chat_read' },
+                  ].map(ch => (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, notificationChannel: ch.id }))}
+                      className={`flex items-center justify-center gap-xs px-2 py-2 rounded-lg border font-label-md transition-all cursor-pointer ${
+                        form.notificationChannel === ch.id
+                          ? 'border-primary bg-primary/10 text-primary font-bold'
+                          : 'border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-high'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">{ch.icon}</span>
+                      <span>{ch.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date of Birth (Past Students) */}
+              {form.userType === 'past_student' && (
+                <div className="flex flex-col gap-xs">
+                  <label htmlFor="dob" className="font-label-lg text-label-lg text-on-surface">
+                    {t('dob')}
+                  </label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">cake</span>
+                    <input
+                      id="dob" type="date"
+                      required
+                      value={form.dob} onChange={set('dob')}
+                      className="w-full pl-10 pr-4 py-sm border border-outline-variant/50 rounded-lg bg-surface font-body-md"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-md">

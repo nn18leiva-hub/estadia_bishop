@@ -35,8 +35,12 @@ const generateDocument = (documentType, parent, requestData, signatureFile) => {
                 doc.fontSize(12);
 
                 // Date of Return and Class
-                doc.font('Helvetica').text('Date of Return: ', { continued: true }).font('Helvetica-Bold').text(formDataObj.date_of_return || '__________________', { continued: true })
-                   .font('Helvetica').text('       Class: ', { continued: true }).font('Helvetica-Bold').text(formDataObj.class || '__________________');
+                if (documentType.name === 'absence_form') {
+                    doc.font('Helvetica').text('Date of Return: ', { continued: true }).font('Helvetica-Bold').text(formDataObj.date_of_return || '__________________', { continued: true })
+                       .font('Helvetica').text('       Class: ', { continued: true }).font('Helvetica-Bold').text(formDataObj.class || '__________________');
+                } else {
+                    doc.font('Helvetica').text('Class: ', { continued: true }).font('Helvetica-Bold').text(formDataObj.class || '__________________');
+                }
                 doc.moveDown();
 
                 // Name of Student

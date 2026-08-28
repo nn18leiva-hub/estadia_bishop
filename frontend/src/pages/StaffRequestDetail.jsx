@@ -115,7 +115,10 @@ export default function StaffRequestDetail() {
     return t(docType);
   };
 
-  const updateStatus = async (status, action) => {
+  const [showDenialConfirm, setShowDenialConfirm] = useState(false);
+  const [pendingDenialAction, setPendingDenialAction] = useState(null);
+
+  const executeStatusUpdate = async (status, action) => {
     setProcessing(true);
     try {
       await apiFetch(`/staff/requests/${id}/status`, {
@@ -138,8 +141,19 @@ export default function StaffRequestDetail() {
       setTimeout(() => { setToast(''); if (action === 'approve' || action === 'flag') navigate('/staff/requests'); }, 2200);
     } catch (_) {}
     setProcessing(false);
+    setShowDenialConfirm(false);
   };
-  const handleVerifyId = async (status) => {
+
+  const updateStatus = async (status, action) => {
+    if (status === 'denied' || status === 'cancelled') {
+      setPendingDenialAction({ type: 'status', status, action });
+      setShowDenialConfirm(true);
+      return;
+    }
+    await executeStatusUpdate(status, action);
+  };
+
+  const executeVerifyId = async (status) => {
     setProcessing(true);
     try {
       await apiFetch(`/staff/verifications/${id}`, {
@@ -157,7 +171,17 @@ export default function StaffRequestDetail() {
       alert(err.message || 'Error updating ID verification status.');
     } finally {
       setProcessing(false);
+      setShowDenialConfirm(false);
     }
+  };
+
+  const handleVerifyId = async (status) => {
+    if (status === 'rejected') {
+      setPendingDenialAction({ type: 'verify_id', status });
+      setShowDenialConfirm(true);
+      return;
+    }
+    await executeVerifyId(status);
   };
 
   if (loading) return (
@@ -389,6 +413,7 @@ export default function StaffRequestDetail() {
                     { v: 'ready', l: t('ready.pickup') },
                     { v: 'issued', l: t('issued') },
                     { v: 'action', l: t('action.required') },
+                    { v: 'denied', l: t('denied') || 'Decline / Deny Request' },
                   ].map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
                 <button
@@ -416,10 +441,19 @@ export default function StaffRequestDetail() {
                   <button
                     disabled={processing}
                     onClick={() => updateStatus('action', 'flag')}
-                    className="w-full border border-error text-error py-sm rounded-xl font-label-lg hover:bg-error-container disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95"
+                    className="w-full border border-outline-variant text-on-surface-variant py-sm rounded-xl font-label-lg hover:bg-surface-container-high disabled:opacity-60 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95 cursor-pointer"
                   >
                     <span className="material-symbols-outlined">flag</span>
                     {t('flag.correction')}
+                  </button>
+
+                  <button
+                    disabled={processing || req.status === 'denied'}
+                    onClick={() => updateStatus('denied', 'deny')}
+                    className="w-full bg-error/10 text-error border border-error/30 py-sm rounded-xl font-label-lg hover:bg-error/20 disabled:opacity-50 flex items-center justify-center gap-sm transition-all font-semibold active:scale-95 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined">block</span>
+                    Decline Request
                   </button>
                 </div>
               </div>
@@ -573,6 +607,50 @@ export default function StaffRequestDetail() {
                 className="w-full border border-outline-variant hover:bg-surface-container py-xs rounded-lg font-label-md transition-colors mt-xs"
               >
                 {t('close') || 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Denial Confirmation Modal */}
+      {showDenialConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-md animate-in fade-in">
+          <div className="bg-surface border border-outline-variant/30 rounded-2xl p-lg max-w-md w-full shadow-2xl flex flex-col gap-md">
+            <div className="flex items-center gap-sm text-error">
+              <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-error" style={{ fontSize: '24px' }}>warning</span>
+              </div>
+              <div>
+                <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Confirm Request Denial</h3>
+                <p className="font-body-xs text-on-surface-variant">Avoid accidental rejection</p>
+              </div>
+            </div>
+
+            <p className="font-body-md text-on-surface-variant">
+              Are you sure you want to decline request <strong className="text-on-surface font-bold">BM-{id}</strong>? An automated notification will be sent to the requester notifying them of the decline.
+            </p>
+
+            <div className="flex items-center justify-end gap-sm pt-xs border-t border-outline-variant/15">
+              <button
+                type="button"
+                onClick={() => setShowDenialConfirm(false)}
+                className="px-md py-sm rounded-xl font-label-md hover:bg-surface-container-high text-on-surface-variant transition-colors font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingDenialAction?.type === 'verify_id') {
+                    executeVerifyId(pendingDenialAction.status);
+                  } else {
+                    executeStatusUpdate(pendingDenialAction?.status || 'denied', pendingDenialAction?.action || 'deny');
+                  }
+                }}
+                className="px-md py-sm rounded-xl bg-error text-on-error font-label-md hover:bg-error/90 transition-all font-bold shadow-sm cursor-pointer"
+              >
+                Yes, Decline Request
               </button>
             </div>
           </div>

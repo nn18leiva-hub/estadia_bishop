@@ -163,54 +163,54 @@ const SuperAdminDashboard = () => {
       </section>
 
       {/* Metrics Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-xs sm:gap-sm">
         {/* Registered Parents */}
-        <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-primary flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wider">Parents &amp; Alumni</h3>
-            <div className="p-[6px] rounded-lg bg-primary/5 text-primary">
-              <span className="material-symbols-outlined text-[20px] flex">family_restroom</span>
+        <div className="bg-surface-container-lowest border border-outline-variant/15 p-xs sm:p-sm rounded-xl shadow-sm border-l-4 border-l-primary flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-center">
+            <h3 className="font-label-md text-label-md text-primary uppercase font-bold tracking-wider">Parents &amp; Alumni</h3>
+            <div className="p-1 rounded-md bg-primary/5 text-primary">
+              <span className="material-symbols-outlined text-[18px] flex">family_restroom</span>
             </div>
           </div>
-          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md leading-none font-bold text-on-surface mt-sm">
+          <p className="font-headline-sm text-headline-sm sm:text-headline-md leading-none font-bold text-on-surface my-xs">
             {dataLoading ? '—' : userList.length}
           </p>
-          <div className="mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
-            <span className="text-[11px] text-on-surface-variant font-medium">Registered public accounts</span>
-            <button onClick={() => setActiveTab('users')} className="text-xs text-primary font-bold hover:underline">View List</button>
+          <div className="pt-xs border-t border-outline-variant/10 flex justify-between items-center">
+            <span className="text-[10px] text-on-surface-variant font-medium">Registered public accounts</span>
+            <button onClick={() => setActiveTab('users')} className="text-[11px] text-primary font-bold hover:underline">View List</button>
           </div>
         </div>
 
         {/* Staff Members */}
-        <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-secondary flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-secondary uppercase font-bold tracking-wider">Staff Members</h3>
-            <div className="p-[6px] rounded-lg bg-secondary/5 text-secondary">
-              <span className="material-symbols-outlined text-[20px] flex">badge</span>
+        <div className="bg-surface-container-lowest border border-outline-variant/15 p-xs sm:p-sm rounded-xl shadow-sm border-l-4 border-l-secondary flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-center">
+            <h3 className="font-label-md text-label-md text-secondary uppercase font-bold tracking-wider">Staff Members</h3>
+            <div className="p-1 rounded-md bg-secondary/5 text-secondary">
+              <span className="material-symbols-outlined text-[18px] flex">badge</span>
             </div>
           </div>
-          <p className="font-headline-sm text-headline-sm sm:font-display-md sm:text-display-md leading-none font-bold text-on-surface mt-sm">
+          <p className="font-headline-sm text-headline-sm sm:text-headline-md leading-none font-bold text-on-surface my-xs">
             {dataLoading ? '—' : staffList.length}
           </p>
-          <div className="mt-md pt-sm border-t border-outline-variant/10 flex justify-between items-center">
-            <span className="text-[11px] text-on-surface-variant font-medium">Active administrative users</span>
-            <button onClick={() => setActiveTab('registry')} className="text-xs text-secondary font-bold hover:underline">View Registry</button>
+          <div className="pt-xs border-t border-outline-variant/10 flex justify-between items-center">
+            <span className="text-[10px] text-on-surface-variant font-medium">Active administrative users</span>
+            <button onClick={() => setActiveTab('registry')} className="text-[11px] text-secondary font-bold hover:underline">View Registry</button>
           </div>
         </div>
 
         {/* Portal Configuration */}
-        <div className="bg-surface-container-lowest border border-outline-variant/15 p-sm sm:p-md rounded-2xl shadow-sm border-l-4 border-l-green-600 flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-center mb-xs">
-            <h3 className="font-label-lg text-label-lg text-green-700 uppercase font-bold tracking-wider">Document Pricing</h3>
-            <div className="p-[6px] rounded-lg bg-green-50 text-green-600">
-              <span className="material-symbols-outlined text-[20px] flex">payments</span>
+        <div className="bg-surface-container-lowest border border-outline-variant/15 p-xs sm:p-sm rounded-xl shadow-sm border-l-4 border-l-green-600 flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-center">
+            <h3 className="font-label-md text-label-md text-green-700 uppercase font-bold tracking-wider">Document Pricing</h3>
+            <div className="p-1 rounded-md bg-green-50 text-green-600">
+              <span className="material-symbols-outlined text-[18px] flex">payments</span>
             </div>
           </div>
-          <p className="text-[11px] text-on-surface-variant font-medium leading-normal mb-sm mt-xs">
+          <p className="text-[10px] text-on-surface-variant font-medium leading-tight my-xs">
             Configure request processing fees for official transcripts, diplomas, and enrollment letters.
           </p>
-          <div className="pt-sm border-t border-outline-variant/10 flex justify-end">
-            <button onClick={() => navigate('/superadmin/pricing')} className="px-sm py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
+          <div className="pt-xs border-t border-outline-variant/10 flex justify-end">
+            <button onClick={() => navigate('/superadmin/pricing')} className="px-xs py-0.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-[11px] font-bold shadow-sm transition-all cursor-pointer">
               Manage Pricing
             </button>
           </div>

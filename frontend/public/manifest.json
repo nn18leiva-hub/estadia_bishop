@@ -1,0 +1,16 @@
+{
+  "short_name": "BMHS Office",
+  "name": "Bishop Martin High School Virtual Office",
+  "icons": [
+    {
+      "src": "/assets/bishop_martin_logo-TdwbbFv1.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#121212",
+  "theme_color": "#7B1113",
+  "display": "standalone",
+  "orientation": "portrait"
+}

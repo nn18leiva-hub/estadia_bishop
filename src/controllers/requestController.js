@@ -129,11 +129,13 @@ const createRequest = async (req, res) => {
         const createdRequest = newReq.rows[0];
         const reqId = createdRequest.request_id;
         
-        await createNotification(
-            parentId,
-            'Request Submitted Successfully',
-            `Your request BM-${reqId} for "${documentType.name}" has been received by the Bishop Martin High School administration.`
-        );
+        if (initialStatus === 'processing') {
+            await createNotification(
+                parentId,
+                'Processing Begun',
+                `Processing has begun for your request BM-${reqId} ("${documentType.name}").`
+            );
+        }
 
         res.status(201).json({ message: alertMessage, request: createdRequest });
     } catch (err) {

@@ -37,7 +37,13 @@ The system employs a strict, JSON Web Token (JWT)-enforced Role-Based Access Con
 - **Purpose**: The ultimate system override accounts.
 - **Capabilities**: They inherit all Admin capabilities but have exclusive clearance to the `/superadmin` endpoint space.
   - Can register and provision new Admin or Viewer accounts (`POST /superadmin/staff`).
-  - Can safely and permanently delete corrupted or fraudulent accounts via explicit database queries.
+### Initial Seed Credentials for IT & Staff Handoff
+
+| Role | Email | Password | Target Portal |
+|---|---|---|---|
+| **Super Admin** | `admin@bishopmartin.edu` | `admin123` | `/superadmin` |
+| **Staff (Admin)** | `registrar@bishopmartin.edu` | `staff123` | `/staff` |
+| **Parent / Student** | `parent@example.com` | `password123` | `/dashboard/parents` |
 
 ---
 
@@ -176,6 +182,23 @@ This application is fully containerized and uses Docker Compose to seamlessly or
   docker-compose down
   ```
 - All uploaded images (SSN cards, receipts) and generated PDFs will persist safely in your local `uploads` directory automatically thanks to volume binding!
+
+---
+
+## 7. External Student Database Handoff Specification
+
+The student directory lookup uses an abstracted service layer ([src/services/studentService.js](file:///c:/Users/nn13l/Documents/bishop_project/src/services/studentService.js)).
+
+To hook up an external SIS API server:
+1. Set `.env` values:
+   ```env
+   USE_EXTERNAL_STUDENT_DB=true
+   EXTERNAL_STUDENT_DB_URL=https://sis.school-domain.edu.bz/api/students
+   EXTERNAL_STUDENT_DB_KEY=your_optional_api_key
+   ```
+2. Ensure external API handles `GET ?q={search_term}` and returns JSON matching:
+   `[{ "student_id": "STU-1001", "full_name": "Alex Johnson", "class_grade": "Sr1", "homeroom_teacher": "Mr. Davis", "dob": "2008-04-12" }]`
+3. Fallback: Defaults to local PostgreSQL `students` table if `USE_EXTERNAL_STUDENT_DB=false` or on HTTP error/timeout (5s).
 
 ---
 _Leave literally nothing to assumption. This document dictates the definitive standard operating procedures across the portal's entire technology stack._

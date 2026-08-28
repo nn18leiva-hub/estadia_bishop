@@ -57,6 +57,8 @@ const getAllRequests = async (req, res) => {
         const search = req.query.search || '';
         const documentType = req.query.documentType || '';
         const status = req.query.status || '';
+        const startDate = req.query.startDate || '';
+        const endDate = req.query.endDate || '';
 
         let queryText = `
             FROM document_requests dr
@@ -68,19 +70,36 @@ const getAllRequests = async (req, res) => {
         const params = [];
 
         if (status) {
-            params.push(status);
-            queryText += ` AND dr.status = $${params.length}`;
+            if (status === 'pending') {
+                queryText += ` AND dr.status IN ('pending', 'pending_verification', 'processing', 'ready', 'ready_for_pickup', 'action')`;
+            } else if (status === 'completed') {
+                queryText += ` AND dr.status IN ('completed', 'issued', 'cancelled', 'denied')`;
+            } else {
+                params.push(status);
+                queryText += ` AND dr.status = $${params.length}`;
+            }
         }
 
-        if (documentType) {
+        if (documentType && documentType !== 'all') {
             params.push(documentType);
-            queryText += ` AND dt.name = $${params.length}`;
+            params.push(`%${documentType}%`);
+            queryText += ` AND (dt.name = $${params.length - 1} OR dt.name ILIKE $${params.length} OR dt.description ILIKE $${params.length})`;
         }
 
         if (search) {
             params.push(`%${search}%`);
             const paramIdx = params.length;
             queryText += ` AND (p.full_name ILIKE $${paramIdx} OR dr.student_full_name ILIKE $${paramIdx} OR CAST(dr.request_id AS TEXT) ILIKE $${paramIdx} OR dt.name ILIKE $${paramIdx})`;
+        }
+
+        if (startDate) {
+            params.push(startDate);
+            queryText += ` AND dr.request_date >= $${params.length}::timestamp`;
+        }
+
+        if (endDate) {
+            params.push(endDate + ' 23:59:59');
+            queryText += ` AND dr.request_date <= $${params.length}::timestamp`;
         }
 
         // Count total matching rows
@@ -302,28 +321,30 @@ const updateRequestStatusById = async (req, res) => {
             return res.status(404).json({ message: 'Request not found.' });
         }
 
-        // Send parent notification on status update
+        // Send notification ONLY when processing begins (processing) or ends (completed / ready_for_pickup)
         const parentId = updated.rows[0].parent_id;
         const currentStatus = updated.rows[0].status;
         
-        let statusTitle = 'Request Status Updated';
-        let statusMsg = `Your document request BM-${id} status has been updated to "${currentStatus}".`;
-
-        if (currentStatus === 'ready_for_pickup') {
-            statusTitle = 'Document Ready for Pickup';
-            statusMsg = `Your document request BM-${id} is now ready for pickup. Please visit the registrar's office to collect it.`;
-        } else if (currentStatus === 'completed') {
-            statusTitle = 'Document Request Completed';
-            statusMsg = `Your document request BM-${id} has been successfully completed.`;
+        if (currentStatus === 'processing') {
+            await createNotification(
+                parentId,
+                'Processing Begun',
+                `Processing has begun for request BM-${id}. Your document request is now being processed by administration.`
+            );
+        } else if (currentStatus === 'completed' || currentStatus === 'ready_for_pickup') {
+            const isPickup = currentStatus === 'ready_for_pickup';
+            await createNotification(
+                parentId,
+                'Processing Completed',
+                `Processing has completed for request BM-${id}. ${isPickup ? 'Your document is ready for pickup at the registrar office.' : 'Your document has been completed and is available in your portal.'}`
+            );
         } else if (currentStatus === 'denied') {
-            statusTitle = 'Document Request Denied';
-            statusMsg = `Your document request BM-${id} has been denied. Please check portal details or contact the registrar.`;
-        } else if (currentStatus === 'processing') {
-            statusTitle = 'Request In Progress';
-            statusMsg = `Your document request BM-${id} is now being processed by the administrative office.`;
+            await createNotification(
+                parentId,
+                'Request Declined',
+                `Your document request BM-${id} has been declined. Please check your portal for details or contact the registrar.`
+            );
         }
-
-        await createNotification(parentId, statusTitle, statusMsg);
 
         res.json({ message: 'Status updated successfully.', request: updated.rows[0] });
     } catch (err) {
@@ -420,11 +441,13 @@ const verifyPaymentById = async (req, res) => {
                 const newStatus = parentVerified ? 'processing' : 'pending_verification';
                 await db.query('UPDATE document_requests SET status = $1 WHERE request_id = $2', [newStatus, reqId]);
                 
-                const notificationMsg = parentVerified
-                    ? `Your payment for request BM-${reqId} has been verified. Your request is now in progress.`
-                    : `Your payment for request BM-${reqId} has been verified. ID verification is still pending.`;
-                
-                await createNotification(parentId, 'Payment Verified', notificationMsg);
+                if (newStatus === 'processing') {
+                    await createNotification(
+                        parentId,
+                        'Processing Begun',
+                        `Payment verified. Processing has begun for request BM-${reqId}.`
+                    );
+                }
             }
         }
         
@@ -478,20 +501,13 @@ const uploadDocument = async (req, res) => {
             [docPath, id]
         );
 
-        // Notify parent that the document is ready/issued
+        // Notify parent when processing ends (document completed / ready)
         const parentId = requestDetails.parent_id;
-        let titleMsg = 'Document Generated';
-        let bodyMsg = `Your requested document for request BM-${id} has been generated. Please wait for further updates.`;
-
-        if (delivery_method === 'emailed') {
-            titleMsg = 'Document Issued (Emailed)';
-            bodyMsg = `Your requested document for request BM-${id} has been generated and issued. Since you chose Email delivery, the document is available in your portal under Request History, and a digital copy is ready.`;
-        } else {
-            titleMsg = 'Document Ready for Pickup';
-            bodyMsg = `Your requested document for request BM-${id} has been generated. Since you chose Pickup delivery, please visit the registrar's office to collect your document.`;
-        }
-
-        await createNotification(parentId, titleMsg, bodyMsg);
+        await createNotification(
+            parentId,
+            'Processing Completed',
+            `Processing has completed for request BM-${id}. ${delivery_method === 'emailed' ? 'Your document is available for download in your portal.' : 'Your document is ready for pickup at the registrar office.'}`
+        );
 
         res.json({
             message: delivery_method === 'emailed' 
@@ -566,11 +582,13 @@ const updateVerification = async (req, res) => {
                 [newStatus, id]
             );
 
-            await createNotification(
-                requestDetails.parent_id,
-                'Request ID Verified',
-                `Your ID verification for request BM-${id} has been approved.`
-            );
+            if (newStatus === 'processing') {
+                await createNotification(
+                    requestDetails.parent_id,
+                    'Processing Begun',
+                    `Identity verified. Processing has begun for request BM-${id}.`
+                );
+            }
         } else {
             const reqRes = await db.query('SELECT parent_id FROM document_requests WHERE request_id = $1', [id]);
             if (reqRes.rows.length === 0) return res.status(404).json({ message: 'Request not found.' });
@@ -583,8 +601,8 @@ const updateVerification = async (req, res) => {
 
             await createNotification(
                 parentId,
-                'Request ID Verification Rejected',
-                `Your ID verification for request BM-${id} was rejected.`
+                'Request Declined',
+                `Your document request BM-${id} has been declined due to ID verification rejection.`
             );
         }
 

@@ -22,13 +22,16 @@ const uploadProfilePicture = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { full_name, phone } = req.body;
+        const { full_name, phone, whatsapp_number, notification_channel } = req.body;
 
         if (!full_name) return res.status(400).json({ message: 'full_name is required.' });
 
+        const channel = ['email', 'whatsapp', 'both'].includes(notification_channel) ? notification_channel : 'email';
+        const wNum = whatsapp_number || phone;
+
         const result = await db.query(
-            'UPDATE parents SET full_name = $1, phone = $2 WHERE parent_id = $3 RETURNING parent_id, full_name, email, phone, profile_picture_path, verified, user_type, created_at',
-            [full_name.trim(), phone ? phone.trim() : null, req.user.id]
+            'UPDATE parents SET full_name = $1, phone = $2, whatsapp_number = $3, notification_channel = $4 WHERE parent_id = $5 RETURNING parent_id, full_name, email, phone, whatsapp_number, signup_method, notification_channel, profile_picture_path, verified, user_type, created_at',
+            [full_name.trim(), phone ? phone.trim() : null, wNum ? wNum.trim() : null, channel, req.user.id]
         );
 
         res.json({ message: 'Profile updated successfully.', user: result.rows[0] });
@@ -41,7 +44,7 @@ const updateProfile = async (req, res) => {
 const getProfile = async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT parent_id, full_name, email, phone, profile_picture_path, verified, user_type, created_at FROM parents WHERE parent_id = $1',
+            'SELECT parent_id, full_name, email, phone, whatsapp_number, signup_method, notification_channel, profile_picture_path, verified, user_type, created_at FROM parents WHERE parent_id = $1',
             [req.user.id]
         );
 

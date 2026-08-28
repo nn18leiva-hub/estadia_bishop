@@ -143,10 +143,11 @@ estadia_bishop/
 
 > ⚠️ **Change these immediately in production.**
 
-| Role | Email | Password |
-|---|---|---|
-| Super Admin | `admin@bishopmartin.edu` | `admin123` |
-| Staff (Admin) | `registrar@bishopmartin.edu` | `staff123` |
+| Role | Email | Password | Target Portal |
+|---|---|---|---|
+| **Super Admin** | `admin@bishopmartin.edu` | `admin123` | `/superadmin` |
+| **Staff (Admin)** | `registrar@bishopmartin.edu` | `staff123` | `/staff` |
+| **Parent / Student** | `parent@example.com` | `password123` | `/dashboard/parents` |
 
 ---
 

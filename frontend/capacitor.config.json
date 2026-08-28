@@ -1,0 +1,17 @@
+{
+  "appId": "com.bishopmartin.virtualoffice",
+  "appName": "BMHS Virtual Office",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#7B1113",
+      "showSpinner": false
+    }
+  }
+}

@@ -88,94 +88,38 @@ export default function UserManagement() {
         </button>
       </section>
 
-      {/* Bento Grid Insights & Featured Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-md">
+      {/* Compact Directory Overview Banner */}
+      <div className="bg-gradient-to-r from-primary via-primary to-primary-container text-on-primary px-sm sm:px-md py-xs sm:py-sm rounded-xl shadow-sm border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-xs sm:gap-sm relative overflow-hidden">
+        <div className="flex items-center gap-xs sm:gap-sm">
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white flex-shrink-0">
+            <span className="material-symbols-outlined text-[18px]">analytics</span>
+          </div>
+          <div>
+            <h3 className="font-headline-sm text-body-md sm:text-body-lg text-white font-bold leading-tight">
+              {t('directory.overview') || 'Directory Overview'}
+            </h3>
+            <p className="text-[11px] text-white/80 leading-tight mt-[1px]">
+              {t('directory.overview.desc') || 'Total counts of registered portal profiles'}
+            </p>
+          </div>
+        </div>
         
-        {/* Insights Bento Card */}
-        <div className="lg:col-span-4 bg-gradient-to-br from-primary to-primary-container text-on-primary p-md flex flex-col justify-between rounded-2xl shadow-sm border border-primary/20 relative overflow-hidden">
-          <div className="absolute inset-0 bento-texture opacity-10 pointer-events-none" />
-          
-          <div className="relative z-10 space-y-xs">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
-              <span className="material-symbols-outlined text-[24px]">analytics</span>
-            </div>
-            <div>
-              <h3 className="font-headline-sm text-headline-sm text-white font-bold">{t('directory.overview') || 'Directory Overview'}</h3>
-              <p className="font-body-sm text-[12px] opacity-80 mt-[2px]">{t('directory.overview.desc') || 'Total counts of registered portal profiles'}</p>
-            </div>
+        <div className="flex items-center gap-sm sm:gap-md bg-black/15 px-sm py-[6px] rounded-lg border border-white/10 text-white self-stretch sm:self-auto justify-around">
+          <div className="text-center px-xs">
+            <p className="text-[9px] uppercase font-bold tracking-wider text-white/70">Staff Members</p>
+            <p className="text-body-md font-bold text-white leading-none mt-0.5">{loading ? '—' : stats.totalStaff || 0}</p>
           </div>
-          
-          <div className="mt-lg grid grid-cols-2 gap-sm relative z-10">
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Staff Members</p>
-              <p className="font-headline-sm text-headline-sm text-white font-bold leading-tight mt-[2px]">{loading ? '—' : stats.totalStaff || 0}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Parents &amp; Alumni</p>
-              <p className="font-headline-sm text-headline-sm text-white font-bold leading-tight mt-[2px]">{loading ? '—' : stats.totalParents || 0}</p>
-            </div>
+          <div className="h-5 w-px bg-white/20" />
+          <div className="text-center px-xs">
+            <p className="text-[9px] uppercase font-bold tracking-wider text-white/70">Parents &amp; Alumni</p>
+            <p className="text-body-md font-bold text-white leading-none mt-0.5">{loading ? '—' : stats.totalParents || 0}</p>
+          </div>
+          <div className="h-5 w-px bg-white/20" />
+          <div className="text-center px-xs">
+            <p className="text-[9px] uppercase font-bold tracking-wider text-white/70">Students</p>
+            <p className="text-body-md font-bold text-white leading-none mt-0.5">{loading ? '—' : stats.totalStudents || 5}</p>
           </div>
         </div>
-
-        {/* Featured Users Cards (Up to 2 users) */}
-        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-md">
-          {loading ? (
-            <div className="sm:col-span-2 bg-surface-container-lowest border border-outline-variant/15 rounded-2xl flex items-center justify-center p-xl shadow-sm">
-              <span className="material-symbols-outlined animate-spin text-primary text-4xl">progress_activity</span>
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="sm:col-span-2 bg-surface-container-lowest border border-outline-variant/15 rounded-2xl flex items-center justify-center p-md shadow-sm text-on-surface-variant font-medium">
-              No featured users available.
-            </div>
-          ) : (
-            filteredUsers.slice(0, 2).map((user, idx) => {
-              const initials = (user.name || '??')
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2);
-              
-              const formatRelative = (dateString) => {
-                if (!dateString) return 'never';
-                const d = new Date(dateString);
-                return d.toLocaleDateString();
-              };
-
-              return (
-                <div
-                  key={user.id || idx}
-                  onClick={() => navigate(`/superadmin/users/${user.id}`)}
-                  className="bg-surface-container-lowest border border-outline-variant/15 p-sm flex flex-col justify-between rounded-2xl hover:border-primary transition-all duration-200 hover:shadow-md cursor-pointer group"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="w-11 h-11 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-headline-sm">
-                      {initials}
-                    </div>
-                    <span className={`font-label-md text-label-md px-sm py-[2px] rounded-lg uppercase font-bold text-[10px] ${STATUS_BADGE[user.status] || STATUS_BADGE.pending}`}>
-                      {t(user.status || 'pending')}
-                    </span>
-                  </div>
-
-                  <div className="mt-md">
-                    <h4 className="font-body-lg text-body-lg text-on-surface font-bold truncate group-hover:text-primary transition-colors">{user.name || '—'}</h4>
-                    <p className="font-label-md text-label-md text-on-surface-variant mt-[2px]">{user.role_title || t(user.role)}</p>
-                    <p className="text-[11px] font-mono text-on-surface-variant/75 mt-[4px]">{user.email}</p>
-                  </div>
-
-                  <div className="mt-md pt-sm border-t border-outline-variant/10 flex items-center justify-between text-on-surface-variant text-[11px]">
-                    <span className="flex items-center gap-xs">
-                      <span className="material-symbols-outlined text-[15px]">history</span>
-                      <span>{user.last_login ? `${t('active') || 'Active'} ${formatRelative(user.last_login)}` : t('never')}</span>
-                    </span>
-                    <span className="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
       </div>
 
       {/* Filters Dashboard Panel */}
@@ -208,7 +152,7 @@ export default function UserManagement() {
               <button
                 type="button"
                 onClick={() => setRoleFilter('staff')}
-                className={`flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold ${
+                className={`flex-1 flex items-center justify-center font-label-md text-[12px] sm:text-[13px] rounded-lg transition-all font-bold ${
                   roleFilter === 'staff' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
                 }`}
               >
@@ -217,11 +161,20 @@ export default function UserManagement() {
               <button
                 type="button"
                 onClick={() => setRoleFilter('parent')}
-                className={`flex-1 flex items-center justify-center font-label-md text-[13px] rounded-lg transition-all font-bold ${
+                className={`flex-1 flex items-center justify-center font-label-md text-[12px] sm:text-[13px] rounded-lg transition-all font-bold ${
                   roleFilter === 'parent' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
                 }`}
               >
                 {t('parents') || 'Parents'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRoleFilter('student')}
+                className={`flex-1 flex items-center justify-center font-label-md text-[12px] sm:text-[13px] rounded-lg transition-all font-bold ${
+                  roleFilter === 'student' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
+                }`}
+              >
+                {t('students') || 'Students'}
               </button>
             </div>
           </div>
@@ -317,22 +270,37 @@ export default function UserManagement() {
                   <div className="flex-grow flex md:grid md:grid-cols-4 items-center justify-between gap-sm md:gap-md min-w-0">
                     
                     <div className="flex items-center gap-sm flex-grow min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/10 flex-shrink-0">{initials}</div>
+                      <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase shadow-sm border border-primary/15 flex-shrink-0">{initials}</div>
                       <div className="min-w-0 flex-grow">
-                        <p className="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">{user.name}</p>
-                        <p className="font-body-sm text-[12px] text-on-surface-variant truncate">{user.email}</p>
+                        <div className="flex items-center gap-xs">
+                          <p className="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors font-bold truncate">{user.name}</p>
+                          {user.student_code && (
+                            <span className="px-xs py-0.5 rounded bg-primary/10 text-primary font-mono text-[10px] font-bold border border-primary/20">
+                              {user.student_code}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-body-sm text-[12px] text-on-surface-variant truncate">
+                          {user.role === 'student' ? `Parent: ${user.email}` : user.email}
+                        </p>
                       </div>
                     </div>
                     
                     <div className="hidden md:block">
-                      <p className="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Access Role</p>
-                      <p className="font-body-md text-sm font-semibold text-on-surface mt-[2px]">{user.role_title || t(user.role)}</p>
+                      <p className="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">
+                        {user.role === 'student' ? 'Class / Grade' : 'Access Role'}
+                      </p>
+                      <p className="font-body-md text-sm font-semibold text-primary mt-[2px]">
+                        {user.role === 'student' ? (user.class_grade || 'N/A') : (user.role_title || t(user.role))}
+                      </p>
                     </div>
                     
                     <div className="hidden md:block">
-                      <p className="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Last Activity</p>
+                      <p className="font-label-md text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">
+                        {user.role === 'student' ? 'Homeroom Teacher' : 'Last Activity'}
+                      </p>
                       <p className={`font-body-md text-sm font-semibold text-on-surface mt-[2px] ${user.status === 'pending' ? 'text-red-500' : ''}`}>
-                        {user.last_login ? formatRelative(user.last_login) : 'Never active'}
+                        {user.role === 'student' ? (user.homeroom_teacher || 'N/A') : (user.last_login ? formatRelative(user.last_login) : 'Never active')}
                       </p>
                     </div>
                     

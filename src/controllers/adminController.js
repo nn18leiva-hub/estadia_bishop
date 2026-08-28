@@ -70,6 +70,23 @@ const getUsers = async (req, res) => {
       }));
 
       res.json(mapped);
+    } else if (role === 'student') {
+      const studentService = require('../services/studentService');
+      const students = await studentService.searchStudents(search || '');
+      const mapped = students.map(st => ({
+        id: `student-${st.student_id}`,
+        student_code: st.student_code,
+        name: st.full_name,
+        email: st.parent_email || 'N/A',
+        class_grade: st.class_grade || 'N/A',
+        homeroom_teacher: st.homeroom_teacher || 'N/A',
+        role: 'student',
+        role_title: `Student (${st.class_grade || 'Enrolled'})`,
+        status: 'active',
+        dob: st.dob,
+        last_login: null
+      }));
+      return res.json(mapped);
     } else {
       // role === 'parent'
       let queryText = `
@@ -121,6 +138,7 @@ const getUserStats = async (req, res) => {
   try {
     const staffCountRes = await db.query('SELECT COUNT(*) FROM staff');
     const parentCountRes = await db.query('SELECT COUNT(*) FROM parents');
+    const studentCountRes = await db.query('SELECT COUNT(*) FROM students').catch(() => ({ rows: [{ count: 0 }] }));
 
     // Online counts (active in last 15 minutes)
     const activeStaffRes = await db.query("SELECT COUNT(*) FROM staff WHERE last_activity > NOW() - INTERVAL '15 minutes'");
@@ -128,11 +146,13 @@ const getUserStats = async (req, res) => {
 
     const totalStaff = parseInt(staffCountRes.rows[0].count);
     const totalParents = parseInt(parentCountRes.rows[0].count);
+    const totalStudents = parseInt(studentCountRes.rows[0]?.count || 0);
     const activeNow = parseInt(activeStaffRes.rows[0].count) + parseInt(activeParentsRes.rows[0].count);
 
     res.json({
       totalStaff,
       totalParents,
+      totalStudents,
       activeNow
     });
   } catch (err) {
